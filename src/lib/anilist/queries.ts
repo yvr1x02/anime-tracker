@@ -30,6 +30,12 @@ export const AnimeDetailQuery = graphql(`
       duration
       season
       seasonYear
+      airingSchedule(notYetAired: true, perPage: 4) {
+        nodes {
+          episode
+          airingAt
+        }
+      }
     }
   }
 `);

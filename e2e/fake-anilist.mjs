@@ -3,6 +3,16 @@
 import http from "node:http";
 
 const PORT = 3999;
+const HOUR = 3600;
+const startedAt = Math.floor(Date.now() / 1000);
+// Unsorted on purpose, with one episode that has already aired: the app must sort and drop it.
+const schedule = [
+  { episode: 15, airingAt: startedAt + 14 * 24 * HOUR },
+  { episode: 12, airingAt: startedAt - HOUR },
+  { episode: 13, airingAt: startedAt + 2 * HOUR },
+  { episode: 16, airingAt: startedAt + 21 * 24 * HOUR },
+  { episode: 14, airingAt: startedAt + 7 * 24 * HOUR },
+];
 
 const anime = {
   1: {
@@ -19,6 +29,22 @@ const anime = {
     duration: 24,
     season: "FALL",
     seasonYear: 2026,
+    airingSchedule: { nodes: schedule },
+  },
+  4: {
+    id: 4,
+    title: { romaji: "Senza palinsesto", english: null, native: null },
+    coverImage: null,
+    description: null,
+    genres: [],
+    studios: { nodes: [] },
+    format: "MOVIE",
+    status: "FINISHED",
+    episodes: 1,
+    duration: 90,
+    season: null,
+    seasonYear: 2025,
+    airingSchedule: { nodes: [] },
   },
   // Adult anime: the app must never show it, so queries ask for isAdult: false.
   3: { id: 3, isAdult: true, title: { romaji: "Solo per adulti" } },

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { CoverImage } from "@/components/cover-image";
 import { KanjiBackdrop } from "@/components/kanji-backdrop";
+import { NextEpisode, UpcomingEpisodes } from "@/components/upcoming-episodes";
 import { AniListError } from "@/lib/anilist/client";
 import { AnimeDetailQuery } from "@/lib/anilist/queries";
 import { requestAniListCached } from "@/lib/anilist/server";
@@ -91,6 +92,7 @@ export default async function AnimeDetailPage({ params }: PageProps<"/anime/[id]
             {facts.length > 0 && (
               <p className="mt-4 text-small text-ink-muted tabular-nums">{facts.join(" · ")}</p>
             )}
+            <NextEpisode schedule={anime.airingSchedule?.nodes} />
           </div>
         </div>
       </header>
@@ -132,6 +134,8 @@ export default async function AnimeDetailPage({ params }: PageProps<"/anime/[id]
               </ul>
             </section>
           )}
+
+          <UpcomingEpisodes schedule={anime.airingSchedule?.nodes} />
         </div>
 
         <aside aria-label="Scheda" className="flex flex-col gap-4 self-start lg:sticky lg:top-[88px]">
