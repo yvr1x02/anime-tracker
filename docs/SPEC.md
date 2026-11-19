@@ -81,6 +81,10 @@ Gli stessi di AniList, per permettere in futuro una sincronizzazione senza conve
 - Al primo passaggio a "Sto guardando" si compila la data di inizio, se vuota.
 - Al passaggio a "Completato" si compila la data di fine e gli episodi visti diventano il totale degli episodi.
 
+### Backup
+
+Dalla pagina "La mia lista" si può esportare la lista in un file JSON e reimportarla, per non perderla se si svuotano i dati del browser o si cambia computer (ADR-0002).
+
 ## Fuori dalla v1
 
 - Manga
