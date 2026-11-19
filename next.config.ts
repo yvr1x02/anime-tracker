@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  // No cacheComponents: ADR-0003 uses fetch cache with revalidate, which survives deploys.
   turbopack: {
     rules: {
       "*.css": {
