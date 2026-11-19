@@ -99,3 +99,18 @@
     outline-offset: 2px;
   }
 }
+
+/*
+ * Tints from the cover colour (docs/DESIGN.md, "Tinta dalla copertina"): fixed lightness, the cover's hue,
+ * capped chroma; opacity grows with the cover's chroma so grey covers add no grey cast.
+ * Without relative colour syntax the variables are invalid and nothing is tinted.
+ */
+@layer components {
+  .has-cover {
+    --tint: oklch(from var(--cover) 0.2067 min(calc(c * 0.6), 0.06) h / min(calc(c * 20), 1));
+    --tint-header: oklch(from var(--cover) 0.27 min(c, 0.12) h / min(calc(c * 20), 1));
+    --tint-chip: oklch(from var(--cover) 0.32 min(calc(c * 0.8), 0.1) h / min(calc(c * 20), 1));
+    --tint-kanji: oklch(from var(--cover) 0.7 min(c, 0.12) h / 0.14);
+    --tint-cover-glow: oklch(from var(--cover) 0.5 min(c, 0.18) h / min(calc(c * 11), 0.55));
+  }
+}
