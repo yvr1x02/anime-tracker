@@ -6,7 +6,7 @@ const config: CodegenConfig = {
   // shortcut: M0 has no queries yet, so an empty document set must not fail; remove once M1 adds the first query.
   ignoreNoDocuments: true,
   generates: {
-    "src/gql/": { preset: "client" },
+    "src/gql/": { preset: "client", config: { documentMode: "string" } },
   },
 };
 
