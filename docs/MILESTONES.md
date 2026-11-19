@@ -2,34 +2,41 @@
 
 Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni milestone termina con qualcosa che funziona e si può provare online.
 
-**Milestone attiva:** M0
+**Regola per ogni milestone:** ogni nuova pagina entra nel controllo di accessibilità di `e2e/accessibility.spec.ts` (axe, WCAG 2.2 AA) nello stesso commit che la aggiunge.
 
-## M0 — Fondamenta
+**Milestone attiva:** M1
+
+## M0 — Fondamenta (completata il 2026-11-19)
 
 - Progetto Next.js con TypeScript, Tailwind CSS v4 e lint (ADR-0001).
 - Vitest e Playwright configurati, con un test di esempio ciascuno.
 - GraphQL Codegen collegato allo schema ufficiale di AniList.
 - `.gitignore`.
 - **Direzione visiva** in `docs/DESIGN.md`: palette, font, aspetto di una card. Approvata prima di scrivere i componenti.
-- Layout di base con l'attribuzione ad AniList su ogni pagina.
+- Layout di base con la dichiarazione di ADR-0004 su ogni pagina: client non ufficiale, non affiliato ad AniList, dati forniti da AniList, con link.
 - Scelta del meccanismo di cache di Next.js sulla versione installata (ADR-0003).
 - Pubblicazione su Vercel, aggiornata a ogni push.
 - Comandi compilati nel `CLAUDE.md`.
+- La misura del movimento con CPU rallentata 4×, prevista qui, passa a M1: si fa sull'app vera, non sull'anteprima di `docs/DESIGN.md`.
 
 ## M1 — Ricerca e Dettaglio
 
 - Client per AniList e prime query tipizzate.
 - Pagina di Ricerca (ADR-0003: 400 ms, almeno 3 caratteri).
 - Pagina di Dettaglio, con cache sul server.
+- Elenco dei prossimi episodi nel Dettaglio, dal palinsesto di AniList (`airingSchedule`, `docs/DESIGN.md`).
+- Pagina d'errore (`error.tsx`) in italiano, con i messaggi di ADR-0003.
 - Verifiche: richieste dirette dal browser ad AniList (CORS); ricerca dei titoli italiani tra i sinonimi.
+- **Misura con CPU rallentata 4×** (Chrome DevTools, a macchina scarica) della transizione card → Dettaglio vera. Se perde frame diventa una dissolvenza, secondo il budget di prestazioni di `docs/DESIGN.md`.
 
-## M2 — La mia lista
+## M2 — Login e La mia lista
 
-- Store Zustand con `persist` e numero di versione (ADR-0002).
-- Aggiunta e modifica dal Dettaglio e dalle card.
-- Pagina "La mia lista" con filtro per stato.
+- Login OAuth con AniList (ADR-0004): avvio, ritorno con verifica di `state`, cookie di sessione `__Host-`, logout che svuota anche la cache di TanStack Query. Due applicazioni AniList (sviluppo e produzione) e variabili d'ambiente su Vercel.
+- Pagina "La mia lista" con filtro per stato, letta da AniList con una sola richiesta.
+- Aggiunta, modifica ed eliminazione dal Dettaglio, dalle card e dalla lista, con aggiornamento immediato e ritorno allo stato precedente in caso di errore. Clic sugli episodi raggruppati (800ms), inviati subito se la pagina viene nascosta o chiusa.
 - Regole automatiche su date ed episodi.
-- Esportazione e importazione del backup.
+- Modalità demo in sola lettura senza login (`ANILIST_DEMO_USERNAME`).
+- Verifiche elencate in ADR-0004, "Da verificare all'implementazione".
 
 ## M3 — Home
 
@@ -39,11 +46,11 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 - Settimana corrente e settimane successive.
 - Orari nel fuso del browser, con test su fusi espliciti.
-- Filtro "solo la mia lista".
+- Filtro "solo la mia lista", disattivato senza login.
 
 ## M5 — Statistiche
 
-- Calcoli testati con Vitest.
+- Calcoli sulla lista letta da AniList, testati con Vitest; modalità demo senza login.
 - Grafici Recharts con alternativa testuale dei dati.
 
 ## M6 — Rifinitura

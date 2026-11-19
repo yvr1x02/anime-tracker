@@ -1,7 +1,9 @@
 # ADR-0002 — Lista personale salvata nel browser
 
-**Stato:** accettato
+**Stato:** sostituito da [ADR-0004](0004-client-anilist-con-login.md)
 **Data:** 2026-11-19
+
+> I termini d'uso dell'API di AniList vietano i servizi di lista o tracker concorrenti e l'uso dell'API come archivio di dati: questa decisione non è più valida. La lista vive sull'account AniList dell'utente (ADR-0004).
 
 ## Contesto
 

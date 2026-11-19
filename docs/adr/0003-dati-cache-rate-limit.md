@@ -23,7 +23,30 @@ Con Next.js (ADR-0001) le richieste possono partire dal server o dal browser:
 | Calendario | Server, per settimana | 1 ora | Uguale per tutti; gli orari possono essere spostati. Il filtro "solo la mia lista" si applica nel browser |
 | Ricerca | Browser, direttamente ad AniList | — | Ogni ricerca è diversa; ogni visitatore usa il proprio limite |
 
-Il meccanismo di cache di Next.js si sceglie in M0 sulla versione installata; qui sono fissate solo le durate.
+### Meccanismo di cache (scelto in M0, 2026-11-19)
+
+**Cache di `fetch` con `revalidate`, senza Cache Components.** Ogni richiesta del server ad AniList usa `cache: "force-cache"` e `next: { revalidate }` con la durata della tabella sopra (Home 21600 secondi, Dettaglio e Calendario 3600). `cacheComponents` e `partialPrefetching`, attivi nel template, sono tolti da `next.config.ts`.
+
+Motivi, dalla documentazione di Next.js 16.4.6 inclusa nel pacchetto:
+
+- con la cache di `fetch` (ISR), se l'aggiornamento fallisce "the last successfully generated data will continue to be served"; per Cache Components la documentazione non lo dice;
+- la cache di `fetch` sopravvive ai deploy, mentre quella di `'use cache'` no, perché la sua chiave contiene l'identificativo della build; inoltre, su un hosting serverless come Vercel, la cache in memoria di `'use cache'` di solito non dura tra una richiesta e l'altra;
+- la cache di `fetch` vale anche per le richieste `POST` di GraphQL: la chiave comprende il corpo della richiesta.
+
+**Prova locale del 2026-11-19** (`next build` e `next start`, finto AniList su localhost che risponde 200 o 429, `revalidate` di 10 secondi, una pagina di prova poi cancellata):
+
+| Caso | Cache Components (`'use cache'` + `cacheLife`) | `fetch` + `revalidate` |
+|---|---|---|
+| Visite entro la durata della cache | Dati in cache, nessuna richiesta | Uguale |
+| Cache scaduta, AniList risponde | Prima visita: dati vecchi, aggiornamento in sottofondo; visita dopo: dati nuovi. Nessun errore | Uguale |
+| Cache scaduta, AniList risponde 429 | Dati vecchi con stato 200, nessuna pagina d'errore; un solo tentativo per finestra di `revalidate`, non a ogni visita | Uguale |
+| AniList torna a rispondere | Alla finestra successiva i dati si aggiornano | Uguale |
+| Nuova build con AniList in 429 | Build riuscita, ma la pagina torna ai dati della **prima** build, più vecchi di quelli serviti prima | Build riuscita, la pagina mostra **gli ultimi dati** scaricati |
+| Build senza dati in cache, AniList in 429 | — | La build si ferma con un errore: non si pubblica una pagina vuota |
+
+La prova gira su `next start`, che tiene la cache su disco. **Da verificare su Vercel in M1**, con la prima query vera: dati vecchi durante un 429 e cache che sopravvive a un nuovo deploy.
+
+**Conseguenze della scelta:** si rinuncia al Partial Prefetching, che richiede Cache Components. Le parti personali delle pagine (ADR-0004) si caricano comunque dal browser.
 
 ### Ricerca
 
@@ -42,8 +65,15 @@ Il meccanismo di cache di Next.js si sceglie in M0 sulla versione installata; qu
 |---|---|
 | Ricerca bloccata dal limite | "AniList sta ricevendo troppe richieste. Riprovo tra {secondi} secondi." |
 | Ricerca fallita anche dopo il nuovo tentativo | "Non riesco a raggiungere AniList in questo momento. Riprova tra qualche minuto." |
-| Pagina servita con dati in cache scaduti | "Dati aggiornati alle {ora}: AniList al momento non risponde." |
+| Pagina con dati più vecchi della durata della loro cache | "Dati aggiornati alle {ora}." |
 | Pagina senza dati in cache e AniList non raggiungibile | "Non riesco a caricare i dati da AniList. Riprova tra qualche minuto." |
+
+**Modifica del 2026-11-19 (M0).** La riga dei dati vecchi diceva "Dati aggiornati alle {ora}: AniList al momento non risponde." Ma con lo stale-while-revalidate dati più vecchi della durata della cache sono normali: per esempio, il primo visitatore dopo un periodo senza visite. Quindi:
+
+- dati più vecchi della durata della loro cache: solo "Dati aggiornati alle {ora}.", in tono neutro;
+- "AniList al momento non risponde" e gli altri messaggi d'errore compaiono solo quando una richiesta fallisce davvero, mai dedotti dall'età dei dati.
+
+Con la cache di `fetch`, un aggiornamento fallito sul server non arriva alla pagina: il visitatore riceve la versione precedente, al massimo con il messaggio neutro. I messaggi d'errore riguardano quindi le richieste dal browser (Ricerca, parti personali) e le pagine senza dati in cache. Da verificare in M1: l'ora dei dati deve essere quella del download, non quella della generazione della pagina, per esempio dall'intestazione `Date` della risposta, che resta in cache insieme ai dati.
 
 ## Alternative considerate
 

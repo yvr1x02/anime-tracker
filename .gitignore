@@ -1,0 +1,25 @@
+# Dependencies
+/node_modules
+
+# Next.js
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+
+# GraphQL Codegen output, regenerated from schema/anilist.graphql
+/src/gql/
+
+# Tests
+/coverage
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# Environment and local files
+.env*
+!.env.example
+.vercel
+.DS_Store
+npm-debug.log*
