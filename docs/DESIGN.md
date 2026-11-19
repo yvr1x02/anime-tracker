@@ -195,8 +195,13 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
   - Spazio tra le due colonne 64px, tra le sezioni della colonna principale 56px; padding del corpo 64px sopra e 96px sotto.
   - Sotto i 1024px la colonna laterale va dopo quella principale.
 - **Generi:** chip con la tinta della copertina (vedi la tabella della tinta).
-- **Prossimi episodi:** elenco ordinato (`<ol>`) dei prossimi 4 episodi, calcolati da `nextAiringEpisode` a intervalli di 7 giorni senza superare il numero totale di episodi. Ogni riga: numero dell'episodio, giorno e ora nel fuso del browser (`<time datetime>`), distanza relativa ("tra 2 ore", "tra 7 giorni", con `Intl.RelativeTimeFormat`). Ogni riga è una griglia `5rem 1fr auto` con spazio di 16px, padding verticale 12px e bordo inferiore `border`; numero in peso 600, distanza in `small` `text-muted`, tutto con `tabular-nums`. Il primo episodio è in ciano, con prefisso "Prossimo:" per i lettori di schermo. Sopra l'elenco: "Messa in onda in Giappone, nel fuso del tuo browser (Europe/Rome)." Senza episodi in programma: "Nessun episodio in programma."
-  - **Da verificare in M4:** gli intervalli di 7 giorni sono una stima. Il dato vero è `airingSchedule`, che AniList fornisce per ogni episodio, e va usato quando c'è.
+- **Prossimi episodi:** elenco ordinato (`<ol>`) dei prossimi episodi non ancora andati in onda, al massimo 4.
+  - **Dati: il palinsesto di AniList**, nella stessa richiesta del Dettaglio (cache di 1 ora, ADR-0003): `Media.airingSchedule(notYetAired: true, perPage: 4) { nodes { episode airingAt } }`. Verificato nello schema: `airingSchedule(notYetAired: Boolean, page: Int, perPage: Int)` con `perPage` al massimo 25, `AiringSchedule.episode: Int!` e `airingAt: Int!` (istante in secondi Unix). Lo schema non garantisce l'ordine: gli episodi si ordinano per `airingAt`. Nessuna data viene stimata o calcolata a intervalli fissi.
+  - I dati possono avere fino a 1 ora: nel browser si scartano gli episodi con `airingAt` già passato al momento della visualizzazione. Se non ne resta nessuno, o AniList non ne fornisce: "Nessun episodio in programma."
+  - **Righe:** numero dell'episodio, giorno e ora (`<time datetime>` con l'istante ISO), distanza relativa ("tra 2 ore", "tra 7 giorni", con `Intl.RelativeTimeFormat`). Ogni riga è una griglia `5rem 1fr auto` con spazio di 16px, padding verticale 12px e bordo inferiore `border`; numero in peso 600, distanza in `small` `text-muted`, tutto con `tabular-nums`. Il primo episodio è in ciano, con prefisso "Prossimo:" per i lettori di schermo.
+  - **Fuso orario reale del browser, mai un valore fisso.** Sopra l'elenco: "Messa in onda in Giappone, nel fuso del tuo browser ({fuso})." dove `{fuso}` è `Intl.DateTimeFormat().resolvedOptions().timeZone`, letto nel browser di chi guarda (per esempio "Europe/Rome" in Italia, "Asia/Tokyo" in Giappone).
+  - **Formattazione nel browser:** il server non conosce il fuso del visitatore, quindi invia solo gli istanti (`airingAt`); giorno, ora, distanza relativa e nome del fuso si calcolano nel browser con `Intl.DateTimeFormat` senza fuso esplicito. Calcolarli sul server darebbe orari sbagliati e differenze tra HTML del server e del client. Finché il browser non li ha calcolati, le righe mostrano uno stato di attesa della stessa altezza, per non spostare il layout.
+  - I test della formattazione usano fusi espliciti (vedi `CLAUDE.md`).
 
 ## Card dell'anime
 
@@ -235,7 +240,7 @@ Usata in Home, Ricerca e Lista.
 
 ### Badge "in onda"
 
-Testo `cyan` su fondo `bg` pieno (12,36:1), in basso a sinistra sulla copertina: "Ep. 7 · mer 16:30". Giorno e ora sono nel fuso del browser, calcolati da `nextAiringEpisode.airingAt` (verificato nello schema: `AiringSchedule.airingAt: Int!`, `episode: Int!`).
+Testo `cyan` su fondo `bg` pieno (12,36:1), in basso a sinistra sulla copertina: "Ep. 7 · mer 16:30". Giorno e ora sono nel fuso del browser, calcolati nel browser (come per i prossimi episodi del Dettaglio) da `nextAiringEpisode.airingAt` (verificato nello schema: `AiringSchedule.airingAt: Int!`, `episode: Int!`).
 
 ### Stati della card
 
@@ -312,7 +317,7 @@ I valori vengono da un piccolo script che simula una molla smorzata e semplifica
 ### Striscia "in onda ora"
 
 - **Posizione: una riga propria sotto l'header, a tutta la larghezza del contenuto, sia su mobile sia su desktop.** Contiene l'etichetta "In onda ora" (ciano, con un punto), la zona che scorre e il pulsante "Pausa / Riprendi". Altezza minima 44px, testo `small`.
-- **Su desktop (da 1024px) mostra sempre almeno due voci intere contemporaneamente.** Ogni voce è "**Titolo** · Ep. 15 · sab 23:00", su una riga, con 32px tra una voce e l'altra. A 1024px la zona pienamente visibile (tolte etichetta, pulsante e sfumature) è di circa 620px, quindi ogni voce è larga al massimo **18rem** (288px). Se il titolo non ci sta, si accorcia con i puntini (`text-overflow: ellipsis`) mentre numero dell'episodio e orario restano interi. I lettori di schermo leggono comunque il titolo completo, che resta nel testo della pagina.
+- **Su desktop (da 1024px) mostra sempre almeno due voci intere contemporaneamente.** Ogni voce è "**Titolo** · Ep. 15 · sab 23:00" (orario formattato nel browser, nel suo fuso), su una riga, con 32px tra una voce e l'altra. A 1024px la zona pienamente visibile (tolte etichetta, pulsante e sfumature) è di circa 620px, quindi ogni voce è larga al massimo **18rem** (288px). Se il titolo non ci sta, si accorcia con i puntini (`text-overflow: ellipsis`) mentre numero dell'episodio e orario restano interi. I lettori di schermo leggono comunque il titolo completo, che resta nel testo della pagina.
 - Contenuto duplicato per il ciclo continuo: la copia ha `aria-hidden="true"` e `inert`, quindi lettori di schermo e tastiera vedono gli elementi una volta sola. L'animazione sposta la traccia di `-50%` in ciclo.
 - **Velocità costante** di circa 40px al secondo: la durata dell'animazione si calcola dalla larghezza del contenuto, non è fissa.
 - **Bordi sfumati** con `mask-image` (64px per lato): il testo entra ed esce in dissolvenza, mai tagliato di netto. Con movimento ridotto la sfumatura resta e l'elenco ha 64px di margine ai lati, così il primo e l'ultimo elemento sono leggibili.
