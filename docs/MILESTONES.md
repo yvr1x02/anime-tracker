@@ -15,12 +15,14 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Scelta del meccanismo di cache di Next.js sulla versione installata (ADR-0003).
 - Pubblicazione su Vercel, aggiornata a ogni push.
 - Comandi compilati nel `CLAUDE.md`.
+- **Verifica da completare prima di chiudere M0:** misura degli effetti di movimento di `docs/DESIGN.md` con Chrome DevTools e CPU rallentata 4×, dopo la fine di `brew upgrade` (con il computer sotto carico le misure non sono valide). Gli effetti che perdono frame si semplificano secondo il criterio del budget di prestazioni.
 
 ## M1 — Ricerca e Dettaglio
 
 - Client per AniList e prime query tipizzate.
 - Pagina di Ricerca (ADR-0003: 400 ms, almeno 3 caratteri).
 - Pagina di Dettaglio, con cache sul server.
+- Elenco dei prossimi episodi nel Dettaglio, dal palinsesto di AniList (`airingSchedule`, `docs/DESIGN.md`).
 - Verifiche: richieste dirette dal browser ad AniList (CORS); ricerca dei titoli italiani tra i sinonimi.
 
 ## M2 — La mia lista
