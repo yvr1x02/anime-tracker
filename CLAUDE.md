@@ -22,4 +22,18 @@ Specifica: [docs/SPEC.md](docs/SPEC.md). Piano a milestone: [docs/MILESTONES.md]
 
 ## Comandi
 
-Da compilare in M0, quando il progetto è inizializzato (install, dev, lint, typecheck, test, build).
+Node 22 (`engines` in `package.json`).
+
+| Comando | Cosa fa |
+|---|---|
+| `npm ci` | Installa le dipendenze dal lockfile |
+| `npx playwright install --only-shell chromium` | Scarica il Chromium senza finestra per i test end-to-end (una volta per macchina, fuori dal repository) |
+| `npm run dev` | Server di sviluppo su `http://localhost:3000`; prima rigenera i tipi GraphQL |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | Rigenera i tipi di route e GraphQL, poi `tsc --noEmit` |
+| `npm test` | Test di Vitest (`src/**/*.test.ts`) |
+| `npm run test:e2e` | Test di Playwright (`e2e/`), compresi i controlli axe: fa la build e la avvia sulla porta 3100, che deve essere libera |
+| `npm run build` | Build di produzione; prima rigenera i tipi GraphQL |
+| `npm run start` | Avvia la build di produzione su `http://localhost:3000` |
+| `npm run codegen` | Rigenera i tipi in `src/gql/` dallo schema salvato |
+| `npm run codegen:schema` | Riscarica lo schema da AniList: solo quando serve aggiornarlo, perché consuma il limite di richieste |
