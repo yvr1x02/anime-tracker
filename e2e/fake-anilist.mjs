@@ -20,6 +20,8 @@ const anime = {
     season: "FALL",
     seasonYear: 2026,
   },
+  // Adult anime: the app must never show it, so queries ask for isAdult: false.
+  3: { id: 3, isAdult: true, title: { romaji: "Solo per adulti" } },
 };
 
 const notFound = { data: { Media: null }, errors: [{ message: "Not Found.", status: 404 }] };
@@ -34,7 +36,9 @@ http
     request.on("data", (chunk) => (body += chunk));
     request.on("end", () => {
       const { query, variables } = JSON.parse(body);
-      const media = query.includes("query AnimeDetail") ? anime[variables?.id] : undefined;
+      const found = query.includes("query AnimeDetail") ? anime[variables?.id] : undefined;
+      // Like AniList: with isAdult: false an adult anime is simply not found.
+      const media = found?.isAdult && query.includes("isAdult: false") ? undefined : found;
       response.writeHead(media ? 200 : 404, { "Content-Type": "application/json" });
       response.end(JSON.stringify(media ? { data: { Media: media } } : notFound));
     });

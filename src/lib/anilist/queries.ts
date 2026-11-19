@@ -1,9 +1,9 @@
 import { graphql } from "@/gql";
 
-// Fields checked against schema/anilist.graphql.
+// Fields checked against schema/anilist.graphql. Every query excludes adult anime (isAdult: false, see SPEC).
 export const AnimeDetailQuery = graphql(`
   query AnimeDetail($id: Int!) {
-    Media(id: $id, type: ANIME) {
+    Media(id: $id, type: ANIME, isAdult: false) {
       id
       title {
         romaji

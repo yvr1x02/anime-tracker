@@ -9,6 +9,7 @@ Un client non ufficiale e complementare di AniList per seguire i propri anime, b
 ## Ambito della v1
 
 - **Solo anime.** I manga sono rimandati a una versione successiva.
+- **Niente anime per adulti.** Tutte le richieste ad AniList li escludono (`isAdult: false`): non compaiono in Ricerca, Home e Calendario, e il loro Dettaglio risponde con la pagina 404.
 - **Login con AniList, facoltativo.** La lista personale è quella dell'account AniList dell'utente: l'app la mostra e la modifica, senza conservarne copie (ADR-0004).
 
 ## Con e senza login
@@ -40,6 +41,7 @@ Ricerca degli anime per titolo, senza filtri aggiuntivi nella v1. Dalle card dei
 
 La scheda di un anime: copertina, titolo, trama, generi, studio, numero e durata degli episodi, stato di messa in onda, prossimo episodio in uscita. Da qui si aggiunge l'anime alla lista e se ne modifica la voce.
 
+- **Trama:** quella di AniList, che è in inglese. Il testo ha `lang="en"` e accanto al titolo della sezione compare "(in inglese, da AniList)". Gli spoiler segnati da AniList non si mostrano.
 - **Prossimi episodi:** elenco dei prossimi episodi non ancora andati in onda (fino a 4), presi dal palinsesto di AniList, con numero, giorno e ora nel fuso del browser. Se non ci sono episodi in programma, la scheda lo dice.
 
 ### 4. La mia lista

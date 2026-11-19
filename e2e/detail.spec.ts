@@ -24,16 +24,20 @@ test("description is shown as plain text, with markup removed", async ({ page })
   await page.goto("/anime/1");
 
   const plot = page.getByRole("region", { name: "Trama" });
-  await expect(plot.getByRole("paragraph")).toHaveText([
+  await expect(plot.getByText("(in inglese, da AniList)")).toBeVisible();
+  await expect(plot.locator('[lang="en"] p')).toHaveText([
     "Una storia inventata per i test & nient'altro.",
     "Secondo paragrafo con corsivo.",
   ]);
   await expect(plot.locator("script, img, i")).toHaveCount(0);
+  // WCAG 3.1.2: the English plot is marked as such on an Italian page.
+  await expect(plot.locator('[lang="en"]')).toHaveCount(1);
+  await expect(plot.locator('[lang="en"] p')).toHaveCount(2);
   expect(dialogs).toEqual([]);
 });
 
-for (const path of ["/anime/2", "/anime/abc", "/anime/0", "/anime/99999999999"]) {
-  test(`unknown or invalid id gives the 404 page: ${path}`, async ({ page }) => {
+for (const path of ["/anime/2", "/anime/3", "/anime/abc", "/anime/0", "/anime/99999999999"]) {
+  test(`unknown, adult or invalid id gives the 404 page: ${path}`, async ({ page }) => {
     const response = await page.goto(path);
     expect(response?.status()).toBe(404);
     await expect(page.getByRole("heading", { level: 1, name: "Pagina non trovata" })).toBeVisible();

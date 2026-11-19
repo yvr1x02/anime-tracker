@@ -98,15 +98,21 @@ export default async function AnimeDetailPage({ params }: PageProps<"/anime/[id]
       <div className={`${pageContainer} grid gap-16 pt-16 pb-24 lg:grid-cols-[1fr_20rem]`}>
         <div className="flex max-w-[65ch] flex-col gap-14">
           <section aria-labelledby="trama">
-            <h2 id="trama" className="text-h2">
-              Trama
-            </h2>
+            <div className="flex flex-wrap items-baseline gap-x-3">
+              <h2 id="trama" className="text-h2">
+                Trama
+              </h2>
+              {paragraphs.length > 0 && <p className="text-small text-ink-muted">(in inglese, da AniList)</p>}
+            </div>
             {paragraphs.length > 0 ? (
-              paragraphs.map((paragraph, index) => (
-                <p key={index} className="mt-4 whitespace-pre-line">
-                  {paragraph}
-                </p>
-              ))
+              // AniList only has English plots: lang lets screen readers switch voice (WCAG 3.1.2).
+              <div lang="en">
+                {paragraphs.map((paragraph, index) => (
+                  <p key={index} className="mt-4 whitespace-pre-line">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
             ) : (
               <p className="mt-4 text-ink-muted">Trama non disponibile.</p>
             )}
