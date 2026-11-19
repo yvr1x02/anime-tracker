@@ -9,7 +9,7 @@ export default function NotFound() {
   return (
     <>
       <h1 className="text-h1">Pagina non trovata</h1>
-      <p className="mt-4 text-text-muted">
+      <p className="mt-4 text-ink-muted">
         L&apos;indirizzo non corrisponde a nessuna pagina di Anime Tracker.
       </p>
       <p className="mt-6">

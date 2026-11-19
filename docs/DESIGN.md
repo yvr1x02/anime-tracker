@@ -25,11 +25,11 @@ Tema unico scuro (`color-scheme: dark`). **Il tema chiaro è fuori dalla v1**: l
 | `raised` | `#231A40` | Elementi sopra le superfici: menu, campi, chip, skeleton, copertina mancante |
 | `border` | `#3A2F5E` | Separatori decorativi (non portano informazione) |
 | `border-strong` | `#7C6CB0` | Bordi che identificano un controllo (campi, pulsanti secondari) |
-| `text` | `#F4F0FF` | Testo principale, indicatore della pagina attiva, filtro attivo |
-| `text-muted` | `#B8AED8` | Metadati, testo secondario |
+| `ink` | `#F4F0FF` | Testo principale, indicatore della pagina attiva, filtro attivo |
+| `ink-muted` | `#B8AED8` | Metadati, testo secondario |
 | `pink` | `#FF5C8A` | Accento primario: vedi le regole sotto |
 | `cyan` | `#5CE1E6` | Accento secondario: anello di focus, link nel testo, tutto ciò che è "in onda" |
-| `on-accent` | `#0E0A1F` | Testo e icone sopra rosa, ciano o `text` |
+| `on-accent` | `#0E0A1F` | Testo e icone sopra rosa, ciano o `ink` |
 | `danger` | `#FF8080` | Errori |
 | `warning` | `#FFC861` | Avvisi (es. dati in cache scaduti, ADR-0003) |
 | `success` | `#6EE7A8` | Conferme |
@@ -40,8 +40,8 @@ Testo normale richiede 4,5:1; testo grande e componenti dell'interfaccia 3:1.
 
 | Primo piano | su `bg` | su `surface` | su `raised` |
 |---|---|---|---|
-| `text` | 17,34 | 16,10 | 14,50 |
-| `text-muted` | 9,32 | 8,66 | 7,80 |
+| `ink` | 17,34 | 16,10 | 14,50 |
+| `ink-muted` | 9,32 | 8,66 | 7,80 |
 | `pink` | 6,61 | 6,14 | 5,53 |
 | `cyan` | 12,36 | 11,48 | 10,34 |
 | `danger` | 8,00 | 7,43 | 6,69 |
@@ -49,7 +49,7 @@ Testo normale richiede 4,5:1; testo grande e componenti dell'interfaccia 3:1.
 | `success` | 12,63 | 11,73 | 10,56 |
 | `border-strong` (3:1) | 4,28 | 3,97 | 3,58 |
 
-- `on-accent` su `pink`: **6,61**; su `cyan`: **12,36**; su `text`: **17,34**.
+- `on-accent` su `pink`: **6,61**; su `cyan`: **12,36**; su `ink`: **17,34**.
 - `border` (1,35–1,62) **non** raggiunge 3:1: solo separatori decorativi, mai unico confine di un controllo.
 - Anello di focus `cyan` contro `pink`: 1,87. Per questo l'anello ha sempre uno scostamento e, sopra le copertine, un bordo interno in `bg` che garantisce il contrasto.
 
@@ -57,7 +57,7 @@ Testo normale richiede 4,5:1; testo grande e componenti dell'interfaccia 3:1.
 
 - **Rosa fisso: al massimo uno per vista.** Nel Dettaglio è il pulsante "Aggiungi alla lista". Le viste senza un'azione primaria (Home, Calendario, Statistiche) non hanno rosa fisso.
 - **Rosa nelle card: solo su interazione o stato.** Il pulsante "+" diventa rosa con hover o focus, oppure quando l'anime è già nella lista (icona ✓).
-- **Indicatore della pagina attiva e filtro attivo in `text`**, non in rosa: il rosa resta ai contenuti.
+- **Indicatore della pagina attiva e filtro attivo in `ink`**, non in rosa: il rosa resta ai contenuti.
 - **Ciano:** focus da tastiera, link nel testo, badge e striscia "in onda". Non si usa per pulsanti, così il focus resta riconoscibile.
 - Gli stati della lista (Sto guardando, Completato…) si distinguono con etichetta e icona, non solo con il colore.
 
@@ -94,8 +94,8 @@ Calcolato su tutte le 360 tonalità al croma massimo, dopo la riduzione alla gam
 
 | Primo piano | su card tinta | su intestazione del Dettaglio | sopra i kanji, sull'intestazione | su chip dei generi |
 |---|---|---|---|---|
-| `text` | 15,33 | 11,89 | 9,31 | 10,19 |
-| `text-muted` | 8,24 | 6,39 | 5,01 | — |
+| `ink` | 15,33 | 11,89 | 9,31 | 10,19 |
+| `ink-muted` | 8,24 | 6,39 | 5,01 | — |
 | `cyan` | 10,93 | 8,48 | 6,64 | — |
 | `pink` (come testo) | 5,84 | — | — | — |
 
@@ -127,7 +127,7 @@ Ogni dimensione è un `clamp()` con una parte in `rem`, così lo zoom del browse
 | `label` | `0.75rem` | 500 | 1,4 | 0,08em, maiuscolo | Etichette brevi, badge |
 | `native` | `clamp(8rem, 2rem + 20vw, 20rem)` | 700 | 1 | 0 | Titolo giapponese decorativo |
 
-- **Home:** "Autunno" pieno e "2026" solo contorno (`-webkit-text-stroke: 2px` in `text`), su due righe.
+- **Home:** "Autunno" pieno e "2026" solo contorno (`-webkit-text-stroke: 2px` in `ink`), su due righe.
 - Nessun testo sotto 12px; la trama si limita a circa 65 caratteri per riga; i titoli grandi usano `text-wrap: balance`.
 - Numeri che cambiano (episodi, orari, statistiche) con `tabular-nums`.
 
@@ -136,7 +136,7 @@ Ogni dimensione è un `clamp()` con una parte in `rem`, così lo zoom del browse
 AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello schema.
 
 - Gigante, in verticale (`writing-mode: vertical-rl`), dietro l'intestazione sul lato destro, con `aria-hidden="true"`: è solo decorazione. Il titolo originale leggibile compare nella scheda laterale del Dettaglio, con `lang="ja"`.
-- **Colore:** il colore della copertina a luminosità 0,7 e opacità 14%; senza tinta, `text` all'8%. Contrasti del testo sopra i kanji nella tabella della tinta (caso peggiore `text-muted` 5,01).
+- **Colore:** il colore della copertina a luminosità 0,7 e opacità 14%; senza tinta, `ink` all'8%. Contrasti del testo sopra i kanji nella tabella della tinta (caso peggiore `ink-muted` 5,01).
 - **Posizione:** `top: -0.12em; right: -0.3em`. La colonna di caratteri esce dal bordo destro per circa il 30% della larghezza di un carattere: è l'unico taglio netto, sempre uguale, così si legge come una scelta.
 - **In basso la colonna sfuma**, non viene tagliata: lo strato dei kanji ha `mask-image: linear-gradient(to bottom, #000 45%, transparent 85%)` (percentuali dell'altezza dell'intestazione). Così non restano frammenti di caratteri sul bordo inferiore. Nell'anteprima, senza sfumatura, il bordo lasciava visibili 31px su 288 del terzo carattere (糸), che sembravano una lineetta orizzontale: non era voluta, ed è eliminata da questa regola.
 - **Ingresso:** all'apertura del Dettaglio scorre di 8% da destra e compare (400ms, `--spring-gentle`, 80ms dopo la pagina). Con movimento ridotto: solo dissolvenza di 150ms.
@@ -163,14 +163,14 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 
 - Fisso in alto (`position: sticky`), fondo `bg`, bordo inferiore `border`, altezza 64px. Contiene il nome dell'app e la navigazione.
 - Ha un `view-transition-name` proprio (`site-header`) ed è escluso dalle animazioni delle View Transitions: è il punto di riferimento fisso.
-- Voci di navigazione: `small`, peso 500, `text-muted`, altezza minima 44px, padding orizzontale 12px. La voce attiva ha `aria-current="page"`, testo `text` e un **indicatore**: barretta di 2px in `text`, raggio 2px, rientrata di 12px ai lati, 6px sopra il bordo inferiore della voce. L'indicatore ha un `view-transition-name` proprio (`nav-indicator`), così scorre verso la nuova voce.
+- Voci di navigazione: `small`, peso 500, `ink-muted`, altezza minima 44px, padding orizzontale 12px. La voce attiva ha `aria-current="page"`, testo `ink` e un **indicatore**: barretta di 2px in `ink`, raggio 2px, rientrata di 12px ai lati, 6px sopra il bordo inferiore della voce. L'indicatore ha un `view-transition-name` proprio (`nav-indicator`), così scorre verso la nuova voce.
 - Sotto l'header, solo nella Home, c'è la striscia "in onda ora" (vedi la sezione dedicata).
 
 ## Pulsanti e filtri
 
-- **Pulsante:** altezza minima 44px, padding orizzontale 16px, raggio 6px, `small` peso 600, fondo `raised`, bordo `border-strong`, testo `text`. Premuto: scala 0,97 in 100ms, ritorno con `--spring-bouncy`.
+- **Pulsante:** altezza minima 44px, padding orizzontale 16px, raggio 6px, `small` peso 600, fondo `raised`, bordo `border-strong`, testo `ink`. Premuto: scala 0,97 in 100ms, ritorno con `--spring-bouncy`.
 - **Pulsante primario:** fondo e bordo `pink`, testo `on-accent`. Uno solo per vista (vedi le regole per gli accenti).
-- **Filtri** (La mia lista: Tutti + i 6 stati; Calendario: Tutti / Solo la mia lista): pulsanti con `aria-pressed`, dentro un `role="group"` con `aria-label`. Il filtro attivo ha fondo `text`, bordo `text` e testo `on-accent` (17,34:1), non rosa.
+- **Filtri** (La mia lista: Tutti + i 6 stati; Calendario: Tutti / Solo la mia lista): pulsanti con `aria-pressed`, dentro un `role="group"` con `aria-label`. Il filtro attivo ha fondo `ink`, bordo `ink` e testo `on-accent` (17,34:1), non rosa.
 - **Filtri su mobile: una sola riga, mai a capo.** La riga scorre in orizzontale (`flex-wrap: nowrap; overflow-x: auto`), arriva fino ai bordi dello schermo (margine negativo pari al margine laterale della pagina, con lo stesso valore come padding interno e come `scroll-padding-inline`) e ha una sfumatura di 32px sul bordo destro (`mask-image`), che segnala altri filtri. Con la tastiera, il filtro che riceve il focus entra da solo nell'area visibile; all'apertura della pagina il filtro attivo viene portato nell'area visibile.
 - Al cambio di filtro le card si riposizionano con le View Transitions (vedi Effetti).
 
@@ -191,14 +191,14 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 - **Intestazione:** padding 24px sopra e 56px sotto. Link "← Torna indietro" (`small`, ciano, altezza minima 44px). Da 768px griglia `minmax(12rem, 18rem) 1fr` con spazio di 32px, allineata in basso: copertina a sinistra (al massimo 18rem, raggio 12px, alone `box-shadow: 0 28px 64px -12px` nel colore della tabella della tinta, che resta nei 32px di spazio), a destra etichetta, titolo in `display`, metadati in `small` (episodi, durata, studio, prossimo episodio in ciano) e pulsante primario "Aggiungi alla lista" / "✓ Nella mia lista". Dietro, tinta forte e kanji.
 - **Corpo in due colonne da 1024px:**
   - colonna principale (al massimo 65 caratteri per riga): Trama, Generi, Prossimi episodi;
-  - colonna laterale di 20rem (`<aside aria-label="Scheda">`), che resta visibile scorrendo (`position: sticky; top: 88px`, cioè header più 24px): pannelli "Informazioni" (formato, episodi, durata, stagione, titolo originale) e "Studi", su `surface`, raggio 12px, padding 20px × 24px, spazio di 16px tra i pannelli, titoli in `h3`. Le informazioni sono un `<dl>` a due colonne (`max-content 1fr`, spazio 8px × 24px), etichette in `text-muted`, valori con `tabular-nums`.
+  - colonna laterale di 20rem (`<aside aria-label="Scheda">`), che resta visibile scorrendo (`position: sticky; top: 88px`, cioè header più 24px): pannelli "Informazioni" (formato, episodi, durata, stagione, titolo originale) e "Studi", su `surface`, raggio 12px, padding 20px × 24px, spazio di 16px tra i pannelli, titoli in `h3`. Le informazioni sono un `<dl>` a due colonne (`max-content 1fr`, spazio 8px × 24px), etichette in `ink-muted`, valori con `tabular-nums`.
   - Spazio tra le due colonne 64px, tra le sezioni della colonna principale 56px; padding del corpo 64px sopra e 96px sotto.
   - Sotto i 1024px la colonna laterale va dopo quella principale.
 - **Generi:** chip con la tinta della copertina (vedi la tabella della tinta).
 - **Prossimi episodi:** elenco ordinato (`<ol>`) dei prossimi episodi non ancora andati in onda, al massimo 4.
   - **Dati: il palinsesto di AniList**, nella stessa richiesta del Dettaglio (cache di 1 ora, ADR-0003): `Media.airingSchedule(notYetAired: true, perPage: 4) { nodes { episode airingAt } }`. Verificato nello schema: `airingSchedule(notYetAired: Boolean, page: Int, perPage: Int)` con `perPage` al massimo 25, `AiringSchedule.episode: Int!` e `airingAt: Int!` (istante in secondi Unix). Lo schema non garantisce l'ordine: gli episodi si ordinano per `airingAt`. Nessuna data viene stimata o calcolata a intervalli fissi.
   - I dati possono avere fino a 1 ora: nel browser si scartano gli episodi con `airingAt` già passato al momento della visualizzazione. Se non ne resta nessuno, o AniList non ne fornisce: "Nessun episodio in programma."
-  - **Righe:** numero dell'episodio, giorno e ora (`<time datetime>` con l'istante ISO), distanza relativa ("tra 2 ore", "tra 7 giorni", con `Intl.RelativeTimeFormat`). Ogni riga è una griglia `5rem 1fr auto` con spazio di 16px, padding verticale 12px e bordo inferiore `border`; numero in peso 600, distanza in `small` `text-muted`, tutto con `tabular-nums`. Il primo episodio è in ciano, con prefisso "Prossimo:" per i lettori di schermo.
+  - **Righe:** numero dell'episodio, giorno e ora (`<time datetime>` con l'istante ISO), distanza relativa ("tra 2 ore", "tra 7 giorni", con `Intl.RelativeTimeFormat`). Ogni riga è una griglia `5rem 1fr auto` con spazio di 16px, padding verticale 12px e bordo inferiore `border`; numero in peso 600, distanza in `small` `ink-muted`, tutto con `tabular-nums`. Il primo episodio è in ciano, con prefisso "Prossimo:" per i lettori di schermo.
   - **Fuso orario reale del browser, mai un valore fisso.** Sopra l'elenco: "Messa in onda in Giappone, nel fuso del tuo browser ({fuso})." dove `{fuso}` è `Intl.DateTimeFormat().resolvedOptions().timeZone`, letto nel browser di chi guarda (per esempio "Europe/Rome" in Italia, "Asia/Tokyo" in Giappone).
   - **Formattazione nel browser:** il server non conosce il fuso del visitatore, quindi invia solo gli istanti (`airingAt`); giorno, ora, distanza relativa e nome del fuso si calcolano nel browser con `Intl.DateTimeFormat` senza fuso esplicito. Calcolarli sul server darebbe orari sbagliati e differenze tra HTML del server e del client. Finché il browser non li ha calcolati, le righe mostrano uno stato di attesa della stessa altezza, per non spostare il layout.
   - I test della formattazione usano fusi espliciti (vedi `CLAUDE.md`).
@@ -233,7 +233,7 @@ Usata in Home, Ricerca e Lista.
 
 | Stato | Aspetto |
 |---|---|
-| Riposo | Fondo `bg` al 72% di opacità, bordo `text` al 24%, icona "+" in `text`. Contrasto dell'icona nel caso peggiore (sopra una copertina bianca): **7,13** |
+| Riposo | Fondo `bg` al 72% di opacità, bordo `ink` al 24%, icona "+" in `ink`. Contrasto dell'icona nel caso peggiore (sopra una copertina bianca): **7,13** |
 | Hover o focus | Fondo `pink`, icona `on-accent`; con il focus anche l'anello `cyan` con bordo interno `bg` |
 | Nella lista | Fondo `pink`, icona ✓ in `on-accent`, che compare con un piccolo rimbalzo (`--spring-bouncy`) |
 | Premuto | Scala a 0,9 |
@@ -251,7 +251,7 @@ Testo `cyan` su fondo `bg` pieno (12,36:1), in basso a sinistra sulla copertina:
 | Focus da tastiera (`:focus-visible` sul link) | Anello `cyan` di 2px con scostamento di 3px attorno a tutta la card, sollevamento senza inclinazione | L'anello compare **subito** |
 | Premuto | La card scala a 0,97 | 100ms |
 | Caricamento (skeleton) | Stessa sagoma: rettangolo 2/3 e due barre in `raised`, nessuna tinta | Riflesso che scorre (`transform`), 1,4s in ciclo; compare dopo 150ms per non lampeggiare |
-| Copertina mancante | Area della copertina in `raised`, iniziale del titolo in `text-muted` a dimensione `display`; card senza tinta | — |
+| Copertina mancante | Area della copertina in `raised`, iniziale del titolo in `ink-muted` a dimensione `display`; card senza tinta | — |
 
 Durante il caricamento il contenitore ha `aria-busy="true"` e un testo per lettori di schermo ("Caricamento…"); gli skeleton sono `aria-hidden`.
 
@@ -383,7 +383,9 @@ Con `prefers-reduced-motion: reduce` si toglie lo **spostamento**, non il riscon
 
 ## Token in Tailwind v4
 
-I valori di questo documento diventano variabili in `@theme` dentro `src/app/globals.css`, così sono disponibili sia come classi Tailwind (es. `bg-surface`, `text-muted`) sia come variabili CSS per la tinta, le molle e le View Transitions.
+I valori di questo documento diventano variabili in `@theme` dentro `src/app/globals.css`, così sono disponibili sia come classi Tailwind (es. `bg-surface`, `text-ink-muted`) sia come variabili CSS per la tinta, le molle e le View Transitions.
+
+I colori del testo si chiamano `ink` e `ink-muted`: in Tailwind il prefisso `text-` vale sia per i colori sia per le dimensioni del testo, e un token di nome `text` darebbe classi come `text-text`.
 
 ## Da decidere o verificare più avanti
 

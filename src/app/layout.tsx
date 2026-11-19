@@ -48,7 +48,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
         </main>
         <footer className="border-t border-border">
-          <p className={`${pageContainer} py-8 text-small text-text-muted`}>
+          <p className={`${pageContainer} py-8 text-small text-ink-muted`}>
             Anime Tracker è un client non ufficiale per AniList, non affiliato
             ad AniList. Dati forniti da{" "}
             <a
