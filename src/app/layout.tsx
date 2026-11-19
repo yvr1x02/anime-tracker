@@ -30,7 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-dvh flex-col">
         <a
           href="#contenuto"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:flex focus:min-h-11 focus:items-center focus:rounded-control focus:bg-raised focus:px-4 focus:text-small focus:font-semibold"
+          className="sr-only focus:not-sr-only focus:m-2 focus:flex focus:min-h-11 focus:items-center focus:self-start focus:rounded-control focus:bg-raised focus:px-4 focus:text-small focus:font-semibold"
         >
           Vai al contenuto
         </a>
