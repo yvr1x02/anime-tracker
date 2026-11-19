@@ -38,3 +38,7 @@ Le versioni esatte delle librerie si verificano in M0, al momento dell'installaz
 - Le richieste fatte dal server condividono un unico limite verso AniList: la strategia di cache diventa obbligatoria ed è definita in ADR-0003.
 - Lo schema di AniList va scaricato e i tipi rigenerati quando cambiano le query.
 - Recharts è una dipendenza in più: i grafici devono comunque restare accessibili, con un'alternativa testuale dei dati.
+
+## Nota successiva
+
+**2026-11-19, [ADR-0004](0004-client-anilist-con-login.md):** Zustand, previsto da ADR-0002 per la lista nel browser, non fa parte dello stack. La lista vive su AniList ed è stato del server, gestito con TanStack Query già scelto qui, con la cache solo in memoria.
