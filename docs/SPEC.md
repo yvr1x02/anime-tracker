@@ -31,6 +31,8 @@ Ricerca degli anime per titolo, senza filtri aggiuntivi nella v1. Dalle card dei
 
 La scheda di un anime: copertina, titolo, trama, generi, studio, numero e durata degli episodi, stato di messa in onda, prossimo episodio in uscita. Da qui si aggiunge l'anime alla lista e se ne modifica la voce.
 
+- **Prossimi episodi:** elenco dei prossimi episodi non ancora andati in onda (fino a 4), presi dal palinsesto di AniList, con numero, giorno e ora nel fuso del browser. Se non ci sono episodi in programma, la scheda lo dice.
+
 ### 4. La mia lista
 
 Gli anime salvati, filtrabili per stato. Per ogni voce si modificano stato, episodi visti, voto e note.
