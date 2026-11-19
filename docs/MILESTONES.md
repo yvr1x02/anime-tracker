@@ -11,7 +11,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - GraphQL Codegen collegato allo schema ufficiale di AniList.
 - `.gitignore`.
 - **Direzione visiva** in `docs/DESIGN.md`: palette, font, aspetto di una card. Approvata prima di scrivere i componenti.
-- Layout di base con l'attribuzione ad AniList su ogni pagina.
+- Layout di base con la dichiarazione di ADR-0004 su ogni pagina: client non ufficiale, non affiliato ad AniList, dati forniti da AniList, con link.
 - Scelta del meccanismo di cache di Next.js sulla versione installata (ADR-0003).
 - Pubblicazione su Vercel, aggiornata a ogni push.
 - Comandi compilati nel `CLAUDE.md`.
@@ -25,13 +25,14 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Elenco dei prossimi episodi nel Dettaglio, dal palinsesto di AniList (`airingSchedule`, `docs/DESIGN.md`).
 - Verifiche: richieste dirette dal browser ad AniList (CORS); ricerca dei titoli italiani tra i sinonimi.
 
-## M2 — La mia lista
+## M2 — Login e La mia lista
 
-- Store Zustand con `persist` e numero di versione (ADR-0002).
-- Aggiunta e modifica dal Dettaglio e dalle card.
-- Pagina "La mia lista" con filtro per stato.
+- Login OAuth con AniList (ADR-0004): avvio, ritorno con verifica di `state`, cookie di sessione `__Host-`, logout che svuota anche la cache di TanStack Query. Due applicazioni AniList (sviluppo e produzione) e variabili d'ambiente su Vercel.
+- Pagina "La mia lista" con filtro per stato, letta da AniList con una sola richiesta.
+- Aggiunta, modifica ed eliminazione dal Dettaglio, dalle card e dalla lista, con aggiornamento immediato e ritorno allo stato precedente in caso di errore. Clic sugli episodi raggruppati (800ms), inviati subito se la pagina viene nascosta o chiusa.
 - Regole automatiche su date ed episodi.
-- Esportazione e importazione del backup.
+- Modalità demo in sola lettura senza login (`ANILIST_DEMO_USERNAME`).
+- Verifiche elencate in ADR-0004, "Da verificare all'implementazione".
 
 ## M3 — Home
 
@@ -41,11 +42,11 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 - Settimana corrente e settimane successive.
 - Orari nel fuso del browser, con test su fusi espliciti.
-- Filtro "solo la mia lista".
+- Filtro "solo la mia lista", disattivato senza login.
 
 ## M5 — Statistiche
 
-- Calcoli testati con Vitest.
+- Calcoli sulla lista letta da AniList, testati con Vitest; modalità demo senza login.
 - Grafici Recharts con alternativa testuale dei dati.
 
 ## M6 — Rifinitura
