@@ -23,6 +23,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Pagina di Ricerca (ADR-0003: 400 ms, almeno 3 caratteri).
 - Pagina di Dettaglio, con cache sul server.
 - Elenco dei prossimi episodi nel Dettaglio, dal palinsesto di AniList (`airingSchedule`, `docs/DESIGN.md`).
+- Pagina d'errore (`error.tsx`) in italiano, con i messaggi di ADR-0003.
 - Verifiche: richieste dirette dal browser ad AniList (CORS); ricerca dei titoli italiani tra i sinonimi.
 
 ## M2 — Login e La mia lista
