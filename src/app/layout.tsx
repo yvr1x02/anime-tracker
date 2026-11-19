@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk } from "next/font/google";
 import Link from "next/link";
+import { pageContainer } from "@/lib/page-container";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -22,8 +23,6 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-const pageContainer = "mx-auto w-full max-w-page px-4 sm:px-6 lg:px-8";
-
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="it" className={spaceGrotesk.variable}>
@@ -44,7 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </Link>
           </div>
         </header>
-        <main id="contenuto" className={`${pageContainer} flex-1 py-12`}>
+        <main id="contenuto" className="flex-1">
           {children}
         </main>
         <footer className="border-t border-border">

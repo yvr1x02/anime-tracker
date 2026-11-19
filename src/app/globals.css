@@ -46,6 +46,9 @@
   --text-label--font-weight: 500;
   --text-label--line-height: 1.4;
   --text-label--letter-spacing: 0.08em;
+  --text-native: clamp(8rem, 2rem + 20vw, 20rem);
+  --text-native--font-weight: 700;
+  --text-native--line-height: 1;
 
   /* Spacing uses Tailwind's 4px scale; these are the named values DESIGN.md adds. */
   --container-page: 80rem;
@@ -112,5 +115,62 @@
     --tint-chip: oklch(from var(--cover) 0.32 min(calc(c * 0.8), 0.1) h / min(calc(c * 20), 1));
     --tint-kanji: oklch(from var(--cover) 0.7 min(c, 0.12) h / 0.14);
     --tint-cover-glow: oklch(from var(--cover) 0.5 min(c, 0.18) h / min(calc(c * 11), 0.55));
+  }
+
+  /* Detail header: strong tint for the first 30%, then fading to the page background. */
+  .detail-header {
+    background-image: linear-gradient(to bottom, var(--tint-header) 0%, var(--tint-header) 30%, transparent 100%);
+  }
+
+  .detail-cover {
+    box-shadow: 0 28px 64px -12px var(--tint-cover-glow);
+  }
+
+  .genre-chip {
+    background-color: var(--color-raised);
+    background-image: linear-gradient(var(--tint-chip), var(--tint-chip));
+  }
+
+  /* Outer layer: entry animation and bottom fade. The inner span is left free for a scroll-driven animation. */
+  .kanji-backdrop {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    mask-image: linear-gradient(to bottom, #000 45%, transparent 85%);
+    animation: kanji-in var(--duration-slow) var(--spring-gentle) 80ms backwards;
+  }
+
+  .kanji-backdrop > span {
+    position: absolute;
+    top: -0.12em;
+    right: -0.3em;
+    writing-mode: vertical-rl;
+    white-space: nowrap;
+    font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", var(--font-noto-jp), sans-serif;
+    color: color-mix(in oklab, var(--color-ink) 8%, transparent);
+  }
+
+  .has-cover .kanji-backdrop > span {
+    color: var(--tint-kanji);
+  }
+
+  @keyframes kanji-in {
+    from {
+      transform: translateX(8%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .kanji-backdrop {
+      animation: fade-in var(--duration-fast) var(--ease-out) backwards;
+    }
   }
 }

@@ -16,7 +16,7 @@ Specifica: [docs/SPEC.md](docs/SPEC.md). Piano a milestone: [docs/MILESTONES.md]
 - **Rispetto dell'API AniList.** Segui la strategia di [ADR-0003](docs/adr/0003-dati-cache-rate-limit.md): niente richieste a ogni tasto premuto, niente polling, gestione esplicita degli errori 429. Prima di scrivere una query, verifica i campi nello schema ufficiale invece di indovinarli.
 - **Attribuzione.** Ogni pagina mostra che i dati provengono da AniList, con link. Copertine e immagini si caricano dagli URL forniti dall'API, non si ricaricano nel repository.
 - **Niente uso commerciale.** Nessuna pubblicità, nessun pagamento, nessuna raccolta di dati degli utenti.
-- **Lingua.** Interfaccia in italiano. Codice, nomi di file e identificatori in inglese. Documentazione in italiano.
+- **Lingua.** Interfaccia in italiano. Codice, nomi di file e identificatori in inglese. Documentazione in italiano. Eccezione: le cartelle delle route in `src/app/` sono gli indirizzi delle pagine, che fanno parte dell'interfaccia, quindi sono in italiano (`/ricerca`, `/anime/[id]`).
 - **Fuso orario.** Gli orari di uscita si mostrano nel fuso del browser dell'utente; i test usano fusi espliciti.
 - **Commit.** Nessuna riga `Co-Authored-By` di Claude nei messaggi di commit.
 
