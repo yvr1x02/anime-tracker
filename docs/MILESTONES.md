@@ -4,9 +4,9 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 **Regola per ogni milestone:** ogni nuova pagina entra nel controllo di accessibilità di `e2e/accessibility.spec.ts` (axe, WCAG 2.2 AA) nello stesso commit che la aggiunge.
 
-**Milestone attiva:** M0
+**Milestone attiva:** M1
 
-## M0 — Fondamenta
+## M0 — Fondamenta (completata il 2026-11-19)
 
 - Progetto Next.js con TypeScript, Tailwind CSS v4 e lint (ADR-0001).
 - Vitest e Playwright configurati, con un test di esempio ciascuno.
@@ -17,7 +17,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Scelta del meccanismo di cache di Next.js sulla versione installata (ADR-0003).
 - Pubblicazione su Vercel, aggiornata a ogni push.
 - Comandi compilati nel `CLAUDE.md`.
-- **Verifica da completare prima di chiudere M0:** misura degli effetti di movimento di `docs/DESIGN.md` con Chrome DevTools e CPU rallentata 4×, dopo la fine di `brew upgrade` (con il computer sotto carico le misure non sono valide). Gli effetti che perdono frame si semplificano secondo il criterio del budget di prestazioni.
+- La misura del movimento con CPU rallentata 4×, prevista qui, passa a M1: si fa sull'app vera, non sull'anteprima di `docs/DESIGN.md`.
 
 ## M1 — Ricerca e Dettaglio
 
@@ -27,6 +27,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Elenco dei prossimi episodi nel Dettaglio, dal palinsesto di AniList (`airingSchedule`, `docs/DESIGN.md`).
 - Pagina d'errore (`error.tsx`) in italiano, con i messaggi di ADR-0003.
 - Verifiche: richieste dirette dal browser ad AniList (CORS); ricerca dei titoli italiani tra i sinonimi.
+- **Misura con CPU rallentata 4×** (Chrome DevTools, a macchina scarica) della transizione card → Dettaglio vera. Se perde frame diventa una dissolvenza, secondo il budget di prestazioni di `docs/DESIGN.md`.
 
 ## M2 — Login e La mia lista
 

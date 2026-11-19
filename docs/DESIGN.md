@@ -378,7 +378,7 @@ Con `prefers-reduced-motion: reduce` si toglie lo **spostamento**, non il riscon
 - `will-change` mai fisso; l'inclinazione aggiorna le variabili una volta per frame con `requestAnimationFrame`.
 - Niente `backdrop-filter`; il bagliore è un'ombra disegnata una volta di cui si anima solo l'opacità.
 - **Criterio:** ogni effetto si misura con **Chrome DevTools, CPU rallentata 4×** (Performance, riga "Frames"). Se perde frame si semplifica: il riposizionamento e la trasformazione card → Dettaglio diventano dissolvenze, l'inclinazione si toglie, le animazioni dello scroll si riducono alla sola opacità.
-- **Stato della misura:** l'anteprima ha una vista "Misure" che esegue ogni effetto e registra i frame. La misura non è ancora valida: durante la prova il computer era sotto carico (load average 40, `brew upgrade` stava compilando LLVM) e anche la pagina ferma perdeva frame. Va ripetuta a macchina scarica, e di nuovo sull'app vera in M1.
+- **Stato della misura:** l'anteprima ha una vista "Misure" che esegue ogni effetto e registra i frame. La misura non è ancora valida: durante la prova il computer era sotto carico (load average 40, `brew upgrade` stava compilando LLVM) e anche la pagina ferma perdeva frame. Non si ripete sull'anteprima: si misura sull'app vera, a partire dalla transizione card → Dettaglio in M1 (decisione del 2026-11-19).
 - Obiettivi generali: **INP ≤ 200ms**, **CLS ≤ 0,1**, **LCP ≤ 2,5s**; copertine con proporzioni dichiarate e caricamento differito sotto la piega; font precaricati da `next/font`, tranne quello giapponese.
 
 ## Token in Tailwind v4
@@ -389,7 +389,7 @@ I colori del testo si chiamano `ink` e `ink-muted`: in Tailwind il prefisso `tex
 
 ## Da decidere o verificare più avanti
 
-- **Misura con CPU 4×** di ogni effetto, a macchina scarica (vedi budget).
+- **Misura con CPU 4× (M1):** ogni effetto sull'app vera, a macchina scarica, a partire dalla transizione card → Dettaglio (vedi budget).
 - **Ottimizzazione delle copertine (M1):** `next/image` passa dall'ottimizzazione di Vercel, che sul piano gratuito ha limiti mensili; l'alternativa è `<img>` con gli URL di AniList, che offre già tre dimensioni (`medium`, `large`, `extraLarge`).
 - **Noto Sans JP:** byte scaricati su un sistema senza font giapponesi e spazio nella build.
 - **Pulsante "+" (M2):** cosa succede premendolo quando l'anime è già nella lista.
