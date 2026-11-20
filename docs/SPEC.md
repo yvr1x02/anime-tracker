@@ -32,6 +32,9 @@ Dalle card si può aggiungere un anime alla lista.
 - **Continua a guardare** (solo per chi è collegato): gli anime della propria lista con episodi già usciti e non ancora visti, con quanti ne mancano ("Sei indietro di 2 episodi").
   - **Episodi usciti, secondo AniList:** per un anime concluso o cancellato, il numero totale di episodi; per un anime in corso, il numero del prossimo episodio in programma meno uno (`Media.nextAiringEpisode`), contando come uscito anche il prossimo se il suo orario è già passato. Se AniList non dà né il prossimo episodio né il totale, l'anime non compare.
   - **Episodi arretrati** = episodi usciti − episodi visti, quando sono più di zero.
+  - **Quali anime:** quelli in "Sto guardando" e in "In rewatch" (con l'etichetta "Rewatch" sulla card), dall'ultima modifica, al massimo 6.
+  - **La frase dipende dallo stato dell'anime:** in corso, "Sei indietro di N episodi"; concluso o cancellato, "Ti mancano N episodi"; al singolare per un episodio ("Sei indietro di 1 episodio", "Ti manca 1 episodio").
+  - Se non ci sono arretrati, la sezione non compare.
   - Si calcola dalla lista già letta per la sessione (ADR-0004): nessuna richiesta in più ad AniList.
   - Senza login la sezione non compare.
 
