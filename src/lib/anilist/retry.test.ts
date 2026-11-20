@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { AniListError, AniListRateLimitError } from "./client";
+import { NotLoggedInError } from "@/lib/auth/errors";
 import { retryDelayMs, shouldRetry } from "./retry";
 
 describe("shouldRetry", () => {
@@ -12,6 +13,10 @@ describe("shouldRetry", () => {
   it("retries a 429 once when AniList gives a wait time", () => {
     expect(shouldRetry(0, new AniListRateLimitError(30))).toBe(true);
     expect(shouldRetry(1, new AniListRateLimitError(30))).toBe(false);
+  });
+
+  it("does not retry when the session has ended", () => {
+    expect(shouldRetry(0, new NotLoggedInError())).toBe(false);
   });
 
   it("does not retry a 429 without a wait time", () => {

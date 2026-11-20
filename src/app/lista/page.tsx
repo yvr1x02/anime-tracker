@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { connection } from "next/server";
+import { cookies } from "next/headers";
 import { AnimeList } from "@/components/anime-list";
 import { DataFreshness } from "@/components/data-freshness";
+import { MyList } from "@/components/my-list";
 import { AniListError } from "@/lib/anilist/client";
 import { UserAnimeListQuery } from "@/lib/anilist/queries";
 import { requestAniListCached } from "@/lib/anilist/server";
+import { SESSION_COOKIE } from "@/lib/auth/cookies";
 import { listEntries } from "@/lib/list";
 import { pageContainer } from "@/lib/page-container";
 
@@ -30,14 +32,16 @@ async function demoList() {
 }
 
 export default async function ListPage() {
-  // Rendered per request: the logged-in user's own list comes next (M2, step 3).
-  await connection();
-  const demo = await demoList();
+  // Only picks which list to draw: the user's own entries come from /api/list, which checks the session.
+  const loggedIn = (await cookies()).has(SESSION_COOKIE);
+  const demo = loggedIn ? null : await demoList();
 
   return (
     <div className={`${pageContainer} py-12`}>
       <h1 className="text-h1">La mia lista</h1>
-      {demo ? (
+      {loggedIn ? (
+        <MyList />
+      ) : demo ? (
         <>
           <p className="mt-6 max-w-2xl rounded-panel bg-surface px-5 py-4">
             Modalità demo: lista pubblica di {demo.userName} su AniList, in sola lettura.{" "}

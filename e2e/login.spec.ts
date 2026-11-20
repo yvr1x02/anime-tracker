@@ -3,17 +3,11 @@ import path from "node:path";
 import { type Page, expect, test } from "@playwright/test";
 import { mockAniList, searchResults } from "./anilist-browser";
 import { SERVER_LOG, e2eOAuth } from "./secrets";
+import { logIn } from "./session";
 
 // The fake AniList (e2e/fake-anilist.mjs) approves every login straight away.
 const header = (page: Page) => page.getByRole("banner");
 
-async function logIn(page: Page, from = "/") {
-  await page.goto(from);
-  await header(page).getByRole("link", { name: "Accedi" }).click();
-  await page.getByRole("link", { name: "Accedi con AniList" }).click();
-  // "Esci" shows at every width; the name is hidden on phones.
-  await expect(header(page).getByRole("button", { name: "Esci" })).toBeVisible();
-}
 
 test("login goes through AniList and back to the page it started from", async ({ page }) => {
   await mockAniList(page, [{ status: 200, media: searchResults }]);
@@ -35,12 +29,15 @@ test("the session cookie is HttpOnly and __Host-, the name cookie holds only id 
 
   const cookies = await context.cookies();
   const session = cookies.find((cookie) => cookie.name === "__Host-session");
-  expect(session).toMatchObject({ value: e2eOAuth.accessToken, httpOnly: true, secure: true, sameSite: "Lax", path: "/" });
+  expect(session).toMatchObject({ httpOnly: true, secure: true, sameSite: "Lax", path: "/" });
+  expect(session!.value.startsWith(e2eOAuth.accessToken)).toBe(true);
   expect(session!.expires - Date.now() / 1000).toBeGreaterThan(29 * 24 * 3600);
   const viewer = cookies.find((cookie) => cookie.name === "__Host-viewer");
   expect(viewer).toMatchObject({ httpOnly: false, secure: true, path: "/" });
   expect(JSON.parse(Buffer.from(viewer!.value, "base64url").toString())).toEqual(e2eOAuth.viewer);
   expect(Math.abs(viewer!.expires - session!.expires)).toBeLessThan(5);
+  const user = cookies.find((cookie) => cookie.name === "__Host-session-user");
+  expect(user).toMatchObject({ value: "7", httpOnly: true, secure: true, path: "/" });
   expect(await page.evaluate(() => document.cookie)).not.toContain(e2eOAuth.accessToken);
 });
 
@@ -55,7 +52,7 @@ test("the client secret and the token never reach the browser or the server log"
   await expect(page.getByRole("heading", { level: 1, name: "Hoshi no Kioku" })).toBeVisible();
 
   // Set-Cookie of the session is the one place the token may travel: drop it, check the rest.
-  const browserTraffic = seen.join("\n").replaceAll(`__Host-session=${e2eOAuth.accessToken}`, "");
+  const browserTraffic = seen.join("\n").replace(/__Host-session=[^;\s"]+/g, "");
   expect(browserTraffic).not.toContain(e2eOAuth.clientSecret);
   expect(browserTraffic).not.toContain(e2eOAuth.accessToken);
 

@@ -89,6 +89,8 @@ Non c'è un database. Il server non salva niente: il token sta solo nel cookie d
   1. non si usa mai per decidere l'accesso: ogni richiesta personale passa dal server, che guarda solo il cookie del token;
   2. ha la stessa durata del cookie di sessione (30 giorni) e si cancella insieme a lui al logout;
   3. si cancella insieme al cookie di sessione quando AniList risponde 401 (token scaduto o revocato).
+- **Id dell'utente per leggere la lista:** `MediaListCollection` vuole `userId` o `userName`. Il server lo prende da un terzo cookie, `__Host-session-user` (`HttpOnly`, solo l'id), scritto al login insieme al token e cancellato con lui, con la stessa durata. Il cookie del token resta il token così come lo rilascia AniList, e il cookie del nome non decide niente. Un id modificato a mano non apre niente: AniList applica comunque i permessi del token.
+- **Token non più valido:** AniList risponde **400 "Invalid token"**, non 401 (verificato il 2026-11-20 con un token inventato). Il server tratta come sessione finita sia questa risposta sia un 401: risponde 401 al browser e cancella tutti i cookie di sessione, e La mia lista chiede di accedere di nuovo.
 - **Prove manuali con l'account demo `yvr1x0202`.** Regole: si usano solo anime che non sono già nella lista e alla fine si cancellano; le voci esistenti non si modificano mai. Prima delle prove si elencano le voci attuali, dopo si verifica che siano identiche.
 - **Controllo del secret:** `scripts/check-secret.mjs` cerca il client secret di `.env.local` nei file tracciati da git e nella cronologia, e stampa solo se lo ha trovato, mai il valore.
 

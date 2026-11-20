@@ -1,6 +1,7 @@
 import { AxeBuilder } from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockAniList, searchResults } from "./anilist-browser";
+import { logIn } from "./session";
 
 // WCAG 2.0, 2.1 and 2.2 at levels A and AA. Every new page gets an entry here.
 const wcagAA = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
@@ -21,6 +22,13 @@ test("no WCAG A/AA violations on search results", async ({ page }) => {
   await expect(page.getByRole("article")).toHaveCount(2);
   // Half-faded cards in the cascade would be measured with too little contrast.
   await page.waitForFunction(() => document.getAnimations().every((animation) => animation.playState !== "running"));
+  const { violations } = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
+  expect(violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
+});
+
+test("no WCAG A/AA violations on the logged-in list", async ({ page }) => {
+  await logIn(page, "/lista");
+  await expect(page.getByRole("article")).toHaveCount(2);
   const { violations } = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
   expect(violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
 });

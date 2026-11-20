@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { VIEWER_COOKIE, serializeViewer, viewerFromCookies } from "./cookies";
-import { isSameOrigin, safeReturnPath } from "./request-checks";
+import { AniListError, AniListRateLimitError } from "@/lib/anilist/client";
+import { isInvalidTokenError, isSameOrigin, safeReturnPath } from "./request-checks";
 
 describe("safeReturnPath", () => {
   it.each([
@@ -54,6 +55,20 @@ describe("viewer cookie", () => {
     "is null for %j",
     (cookies) => {
       expect(viewerFromCookies(cookies)).toBeNull();
+    },
+  );
+});
+
+describe("isInvalidTokenError", () => {
+  it("recognises AniList's answer to a bad token, and a 401", () => {
+    expect(isInvalidTokenError(new AniListError("Invalid token", 400))).toBe(true);
+    expect(isInvalidTokenError(new AniListError("Unauthorized", 401))).toBe(true);
+  });
+
+  it.each([new AniListError("Not Found.", 404), new AniListRateLimitError(30), new Error("Invalid token")])(
+    "leaves other failures alone: %s",
+    (error) => {
+      expect(isInvalidTokenError(error)).toBe(false);
     },
   );
 });

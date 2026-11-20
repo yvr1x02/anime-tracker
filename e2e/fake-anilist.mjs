@@ -60,13 +60,14 @@ const oauth = {
   code: "e2e-code",
 };
 const viewer = { id: 7, name: "UtenteDiProva" };
-const unauthorized = { data: { Viewer: null }, errors: [{ message: "Invalid token", status: 401 }] };
+// What the real AniList answers to a bad token (checked on 2026-11-20).
+const invalidToken = { data: null, errors: [{ message: "Invalid token", status: 400 }] };
 
 // The demo profile's public list (ANILIST_DEMO_USERNAME=UtenteDemo in playwright.config.ts). On purpose:
 // an entry repeated in a custom list, one only in a custom list, and an adult anime the app must hide.
 const listMedia = (id) => {
-  const { airingSchedule, description, genres, studios, status, duration, ...card } = anime[id];
-  return { ...card, isAdult: Boolean(card.isAdult), nextAiringEpisode: null };
+  const { title, coverImage = null, format = null, season = null, seasonYear = null, episodes = null } = anime[id];
+  return { id, isAdult: Boolean(anime[id].isAdult), title, coverImage, format, season, seasonYear, episodes, nextAiringEpisode: null };
 };
 const listEntry = (id, mediaId, status, progress, score, updatedAt) => ({
   id,
@@ -85,6 +86,17 @@ const demoLists = [
   { entries: [listEntry(103, 3, "PLANNING", 0, 0, 500)] },
   { isCustomList: true, entries: [listEntry(101, 1, "CURRENT", 5, 8, 300), listEntry(104, 6, "PLANNING", 0, 0, 100)] },
 ];
+
+// The logged-in test user's own list (Viewer id 7). Changes go here; POST /__reset restores it.
+const initialMyLists = () => [
+  { entries: [listEntry(201, 4, "CURRENT", 0, 0, 600)] },
+  { entries: [listEntry(202, 1, "COMPLETED", 12, 9, 500)] },
+];
+let myLists = initialMyLists();
+// Each login gets its own token, all starting with the fake one the tests look for in leaks.
+// POST /__revoke with {"token"} stops one, as when a user revokes the app: other tests' logins keep working.
+let tokensIssued = 0;
+const revokedTokens = new Set();
 
 const notFound = { data: { Media: null }, errors: [{ message: "Not Found.", status: 404 }] };
 // Anime 4 comes with a Date two hours old, as if served from a cache that has not been refreshed.
@@ -109,9 +121,21 @@ http
       response.end("fake AniList");
       return;
     }
+    if (url.pathname === "/__reset") {
+      myLists = initialMyLists();
+      response.writeHead(204);
+      response.end();
+      return;
+    }
     let body = "";
     request.on("data", (chunk) => (body += chunk));
     request.on("end", () => {
+      if (url.pathname === "/__revoke") {
+        revokedTokens.add(JSON.parse(body).token);
+        response.writeHead(204);
+        response.end();
+        return;
+      }
       if (url.pathname === "/oauth/token") {
         const grant = JSON.parse(body);
         const valid =
@@ -120,10 +144,23 @@ http
           grant.client_secret === oauth.clientSecret &&
           grant.code === oauth.code;
         response.writeHead(valid ? 200 : 400, { "Content-Type": "application/json" });
-        response.end(JSON.stringify(valid ? { token_type: "Bearer", access_token: oauth.accessToken } : { error: "invalid_grant" }));
+        const token = `${oauth.accessToken}-${++tokensIssued}`;
+        response.end(JSON.stringify(valid ? { token_type: "Bearer", access_token: token } : { error: "invalid_grant" }));
         return;
       }
       const { query, variables } = JSON.parse(body);
+      const token = request.headers.authorization?.replace(/^Bearer /, "");
+      const authorized = Boolean(token?.startsWith(oauth.accessToken)) && !revokedTokens.has(token);
+      if (request.headers.authorization && !authorized) {
+        response.writeHead(400, { "Content-Type": "application/json" });
+        response.end(JSON.stringify(invalidToken));
+        return;
+      }
+      if (query.includes("query UserAnimeList") && variables?.userId === viewer.id) {
+        response.writeHead(authorized ? 200 : 404, { "Content-Type": "application/json" });
+        response.end(JSON.stringify(authorized ? { data: { MediaListCollection: { lists: myLists } } } : notFound));
+        return;
+      }
       if (query.includes("query UserAnimeList")) {
         const found = variables?.userName === "UtenteDemo";
         response.writeHead(found ? 200 : 404, { "Content-Type": "application/json" });
@@ -137,9 +174,8 @@ http
         return;
       }
       if (query.includes("query Viewer")) {
-        const authorized = request.headers.authorization === `Bearer ${oauth.accessToken}`;
-        response.writeHead(authorized ? 200 : 401, { "Content-Type": "application/json" });
-        response.end(JSON.stringify(authorized ? { data: { Viewer: viewer } } : unauthorized));
+        response.writeHead(authorized ? 200 : 400, { "Content-Type": "application/json" });
+        response.end(JSON.stringify(authorized ? { data: { Viewer: viewer } } : invalidToken));
         return;
       }
       if (failures[variables?.id] > 0) {

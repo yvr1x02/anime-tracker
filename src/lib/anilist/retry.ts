@@ -1,11 +1,12 @@
+import { NotLoggedInError } from "@/lib/auth/errors";
 import { AniListRateLimitError } from "./client";
 
 /**
  * ADR-0003, browser requests: at most one automatic retry, never a burst. A 429 is retried only
- * when AniList said how long to wait; without a wait time the search shows the error instead.
+ * when AniList said how long to wait; without a wait time the error shows instead. An ended session is final.
  */
 export function shouldRetry(failureCount: number, error: unknown): boolean {
-  if (failureCount >= 1) return false;
+  if (failureCount >= 1 || error instanceof NotLoggedInError) return false;
   return !(error instanceof AniListRateLimitError && error.retryAfterSeconds === null);
 }
 

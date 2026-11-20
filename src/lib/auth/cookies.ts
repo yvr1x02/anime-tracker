@@ -2,6 +2,8 @@
 
 /** The AniList token, HttpOnly: the page's JavaScript never sees it (ADR-0004). */
 export const SESSION_COOKIE = "__Host-session";
+/** AniList id of the token's user, HttpOnly, set and cleared with the session: the list is read by id. */
+export const SESSION_USER_COOKIE = "__Host-session-user";
 /** Id and name of the logged-in user, readable by the page only to show the name (ADR-0004, point 7). */
 export const VIEWER_COOKIE = "__Host-viewer";
 /** OAuth `state` and the page to return to, for the 10 minutes of a login. */
