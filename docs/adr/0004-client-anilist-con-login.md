@@ -81,6 +81,17 @@ Ogni pagina lo dichiara nel footer: "Anime Tracker è un client non ufficiale pe
 
 Non c'è un database. Il server non salva niente: il token sta solo nel cookie dell'utente; né il token né il contenuto delle liste finiscono nei log. Il cookie è tecnico e serve solo al login.
 
+### 7. Decisioni dell'implementazione (M2, 2026-11-20)
+
+- **Applicazioni AniList:** sviluppo con `http://localhost:3000/api/auth/callback`, produzione con `https://anime-tracker-three.vercel.app/api/auth/callback`. Le applicazioni AniList non si possono cancellare.
+- **Indirizzi di AniList configurabili, solo per i test:** `ANILIST_OAUTH_URL` (predefinito `https://anilist.co/api/v2/oauth`) si aggiunge ad `ANILIST_API_URL` (predefinito `https://graphql.anilist.co`), così i test e2e usano un finto AniList anche per il login. **Su Vercel, anteprime comprese, sono ammessi solo gli indirizzi veri:** con un altro valore la build si ferma e il server non parte. In locale restano liberi, perché i test usano la build di produzione con il finto AniList.
+- **Nome nell'header:** al login il server legge una volta `Viewer` (id e nome) e lo salva in un secondo cookie, leggibile dal JavaScript, solo per mostrare il nome. Le pagine condivise non leggono i cookie, così restano in cache. Tre condizioni:
+  1. non si usa mai per decidere l'accesso: ogni richiesta personale passa dal server, che guarda solo il cookie del token;
+  2. ha la stessa durata del cookie di sessione (30 giorni) e si cancella insieme a lui al logout;
+  3. si cancella insieme al cookie di sessione quando AniList risponde 401 (token scaduto o revocato).
+- **Prove manuali con l'account demo `yvr1x0202`.** Regole: si usano solo anime che non sono già nella lista e alla fine si cancellano; le voci esistenti non si modificano mai. Prima delle prove si elencano le voci attuali, dopo si verifica che siano identiche.
+- **Controllo del secret:** `scripts/check-secret.mjs` cerca il client secret di `.env.local` nei file tracciati da git e nella cronologia, e stampa solo se lo ha trovato, mai il valore.
+
 ## Alternative considerate
 
 - **Implicit Grant**, con il token nel browser: senza server, ma il token (valido 1 anno, con accesso quasi completo) sarebbe leggibile da JavaScript e quindi esposto a un attacco XSS. Scartato.

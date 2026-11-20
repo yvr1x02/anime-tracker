@@ -43,6 +43,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 ## M3 — Home
 
 - Anime della stagione in corso, ordinati per popolarità.
+- "← Torna indietro" nel Dettaglio: quando il Dettaglio è stato aperto direttamente, porta alla Home invece che a `/ricerca`.
 
 ## M4 — Calendario
 
