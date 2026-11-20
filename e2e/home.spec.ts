@@ -36,3 +36,14 @@ test("logged out, the Home has no Continua a guardare and no space waiting for i
   await expect(page.getByRole("heading", { name: "Continua a guardare" })).toHaveCount(0);
   await expect(page.locator("[aria-busy]")).toHaveCount(0);
 });
+
+test("at 1280×800 the first row of the season grid is visible without scrolling", async ({ page }) => {
+  // docs/DESIGN.md, "Home": the first row must end within 800px. The fake season has a two-line title.
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/");
+  const firstRow = page.getByRole("region", { name: "Gli altri anime della stagione" }).getByRole("article");
+  await expect(firstRow.first()).toBeVisible();
+
+  const bottoms = await firstRow.evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().bottom));
+  expect(Math.max(...bottoms)).toBeLessThanOrEqual(800);
+});

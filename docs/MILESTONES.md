@@ -71,7 +71,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Transizione card → Dettaglio con le View Transitions (`docs/DESIGN.md`, "Card → Dettaglio"): la copertina passa dalla card al Dettaglio, l'header resta fermo, il focus va sul titolo e al ritorno sulla card; con movimento ridotto solo dissolvenza.
 - **Misura con CPU rallentata 4×** (Chrome DevTools, a macchina scarica) della transizione vera. Se perde frame diventa una dissolvenza, secondo il budget di prestazioni di `docs/DESIGN.md`.
 - Menu dell'header per il telefono: da M2 la navigazione scorre in orizzontale sotto i 640px, una soluzione provvisoria che non regge altre voci (Calendario, Statistiche).
-- Striscia "in onda ora" sotto l'header della Home (`docs/DESIGN.md`), spostata qui da M3 (decisione del 2026-11-20): è soprattutto animazione, con il pulsante di pausa per WCAG 2.2.2.
+- Striscia "in onda ora" sotto l'header della Home (`docs/DESIGN.md`), spostata qui da M3 (decisione del 2026-11-20): è soprattutto animazione, con il pulsante di pausa per WCAG 2.2.2. Con i suoi circa 45px la prima fila della Home passerebbe da 775 a circa 820px: va ridotta l'intestazione, e il test di `e2e/home.spec.ts` lo controlla.
 - Revisione dell'aspetto delle pagine fatte fino a qui. Appunti dell'utente: _da completare_.
 
 ## M8 — Rifinitura

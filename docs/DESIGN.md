@@ -187,7 +187,9 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 - **"Continua a guardare"** (solo per chi è collegato), tra l'intestazione e la griglia: titolo `h2` e una fila di card (al massimo 6) con la riga "Sei indietro di 2 episodi" o "Ti mancano 2 episodi", l'etichetta "Rewatch" per le voci in rewatch e il "+1".
   - La pagina è uguale per tutti e la sezione si disegna nel browser. Lo spazio d'attesa (titolo e una fila di skeleton) compare solo se il cookie con il nome dice che l'utente è collegato, così chi non è collegato non vede spostamenti. Se non ci sono arretrati, la sezione non compare e lo spazio si chiude.
 - Sotto l'intestazione (o sotto "Continua a guardare"), la griglia degli altri anime della stagione in ordine di popolarità, 16px più in basso. Il suo titolo `h2` "Gli altri anime della stagione" è solo per i lettori di schermo, perché visibile sposterebbe la prima fila oltre gli 800px; diventa visibile (32px sopra, 16px sotto) quando c'è "Continua a guardare", per separare le due griglie (`:has()`).
-- **La prima fila di card è visibile senza scorrere con un viewport di 1280×800.** Altezze misurate nell'anteprima: header 65px, striscia 45px, intestazione 283px, spazio 16px, card 390px: la prima fila finisce a circa 799px. Il margine è di un solo pixel: va riverificato in M3 sull'app vera. Se non basta, si riduce l'intestazione (dimensione massima di `display-xl` o padding), non le card.
+- **La prima fila di card è visibile senza scorrere con un viewport di 1280×800.** Altezze misurate nell'anteprima: header 65px, striscia 45px, intestazione 283px, spazio 16px, card 390px: la prima fila finisce a circa 799px. Se non basta, si riduce l'intestazione (dimensione massima di `display-xl` o padding), non le card.
+  - **Verificato in M3 sull'app vera (2026-11-20), senza la striscia:** header 64px, intestazione fino a 366px (pannello in evidenza alto 243px), prima fila fino a **775px**, con una card dal titolo su due righe. Un test di Playwright lo controlla (`e2e/home.spec.ts`).
+  - **Con la striscia di M7** (circa 45px) la fila arriverebbe a circa 820px: quando si aggiunge, va ridotta l'intestazione.
 - Su un portatile 1280×800 vero il browser occupa parte dello schermo: lì la fila resta tagliata nella parte bassa.
 
 ## Ricerca
@@ -418,4 +420,4 @@ I colori del testo si chiamano `ink` e `ink-muted`: in Tailwind il prefisso `tex
 - **Ottimizzazione delle copertine (M1):** `next/image` passa dall'ottimizzazione di Vercel, che sul piano gratuito ha limiti mensili; l'alternativa è `<img>` con gli URL di AniList, che offre già tre dimensioni (`medium`, `large`, `extraLarge`).
 - **Noto Sans JP:** byte scaricati su un sistema senza font giapponesi e spazio nella build.
 - **Pulsante "+" (M2):** cosa succede premendolo quando l'anime è già nella lista.
-- **Spazio della prima fila nella Home (M3):** riverificare il margine di 1px a 1280×800 sull'app vera.
+- **Spazio della prima fila nella Home:** verificato in M3 (775px senza la striscia, vedi "Home"); da rifare quando la striscia arriva in M7.
