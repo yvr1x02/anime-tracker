@@ -76,6 +76,7 @@ Ogni pagina del Dettaglio si genera alla prima visita (`generateStaticParams` vu
 - **Finestra:** il server non conosce il fuso di chi guarda, quindi per la settimana che inizia lunedì D scarica dal lunedì D alle 00:00 UTC meno 14 ore al lunedì successivo più 12 ore: copre quella settimana in ogni fuso, da UTC−12 a UTC+14. Il browser tiene solo gli episodi della settimana nel suo fuso.
 - **Settimane future:** al massimo 12 dopo quella corrente; il parametro della settimana è validato (una data di lunedì, non nel passato, entro il tetto) prima di chiamare AniList.
 - **Costo:** 1 richiesta all'ora per la settimana corrente, condivisa da tutti, più 1 all'ora per ogni settimana futura aperta da qualcuno.
+- **Prova sui dati veri (2026-11-20, nel fuso di Roma, senza login):** settimana del 16–22 novembre con 120 episodi (da 8 a 31 al giorno), quella successiva con 132; nessun anime per adulti; "Solo la mia lista" sulla lista demo lascia l'unico anime della lista in onda quella settimana. Una richiesta per settimana, come previsto.
 
 ### Ricerca
 
