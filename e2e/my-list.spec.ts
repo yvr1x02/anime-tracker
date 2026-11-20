@@ -333,8 +333,9 @@ test.describe("Continua a guardare", () => {
     await expect(section.getByRole("article")).toHaveCount(1);
     await expect(section.getByRole("article")).toContainText("Senza palinsesto");
     await expect(section.getByRole("article")).toContainText("Ti manca 1 episodio");
-    // With the section there, the season grid's heading shows, to tell the two grids apart.
-    await expect(page.getByRole("heading", { name: "Gli altri anime della stagione" })).toBeVisible();
+    // With the section there, the season grid's heading shows, to tell the two grids apart. (toBeVisible
+    // would pass for a 1px screen-reader-only heading too: the position says whether it is laid out.)
+    await expect(page.getByRole("heading", { name: "Gli altri anime della stagione" })).toHaveCSS("position", "static");
 
     await section.getByRole("button", { name: "+1 episodio visto: Senza palinsesto" }).click();
 
@@ -345,7 +346,7 @@ test.describe("Continua a guardare", () => {
     await page.reload();
     await listRead;
     await expect(section).toHaveCount(0);
-    await expect(page.getByRole("heading", { name: "Gli altri anime della stagione" })).not.toBeInViewport();
+    await expect(page.getByRole("heading", { name: "Gli altri anime della stagione" })).toHaveCSS("position", "absolute");
   });
 
   test("from the keyboard, catching up moves focus to the next card, then to the heading, and says so", async ({ page }) => {

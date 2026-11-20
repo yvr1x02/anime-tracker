@@ -49,7 +49,18 @@ const anime = {
   5: { id: 5, title: { romaji: "AniList al limite" } },
   6: { id: 6, title: { romaji: "Errore passeggero" } },
   // Only in a custom list of the demo profile. Not 5 or 6: cards get prefetched, which would use up their failures.
-  8: { id: 8, title: { romaji: "Lista personalizzata" }, format: "OVA", episodes: 2 },
+  8: { id: 8, title: { romaji: "Lista personalizzata" }, format: "OVA", status: "FINISHED", episodes: 2, duration: 30 },
+  // For Cosa guardo stasera?: an anime airing (episode 6 out in three days) and a long film.
+  11: {
+    id: 11,
+    title: { romaji: "Serie in corso" },
+    format: "TV",
+    status: "RELEASING",
+    episodes: 24,
+    duration: 24,
+    nextAiringEpisode: { episode: 6, airingAt: startedAt + 3 * 24 * HOUR },
+  },
+  13: { id: 13, title: { romaji: "Film lungo" }, format: "MOVIE", status: "FINISHED", episodes: 1, duration: 150 },
   // Adult anime: the app must never show it, so queries ask for isAdult: false.
   3: { id: 3, isAdult: true, title: { romaji: "Solo per adulti" } },
 };
@@ -69,24 +80,44 @@ const invalidToken = { data: null, errors: [{ message: "Invalid token", status: 
 // an entry repeated in a custom list, one only in a custom list, and an adult anime the app must hide.
 const listMedia = (id) => {
   const { title, coverImage = null, format = null, season = null, seasonYear = null, episodes = null, status = null } = anime[id];
-  return { id, isAdult: Boolean(anime[id].isAdult), status, title, coverImage, format, season, seasonYear, episodes, nextAiringEpisode: null };
+  const { duration = null, nextAiringEpisode = null } = anime[id];
+  return {
+    id,
+    isAdult: Boolean(anime[id].isAdult),
+    status,
+    title,
+    coverImage,
+    format,
+    season,
+    seasonYear,
+    episodes,
+    duration,
+    nextAiringEpisode,
+  };
 };
-const listEntry = (id, mediaId, status, progress, score, updatedAt) => ({
+const DAY = 24 * HOUR;
+const listEntry = (id, mediaId, status, progress, score, updatedAt, createdAt = updatedAt) => ({
   id,
   status,
   progress,
   score,
   notes: null,
   updatedAt,
+  createdAt,
   startedAt: { year: null, month: null, day: null },
   completedAt: { year: null, month: null, day: null },
   media: listMedia(mediaId),
 });
+// For Cosa guardo stasera?: Hoshi no Kioku with 7 to go (finished), Serie in corso 2 behind (airing),
+// and two in Da vedere added 150 and 40 days ago.
 const demoLists = [
-  { entries: [listEntry(101, 1, "CURRENT", 5, 8, 300)] },
+  { entries: [listEntry(101, 1, "CURRENT", 5, 8, 300), listEntry(105, 11, "CURRENT", 3, 0, 400)] },
   { entries: [listEntry(102, 4, "COMPLETED", 1, 0, 200)] },
-  { entries: [listEntry(103, 3, "PLANNING", 0, 0, 500)] },
-  { isCustomList: true, entries: [listEntry(101, 1, "CURRENT", 5, 8, 300), listEntry(104, 8, "PLANNING", 0, 0, 100)] },
+  { entries: [listEntry(103, 3, "PLANNING", 0, 0, 500), listEntry(106, 13, "PLANNING", 0, 0, 450, startedAt - 40 * DAY)] },
+  {
+    isCustomList: true,
+    entries: [listEntry(101, 1, "CURRENT", 5, 8, 300), listEntry(104, 8, "PLANNING", 0, 0, 100, startedAt - 150 * DAY)],
+  },
 ];
 
 // The logged-in test user's own list (Viewer id 7). Changes go here; POST /__reset restores it.

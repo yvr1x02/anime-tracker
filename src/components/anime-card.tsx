@@ -20,6 +20,7 @@ export type AnimeCardData = {
   season: MediaSeason | null;
   seasonYear: number | null;
   episodes: number | null;
+  duration: number | null;
   nextAiringEpisode: AiringEpisode | null;
 };
 

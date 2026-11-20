@@ -112,6 +112,7 @@ export default async function AnimeDetailPage({ params }: PageProps<"/anime/[id]
                   season: anime.season,
                   seasonYear: anime.seasonYear,
                   episodes: anime.episodes,
+                  duration: anime.duration,
                   nextAiringEpisode: null,
                 }}
               />

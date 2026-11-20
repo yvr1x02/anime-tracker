@@ -62,6 +62,7 @@ export const SearchAnimeQuery = graphql(`
         season
         seasonYear
         episodes
+        duration
         nextAiringEpisode {
           episode
           airingAt
@@ -93,6 +94,7 @@ export const SeasonAnimeQuery = graphql(`
         season
         seasonYear
         episodes
+        duration
         nextAiringEpisode {
           episode
           airingAt
@@ -123,6 +125,7 @@ export const ListEntryFields = graphql(`
     score(format: POINT_10_DECIMAL)
     notes
     updatedAt
+    createdAt
     startedAt {
       year
       month
@@ -152,6 +155,7 @@ export const ListEntryFields = graphql(`
       season
       seasonYear
       episodes
+      duration
       nextAiringEpisode {
         episode
         airingAt

@@ -7,8 +7,8 @@ test("without login, La mia lista shows the demo profile's public list, read onl
   await expect(page.getByText("Modalità demo: lista pubblica di UtenteDemo su AniList, in sola lettura.")).toBeVisible();
   const cards = page.getByRole("article");
   // Entry 101 is also in a custom list, 104 only there; the adult anime (103) never shows.
-  await expect(cards).toHaveCount(3);
-  await expect(cards.nth(0)).toContainText("Sto guardando · 5 visti · voto 8,0");
+  await expect(cards).toHaveCount(5);
+  await expect(cards.filter({ hasText: "Hoshi no Kioku" })).toContainText("Sto guardando · 5 visti · voto 8,0");
   await expect(page.getByText("Solo per adulti")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Aggiungi|Modifica|Elimina/ })).toHaveCount(0);
 });
@@ -16,7 +16,7 @@ test("without login, La mia lista shows the demo profile's public list, read onl
 test("status filters show their counts and only the chosen status", async ({ page }) => {
   await page.goto("/lista");
   const filters = page.getByRole("group", { name: "Filtra per stato" });
-  await expect(filters.getByRole("button", { name: "Tutti (3)" })).toHaveAttribute("aria-pressed", "true");
+  await expect(filters.getByRole("button", { name: "Tutti (5)" })).toHaveAttribute("aria-pressed", "true");
 
   await filters.getByRole("button", { name: "Completato (1)" }).click();
 
@@ -34,4 +34,13 @@ test("the header marks La mia lista as the current page", async ({ page }) => {
   await expect(
     page.getByRole("navigation", { name: "Principale" }).getByRole("link", { name: "La mia lista" }),
   ).toHaveAttribute("aria-current", "page");
+});
+
+test("/api/demo-list gives the demo profile's public list, for Cosa guardo stasera?", async ({ request }) => {
+  const response = await request.get("/api/demo-list");
+
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.userName).toBe("UtenteDemo");
+  expect(body.entries).toHaveLength(5);
 });

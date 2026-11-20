@@ -4,7 +4,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 **Regola per ogni milestone:** ogni nuova pagina entra nel controllo di accessibilità di `e2e/accessibility.spec.ts` (axe, WCAG 2.2 AA) nello stesso commit che la aggiunge.
 
-**Milestone attiva:** M4
+**Milestone attiva:** M5
 
 ## M0 — Fondamenta (completata il 2026-11-19)
 
@@ -47,7 +47,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - "← Torna indietro" nel Dettaglio: quando il Dettaglio è stato aperto direttamente, porta alla Home invece che a `/ricerca`.
 - Verifica sull'app vera che la prima fila di card della Home sia visibile a 1280×800 (`docs/DESIGN.md`, "Da decidere o verificare più avanti").
 
-## M4 — Cosa guardo stasera?
+## M4 — Cosa guardo stasera? (completata il 2026-11-20)
 
 - La funzione di SPEC, "Cosa guardo stasera?": dato il tempo disponibile, 2–3 proposte dalla lista dell'utente, ognuna con il motivo; modalità demo senza login.
 - Calcoli in funzioni pure testate con Vitest (episodi arretrati, minuti, scelta e ordine delle proposte), con fusi orari espliciti.
@@ -71,7 +71,8 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Transizione card → Dettaglio con le View Transitions (`docs/DESIGN.md`, "Card → Dettaglio"): la copertina passa dalla card al Dettaglio, l'header resta fermo, il focus va sul titolo e al ritorno sulla card; con movimento ridotto solo dissolvenza.
 - **Misura con CPU rallentata 4×** (Chrome DevTools, a macchina scarica) della transizione vera. Se perde frame diventa una dissolvenza, secondo il budget di prestazioni di `docs/DESIGN.md`.
 - Menu dell'header per il telefono: da M2 la navigazione scorre in orizzontale sotto i 640px, una soluzione provvisoria che non regge altre voci (Calendario, Statistiche).
-- Striscia "in onda ora" sotto l'header della Home (`docs/DESIGN.md`), spostata qui da M3 (decisione del 2026-11-20): è soprattutto animazione, con il pulsante di pausa per WCAG 2.2.2. Con i suoi circa 45px la prima fila della Home passerebbe da 775 a circa 820px: va ridotta l'intestazione, e il test di `e2e/home.spec.ts` lo controlla.
+- Striscia "in onda ora" sotto l'header della Home (`docs/DESIGN.md`), spostata qui da M3 (decisione del 2026-11-20): è soprattutto animazione, con il pulsante di pausa per WCAG 2.2.2. Con i suoi circa 45px la prima fila della Home (797px da M4) passerebbe oltre gli 800px.
+- **Rivalutare la regola "prima fila entro 800px a 1280×800"** (`docs/DESIGN.md`, "Home") insieme alla striscia, invece di continuare a ridurre l'intestazione (decisione del 2026-11-20). Il test di `e2e/home.spec.ts` va aggiornato secondo la regola che si sceglie.
 - Revisione dell'aspetto delle pagine fatte fino a qui. Appunti dell'utente: _da completare_.
 
 ## M8 — Rifinitura

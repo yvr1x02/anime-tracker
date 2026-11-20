@@ -17,6 +17,8 @@ test("the Home shows the current season, most popular first", async ({ page }) =
   const cards = page.getByRole("region", { name: "Gli altri anime della stagione" }).getByRole("article");
   await expect(cards).toHaveCount(2);
   await expect(cards.nth(0)).toContainText("Senza palinsesto");
+  // Logged out, with nothing above the grid, its heading is for screen readers only.
+  await expect(page.getByRole("heading", { name: "Gli altri anime della stagione" })).toHaveCSS("position", "absolute");
 });
 
 test("logged out, a season card's + leads to the login", async ({ page }) => {
