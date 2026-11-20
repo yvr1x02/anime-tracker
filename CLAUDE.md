@@ -32,7 +32,7 @@ Node 22 (`engines` in `package.json`).
 | `npm run lint` | ESLint |
 | `npm run typecheck` | Rigenera i tipi di route e GraphQL, poi `tsc --noEmit` |
 | `npm test` | Test di Vitest (`src/**/*.test.ts`) |
-| `npm run test:e2e` | Test di Playwright (`e2e/`), compresi i controlli axe: fa la build e la avvia sulla porta 3100, che deve essere libera |
+| `npm run test:e2e` | Test di Playwright (`e2e/`), compresi i controlli axe: svuota la cache di `fetch`, fa la build e la avvia sulla porta 3100, che deve essere libera |
 | `npm run build` | Build di produzione; prima rigenera i tipi GraphQL |
 | `npm run start` | Avvia la build di produzione su `http://localhost:3000` |
 | `npm run codegen` | Rigenera i tipi in `src/gql/` dallo schema salvato |

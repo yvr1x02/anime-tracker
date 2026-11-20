@@ -11,10 +11,11 @@ export default defineConfig({
   use: { baseURL },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   // Always test the build made for this run; fail if something already holds a port.
+  // The fetch cache survives builds (ADR-0003): it's emptied so the fake AniList's data is always read anew.
   webServer: [
     { command: "node e2e/fake-anilist.mjs", url: fakeAniListURL, reuseExistingServer: false },
     {
-      command: `npm run build && npm run start -- --port ${port}`,
+      command: `rm -rf .next/cache/fetch-cache && npm run build && npm run start -- --port ${port}`,
       url: baseURL,
       env: { ANILIST_API_URL: fakeAniListURL },
       reuseExistingServer: false,
