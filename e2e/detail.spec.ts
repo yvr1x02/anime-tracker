@@ -13,11 +13,10 @@ test("detail page shows the anime from AniList", async ({ page }) => {
   await expect(info.getByText("Concluso")).toBeVisible();
   await expect(info.getByText("Studio di Prova")).toBeVisible();
   // AniList's English genres in Italian; one missing from the table stays in English.
-  await expect(page.getByRole("region", { name: "Generi" }).getByRole("listitem")).toHaveText([
-    "Avventura",
-    "Fantascienza",
-    "Isekai",
-  ]);
+  const genres = page.getByRole("region", { name: "Generi" }).getByRole("listitem");
+  await expect(genres).toHaveText(["Avventura", "Fantascienza", "Isekai"]);
+  // WCAG 3.1.2: only the untranslated genre is marked as English.
+  await expect(genres.and(page.locator('[lang="en"]'))).toHaveText(["Isekai"]);
 });
 
 test("description is shown as plain text, with markup removed", async ({ page }) => {

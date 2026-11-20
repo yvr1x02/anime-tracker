@@ -59,3 +59,8 @@ const genreLabels = new Map([
 export function genreLabel(genre: string): string {
   return genreLabels.get(genre) ?? genre;
 }
+
+/** "en" for a genre missing from the table, shown in English, so screen readers switch voice (WCAG 3.1.2). */
+export function genreLang(genre: string): "en" | undefined {
+  return genreLabels.has(genre) ? undefined : "en";
+}
