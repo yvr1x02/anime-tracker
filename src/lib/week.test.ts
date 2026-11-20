@@ -52,7 +52,7 @@ describe("parseWeekParam", () => {
     expect(parseWeekParam(value, utcMonday)).toBe(value);
   });
 
-  it.each([
+  it.each<[string | null, string]>([
     [null, "missing"],
     ["2026-11-24", "not a Monday"],
     ["2026-11-09", "two weeks back"],
