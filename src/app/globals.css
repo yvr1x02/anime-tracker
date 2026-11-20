@@ -126,6 +126,23 @@
     box-shadow: 0 28px 64px -12px var(--tint-cover-glow);
   }
 
+  /* docs/DESIGN.md, "Pulsanti e filtri": pressed in 100ms, released with a spring. */
+  .button {
+    min-height: 2.75rem;
+    padding-inline: 1rem;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-control);
+    background-color: var(--color-raised);
+    color: var(--color-ink);
+    @apply text-small font-semibold;
+    transition: transform var(--duration-base) var(--spring-bouncy);
+  }
+
+  .button:active {
+    transform: scale(0.97);
+    transition: transform var(--duration-instant) var(--ease-out);
+  }
+
   .genre-chip {
     background-color: var(--color-raised);
     background-image: linear-gradient(var(--tint-chip), var(--tint-chip));

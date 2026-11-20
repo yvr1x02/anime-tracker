@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { CoverImage } from "@/components/cover-image";
+import { DataFreshness } from "@/components/data-freshness";
 import { KanjiBackdrop } from "@/components/kanji-backdrop";
 import { NextEpisode, UpcomingEpisodes } from "@/components/upcoming-episodes";
 import { AniListError } from "@/lib/anilist/client";
@@ -26,23 +27,23 @@ const getAnime = cache(async (rawId: string) => {
   if (!(id <= MAX_GRAPHQL_INT)) notFound();
 
   try {
-    const { data } = await requestAniListCached(AnimeDetailQuery, { id }, REVALIDATE_SECONDS);
+    const { data, fetchedAt } = await requestAniListCached(AnimeDetailQuery, { id }, REVALIDATE_SECONDS);
     if (!data.Media) notFound();
-    return data.Media;
+    return { anime: data.Media, fetchedAt };
   } catch (error) {
     if (error instanceof AniListError && error.status === 404) notFound();
     throw error;
   }
 });
 
-type Anime = Awaited<ReturnType<typeof getAnime>>;
+type Anime = Awaited<ReturnType<typeof getAnime>>["anime"];
 
 function mainTitle(anime: Anime): string {
   return anime.title?.romaji ?? anime.title?.english ?? anime.title?.native ?? "Anime senza titolo";
 }
 
 export async function generateMetadata({ params }: PageProps<"/anime/[id]">): Promise<Metadata> {
-  const anime = await getAnime((await params).id);
+  const { anime } = await getAnime((await params).id);
   return {
     title: mainTitle(anime),
     description: descriptionToParagraphs(anime.description)[0]?.slice(0, 160),
@@ -50,7 +51,7 @@ export async function generateMetadata({ params }: PageProps<"/anime/[id]">): Pr
 }
 
 export default async function AnimeDetailPage({ params }: PageProps<"/anime/[id]">) {
-  const anime = await getAnime((await params).id);
+  const { anime, fetchedAt } = await getAnime((await params).id);
   const title = mainTitle(anime);
   const englishTitle = anime.title?.english && anime.title.english !== title ? anime.title.english : null;
   const paragraphs = descriptionToParagraphs(anime.description);
@@ -171,6 +172,8 @@ export default async function AnimeDetailPage({ params }: PageProps<"/anime/[id]
               </ul>
             </section>
           )}
+
+          <DataFreshness fetchedAt={fetchedAt} maxAgeSeconds={REVALIDATE_SECONDS} />
         </aside>
       </div>
     </article>

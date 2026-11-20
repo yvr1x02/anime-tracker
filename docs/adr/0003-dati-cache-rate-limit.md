@@ -83,6 +83,12 @@ Ogni pagina del Dettaglio si genera alla prima visita (`generateStaticParams` vu
 
 Con la cache di `fetch`, un aggiornamento fallito sul server non arriva alla pagina: il visitatore riceve la versione precedente, al massimo con il messaggio neutro. I messaggi d'errore riguardano quindi le richieste dal browser (Ricerca, parti personali) e le pagine senza dati in cache. Da verificare in M1: l'ora dei dati deve essere quella del download, non quella della generazione della pagina, per esempio dall'intestazione `Date` della risposta, che resta in cache insieme ai dati.
 
+**Implementazione in M1 (2026-11-20).**
+
+- **Ora dei dati:** è l'intestazione `Date` della risposta di AniList. Verificato che resta in cache con i dati: ogni voce di `.next/cache/fetch-cache` contiene `headers.date` accanto al corpo, quindi una pagina rigenerata dalla cache mostra l'ora del download, non quella della generazione.
+- **Dove si calcola:** nel browser, perché anche l'HTML della pagina è in cache e l'ora del server al momento della generazione non dice niente sulla visita. Se i dati sono di un altro giorno si aggiunge la data: "Dati aggiornati al 17 nov alle 15:16.".
+- **Pagina senza dati in cache:** `src/app/error.tsx` mostra "Non riesco a caricare i dati da AniList. Riprova tra qualche minuto." con il pulsante "Riprova". In produzione l'errore arriva al browser senza messaggio, quindi il testo non distingue le cause: AniList è l'unica fonte di dati delle pagine.
+
 ## Alternative considerate
 
 - **Tutto dal server.** Cache condivisa anche per la ricerca, ma ogni ricerca di ogni visitatore consumerebbe il limite comune. Scartato.

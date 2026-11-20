@@ -46,11 +46,17 @@ const anime = {
     seasonYear: 2025,
     airingSchedule: { nodes: [] },
   },
+  5: { id: 5, title: { romaji: "AniList al limite" } },
+  6: { id: 6, title: { romaji: "Errore passeggero" } },
   // Adult anime: the app must never show it, so queries ask for isAdult: false.
   3: { id: 3, isAdult: true, title: { romaji: "Solo per adulti" } },
 };
 
 const notFound = { data: { Media: null }, errors: [{ message: "Not Found.", status: 404 }] };
+// Anime 4 comes with a Date two hours old, as if served from a cache that has not been refreshed.
+const staleDates = { 4: new Date((startedAt - 2 * HOUR) * 1000).toUTCString() };
+// Anime 5: AniList always over the limit. Anime 6: the first request fails, the next ones work.
+const failures = { 5: Infinity, 6: 1 };
 
 http
   .createServer((request, response) => {
@@ -62,10 +68,17 @@ http
     request.on("data", (chunk) => (body += chunk));
     request.on("end", () => {
       const { query, variables } = JSON.parse(body);
+      if (failures[variables?.id] > 0) {
+        failures[variables.id]--;
+        response.writeHead(429, { "Retry-After": "60" });
+        response.end();
+        return;
+      }
       const found = query.includes("query AnimeDetail") ? anime[variables?.id] : undefined;
       // Like AniList: with isAdult: false an adult anime is simply not found.
       const media = found?.isAdult && query.includes("isAdult: false") ? undefined : found;
-      response.writeHead(media ? 200 : 404, { "Content-Type": "application/json" });
+      const date = staleDates[variables?.id];
+      response.writeHead(media ? 200 : 404, { "Content-Type": "application/json", ...(date && { Date: date }) });
       response.end(JSON.stringify(media ? { data: { Media: media } } : notFound));
     });
   })
