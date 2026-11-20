@@ -22,8 +22,8 @@ export type AnimeCardData = {
   nextAiringEpisode: AiringEpisode | null;
 };
 
-// The widest a column of the card grid gets (docs/DESIGN.md): about 15rem from 640px, half the screen below.
-const COVER_SIZES = "(min-width: 640px) 15rem, 50vw";
+// The widest a column of the card grid gets (docs/DESIGN.md): about 15rem from 640px; below, one or two columns.
+const COVER_SIZES = "(min-width: 640px) 15rem, 100vw";
 
 let tiltQuery: MediaQueryList | undefined;
 function canTilt(event: PointerEvent) {

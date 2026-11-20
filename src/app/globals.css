@@ -225,6 +225,35 @@
     }
   }
 
+  /* Cascade when new results arrive: 20ms apart for the first 8 cards, all done within 490ms. --i is the index. */
+  .card-cascade {
+    animation: card-in 350ms var(--spring-gentle) calc(min(var(--i, 0), 7) * 20ms) backwards;
+  }
+
+  @keyframes card-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.97);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-cascade {
+      animation: fade-in var(--duration-fast) var(--ease-out) backwards;
+    }
+  }
+
+  /* Header: bar under the current page, inset 12px, 6px above the item's bottom edge. */
+  .nav-link[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0.75rem;
+    bottom: 0.375rem;
+    height: 2px;
+    border-radius: 2px;
+    background-color: var(--color-ink);
+  }
+
   /* Skeleton: shows up after 150ms so quick loads don't flash, with a sheen sweeping across. */
   .card-skeleton {
     position: relative;

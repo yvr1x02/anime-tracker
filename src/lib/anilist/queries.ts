@@ -39,3 +39,33 @@ export const AnimeDetailQuery = graphql(`
     }
   }
 `);
+
+// Sent from the browser (ADR-0003). The fields are those of AnimeCardData.
+export const SearchAnimeQuery = graphql(`
+  query SearchAnime($search: String!, $perPage: Int!) {
+    Page(page: 1, perPage: $perPage) {
+      media(search: $search, type: ANIME, isAdult: false, sort: SEARCH_MATCH) {
+        id
+        title {
+          romaji
+          english
+          native
+        }
+        coverImage {
+          medium
+          large
+          extraLarge
+          color
+        }
+        format
+        season
+        seasonYear
+        episodes
+        nextAiringEpisode {
+          episode
+          airingAt
+        }
+      }
+    }
+  }
+`);

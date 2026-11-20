@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk } from "next/font/google";
 import Link from "next/link";
+import { QueryProvider } from "@/components/query-provider";
+import { SiteNav } from "@/components/site-nav";
 import { pageContainer } from "@/lib/page-container";
 import "./globals.css";
 
@@ -34,17 +36,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Vai al contenuto
         </a>
         <header className="sticky top-0 z-40 h-16 border-b border-border bg-bg">
-          <div className={`${pageContainer} flex h-full items-center`}>
+          <div className={`${pageContainer} flex h-full items-center justify-between gap-4`}>
             <Link
               href="/"
               className="flex min-h-11 items-center rounded-control text-h3"
             >
               Anime Tracker
             </Link>
+            <SiteNav />
           </div>
         </header>
         <main id="contenuto" className="flex-1">
-          {children}
+          <QueryProvider>{children}</QueryProvider>
         </main>
         <footer className="border-t border-border">
           <p className={`${pageContainer} py-8 text-small text-ink-muted`}>

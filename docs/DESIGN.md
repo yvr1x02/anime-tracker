@@ -186,6 +186,13 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 - **La prima fila di card è visibile senza scorrere con un viewport di 1280×800.** Altezze misurate nell'anteprima: header 65px, striscia 45px, intestazione 283px, spazio 16px, card 390px: la prima fila finisce a circa 799px. Il margine è di un solo pixel: va riverificato in M3 sull'app vera. Se non basta, si riduce l'intestazione (dimensione massima di `display-xl` o padding), non le card.
 - Su un portatile 1280×800 vero il browser occupa parte dello schermo: lì la fila resta tagliata nella parte bassa.
 
+## Ricerca
+
+- Titolo "Ricerca" in `h1`; sotto, un `<form role="search">` largo al massimo 36rem: etichetta visibile "Titolo dell'anime", campo `type="search"` (altezza minima 44px, fondo `surface`, bordo `border-strong`, raggio 6px), pulsante "Cerca" e un testo d'aiuto collegato con `aria-describedby`.
+- La ricerca parte da sola (ADR-0003); "Cerca" e Invio la fanno partire subito. L'indirizzo segue la ricerca (`?q=`) senza aggiungere voci alla cronologia.
+- Sotto il modulo, un'area `role="status"` annuncia numero di risultati, attesa per il limite di AniList, errori e "nessun risultato". Poi la griglia delle card, con la cascata solo quando i risultati arrivano dalla rete.
+- Durante il caricamento: 12 skeleton nella griglia, contenitore con `aria-busy`, "Caricamento…" per i lettori di schermo.
+
 ## Dettaglio
 
 - **Intestazione:** padding 24px sopra e 56px sotto. Link "← Torna indietro" (`small`, ciano, altezza minima 44px). Da 768px griglia `minmax(12rem, 18rem) 1fr` con spazio di 32px, allineata in basso: copertina a sinistra (al massimo 18rem, raggio 12px, alone `box-shadow: 0 28px 64px -12px` nel colore della tabella della tinta, che resta nei 32px di spazio), a destra etichetta, titolo in `display`, metadati in `small` (episodi, durata, studio, prossimo episodio in ciano: entro 6 giorni giorno della settimana e ora, oltre anche la data, "Ep. 1181 · dom 3 gen, 15:16") e pulsante primario "Aggiungi alla lista" / "✓ Nella mia lista". Dietro, tinta forte e kanji.

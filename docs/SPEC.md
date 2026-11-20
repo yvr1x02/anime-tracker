@@ -34,8 +34,8 @@ Dalle card si può aggiungere un anime alla lista.
 Ricerca degli anime per titolo, senza filtri aggiuntivi nella v1. Dalle card dei risultati si può aggiungere un anime alla lista.
 
 - **Titoli cercabili:** giapponese traslitterato (romaji) e inglese, cioè i titoli che AniList fornisce.
-- **Titoli italiani:** AniList non ha un campo per il titolo italiano. La ricerca lo trova quando coincide con il romaji o con l'inglese, o se compare tra i sinonimi. In M1 si verifica con prove reali se la ricerca considera i sinonimi.
-- La pagina suggerisce di cercare in romaji o in inglese quando il titolo italiano non dà risultati.
+- **Titoli italiani:** AniList non ha un campo per il titolo italiano. La ricerca lo trova quando coincide con il romaji o con l'inglese, o se compare tra i sinonimi. Verificato in M1 (2026-11-20) con tre ricerche reali: la ricerca considera i sinonimi, e "L'attacco dei giganti", "Ken il guerriero" e "Il mio vicino Totoro" trovano l'anime giusto come primo risultato. I sinonimi però li aggiungono gli utenti di AniList, quindi non tutti i titoli italiani ci sono.
+- La pagina suggerisce di cercare in romaji o in inglese quando la ricerca non dà risultati.
 
 ### 3. Dettaglio
 
