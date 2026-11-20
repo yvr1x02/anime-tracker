@@ -16,7 +16,7 @@ Specifica: [docs/SPEC.md](docs/SPEC.md). Piano a milestone: [docs/MILESTONES.md]
 - **Rispetto dell'API AniList.** Segui la strategia di [ADR-0003](docs/adr/0003-dati-cache-rate-limit.md): niente richieste a ogni tasto premuto, niente polling, gestione esplicita degli errori 429. Prima di scrivere una query, verifica i campi nello schema ufficiale invece di indovinarli.
 - **Attribuzione.** Ogni pagina mostra che i dati provengono da AniList, con link. Copertine e immagini si caricano dagli URL forniti dall'API, non si ricaricano nel repository.
 - **Niente uso commerciale.** Nessuna pubblicità, nessun pagamento, nessuna raccolta di dati degli utenti.
-- **Lingua.** Interfaccia in italiano. Codice, nomi di file e identificatori in inglese. Documentazione in italiano.
+- **Lingua.** Interfaccia in italiano. Codice, nomi di file e identificatori in inglese. Documentazione in italiano. Eccezione: le cartelle delle route in `src/app/` sono gli indirizzi delle pagine, che fanno parte dell'interfaccia, quindi sono in italiano (`/ricerca`, `/anime/[id]`).
 - **Fuso orario.** Gli orari di uscita si mostrano nel fuso del browser dell'utente; i test usano fusi espliciti.
 - **Commit.** Nessuna riga `Co-Authored-By` di Claude nei messaggi di commit.
 
@@ -32,7 +32,7 @@ Node 22 (`engines` in `package.json`).
 | `npm run lint` | ESLint |
 | `npm run typecheck` | Rigenera i tipi di route e GraphQL, poi `tsc --noEmit` |
 | `npm test` | Test di Vitest (`src/**/*.test.ts`) |
-| `npm run test:e2e` | Test di Playwright (`e2e/`), compresi i controlli axe: fa la build e la avvia sulla porta 3100, che deve essere libera |
+| `npm run test:e2e` | Test di Playwright (`e2e/`), compresi i controlli axe: svuota la cache di `fetch`, fa la build e la avvia sulla porta 3100, che deve essere libera |
 | `npm run build` | Build di produzione; prima rigenera i tipi GraphQL |
 | `npm run start` | Avvia la build di produzione su `http://localhost:3000` |
 | `npm run codegen` | Rigenera i tipi in `src/gql/` dallo schema salvato |

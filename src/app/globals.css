@@ -46,11 +46,17 @@
   --text-label--font-weight: 500;
   --text-label--line-height: 1.4;
   --text-label--letter-spacing: 0.08em;
+  --text-native: clamp(8rem, 2rem + 20vw, 20rem);
+  --text-native--font-weight: 700;
+  --text-native--line-height: 1;
 
   /* Spacing uses Tailwind's 4px scale; these are the named values DESIGN.md adds. */
   --container-page: 80rem;
   --radius-control: 0.375rem;
   --radius-panel: 0.75rem;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
 }
 
 /* `inline` puts next/font's variable straight into the generated CSS instead of a theme variable that points to it. */
@@ -59,6 +65,28 @@
 }
 
 @layer base {
+  /* Motion tokens from docs/DESIGN.md; the springs are sampled into linear() by a small simulation. */
+  :root {
+    --duration-instant: 100ms;
+    --duration-fast: 150ms;
+    --duration-base: 250ms;
+    --duration-slow: 400ms;
+    --spring-gentle: linear(0, 0.005 2%, 0.018 4%, 0.08 9%, 0.158 13.5%, 0.424 27%, 0.559 34.5%, 0.687 43%, 0.785 51.5%, 0.865 61%, 0.922 71%, 0.945 77%, 0.965 84%, 0.989 99.5%, 1);
+    --spring-snappy: linear(0, 0.008 2%, 0.031 4%, 0.119 8.5%, 0.564 24%, 0.749 31.5%, 0.87 38%, 0.919 41.5%, 0.959 45%, 0.993 49%, 1.02 53.5%, 1.036 58%, 1.045 63.5%, 1.045 69.5%, 1.039 77%, 1.011 99.5%, 1);
+    --spring-bouncy: linear(0, 0.008 1.5%, 0.038 3.5%, 0.136 7%, 0.673 20%, 0.88 26%, 1.013 31.5%, 1.055 34%, 1.091 37%, 1.12 41.5%, 1.126 44%, 1.125 47%, 1.105 53%, 1.025 68.5%, 0.998 76.5%, 0.987 83%, 0.984 90.5%, 0.988 99.5%, 1);
+  }
+
+  /* Reduced motion keeps feedback but drops movement: short ease-out fades only. */
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --duration-base: 150ms;
+      --duration-slow: 150ms;
+      --spring-gentle: var(--ease-out);
+      --spring-snappy: var(--ease-out);
+      --spring-bouncy: var(--ease-out);
+    }
+  }
+
   html {
     color-scheme: dark;
     /* Keeps anchor targets, like the skip link's, clear of the 64px sticky header. */
@@ -72,5 +100,234 @@
   :focus-visible {
     outline: 2px solid var(--color-cyan);
     outline-offset: 2px;
+  }
+}
+
+/*
+ * Tints from the cover colour (docs/DESIGN.md, "Tinta dalla copertina"): fixed lightness, the cover's hue,
+ * capped chroma; opacity grows with the cover's chroma so grey covers add no grey cast.
+ * Without relative colour syntax the variables are invalid and nothing is tinted.
+ */
+@layer components {
+  .has-cover {
+    --tint: oklch(from var(--cover) 0.2067 min(calc(c * 0.6), 0.06) h / min(calc(c * 20), 1));
+    --tint-header: oklch(from var(--cover) 0.27 min(c, 0.12) h / min(calc(c * 20), 1));
+    --tint-chip: oklch(from var(--cover) 0.32 min(calc(c * 0.8), 0.1) h / min(calc(c * 20), 1));
+    --tint-kanji: oklch(from var(--cover) 0.7 min(c, 0.12) h / 0.14);
+    --tint-cover-glow: oklch(from var(--cover) 0.5 min(c, 0.18) h / min(calc(c * 11), 0.55));
+  }
+
+  /* Detail header: strong tint for the first 30%, then fading to the page background. */
+  .detail-header {
+    background-image: linear-gradient(to bottom, var(--tint-header) 0%, var(--tint-header) 30%, transparent 100%);
+  }
+
+  .detail-cover {
+    box-shadow: 0 28px 64px -12px var(--tint-cover-glow);
+  }
+
+  /* docs/DESIGN.md, "Pulsanti e filtri": pressed in 100ms, released with a spring. */
+  .button {
+    min-height: 2.75rem;
+    padding-inline: 1rem;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-control);
+    background-color: var(--color-raised);
+    color: var(--color-ink);
+    @apply text-small font-semibold;
+    transition: transform var(--duration-base) var(--spring-bouncy);
+  }
+
+  .button:active {
+    transform: scale(0.97);
+    transition: transform var(--duration-instant) var(--ease-out);
+  }
+
+  .genre-chip {
+    background-color: var(--color-raised);
+    background-image: linear-gradient(var(--tint-chip), var(--tint-chip));
+  }
+
+  /*
+   * Anime card (docs/DESIGN.md, "Card dell'anime"). One transform built from variables: hover and focus
+   * set --y, pressing sets --s, the pointer sets --rx/--ry (anime-card.tsx). Reduced motion keeps only the glow.
+   */
+  .anime-card {
+    --rx: 0deg;
+    --ry: 0deg;
+    --y: 0px;
+    --s: 1;
+    position: relative;
+    isolation: isolate;
+    background-color: var(--color-surface);
+    background-image: linear-gradient(var(--tint), var(--tint));
+    transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry)) translateY(var(--y)) scale(var(--s));
+    transition: transform var(--duration-slow) var(--spring-snappy);
+  }
+
+  .anime-card[data-tilting] {
+    transition-duration: 120ms;
+    transition-timing-function: var(--ease-out);
+  }
+
+  /* Glow behind the card: only its opacity animates. Invalid, so absent, without a cover colour. */
+  .anime-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    box-shadow: 0 18px 44px -10px oklch(from var(--cover) 0.75 min(c, 0.15) h / 0.4);
+    opacity: 0;
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+
+  /* The title's link stretches over the whole card, so nothing interactive is nested. */
+  .anime-card-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .anime-card:hover::before {
+      opacity: 1;
+    }
+  }
+
+  /* With :has() the focus ring goes around the whole card; without it, it stays on the title. */
+  @supports selector(:has(*)) {
+    .anime-card-link:focus-visible {
+      outline: none;
+    }
+
+    .anime-card:has(.anime-card-link:focus-visible) {
+      outline: 2px solid var(--color-cyan);
+      outline-offset: 3px;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    @media (hover: hover) and (pointer: fine) {
+      .anime-card:hover {
+        --y: -6px;
+      }
+    }
+
+    .anime-card:has(.anime-card-link:focus-visible) {
+      --y: -6px;
+    }
+
+    .anime-card:active {
+      --s: 0.97;
+      transition-duration: var(--duration-instant);
+    }
+  }
+
+  /* Cascade when new results arrive: 20ms apart for the first 8 cards, all done within 490ms. --i is the index. */
+  .card-cascade {
+    animation: card-in 350ms var(--spring-gentle) calc(min(var(--i, 0), 7) * 20ms) backwards;
+  }
+
+  @keyframes card-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.97);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-cascade {
+      animation: fade-in var(--duration-fast) var(--ease-out) backwards;
+    }
+  }
+
+  /* Header: bar under the current page, inset 12px, 6px above the item's bottom edge. */
+  .nav-link[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0.75rem;
+    bottom: 0.375rem;
+    height: 2px;
+    border-radius: 2px;
+    background-color: var(--color-ink);
+  }
+
+  /* Skeleton: shows up after 150ms so quick loads don't flash, with a sheen sweeping across. */
+  .card-skeleton {
+    position: relative;
+    overflow: hidden;
+    animation: fade-in var(--duration-fast) var(--ease-out) 150ms backwards;
+  }
+
+  .card-skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(
+      100deg,
+      transparent 30%,
+      color-mix(in oklab, var(--color-ink) 6%, transparent) 50%,
+      transparent 70%
+    );
+    transform: translateX(-100%);
+    animation: skeleton-sheen 1.4s linear infinite;
+  }
+
+  @keyframes skeleton-sheen {
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-skeleton::after {
+      animation: none;
+      display: none;
+    }
+  }
+
+  /* Outer layer: entry animation and bottom fade. The inner span is left free for a scroll-driven animation. */
+  .kanji-backdrop {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    mask-image: linear-gradient(to bottom, #000 45%, transparent 85%);
+    animation: kanji-in var(--duration-slow) var(--spring-gentle) 80ms backwards;
+  }
+
+  .kanji-backdrop > span {
+    position: absolute;
+    top: -0.12em;
+    right: -0.3em;
+    writing-mode: vertical-rl;
+    white-space: nowrap;
+    font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", var(--font-noto-jp), sans-serif;
+    color: color-mix(in oklab, var(--color-ink) 8%, transparent);
+  }
+
+  .has-cover .kanji-backdrop > span {
+    color: var(--tint-kanji);
+  }
+
+  @keyframes kanji-in {
+    from {
+      transform: translateX(8%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .kanji-backdrop {
+      animation: fade-in var(--duration-fast) var(--ease-out) backwards;
+    }
   }
 }

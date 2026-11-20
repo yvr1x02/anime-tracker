@@ -44,9 +44,17 @@ Motivi, dalla documentazione di Next.js 16.4.6 inclusa nel pacchetto:
 | Nuova build con AniList in 429 | Build riuscita, ma la pagina torna ai dati della **prima** build, più vecchi di quelli serviti prima | Build riuscita, la pagina mostra **gli ultimi dati** scaricati |
 | Build senza dati in cache, AniList in 429 | — | La build si ferma con un errore: non si pubblica una pagina vuota |
 
-La prova gira su `next start`, che tiene la cache su disco. **Da verificare su Vercel in M1**, con la prima query vera: dati vecchi durante un 429 e cache che sopravvive a un nuovo deploy.
+La prova gira su `next start`, che tiene la cache su disco. **Da verificare su Vercel**: dati vecchi durante un 429 e cache che sopravvive a un nuovo deploy. Non ancora fatto alla chiusura di M1: l'anteprima è protetta dall'autenticazione di Vercel (vedi "Verifiche di M1").
 
 **Conseguenze della scelta:** si rinuncia al Partial Prefetching, che richiede Cache Components. Le parti personali delle pagine (ADR-0004) si caricano comunque dal browser.
+
+### Dettaglio di id inesistenti (verificato in M1, 2026-11-19)
+
+Ogni pagina del Dettaglio si genera alla prima visita (`generateStaticParams` vuoto). Il rischio: chiunque visiti molti id diversi fa partire una richiesta ad AniList per ciascuno e consuma il limite comune.
+
+- **Id non validi** (non interi positivi, oppure oltre il massimo di `Int` in GraphQL): 404 subito, senza richieste ad AniList.
+- **Id validi ma inesistenti, o di anime per adulti:** prova locale con la build di produzione e un finto AniList che risponde sempre "Not Found" e conta le richieste. Tre visite a `/anime/2` hanno fatto **una sola** richiesta; un altro id ne ha fatta una in più, poi nessuna. Anche la 404 resta in cache, come pagina generata: la cache di `fetch` era vuota.
+- **Rischio che resta:** un id nuovo costa sempre una richiesta. Non ho verificato quanto dura in cache una 404, né il comportamento su Vercel. Le contromisure verso i bot (per esempio `robots.txt`) si valutano in M7, la Rifinitura.
 
 ### Ricerca
 
@@ -75,6 +83,21 @@ La prova gira su `next start`, che tiene la cache su disco. **Da verificare su V
 
 Con la cache di `fetch`, un aggiornamento fallito sul server non arriva alla pagina: il visitatore riceve la versione precedente, al massimo con il messaggio neutro. I messaggi d'errore riguardano quindi le richieste dal browser (Ricerca, parti personali) e le pagine senza dati in cache. Da verificare in M1: l'ora dei dati deve essere quella del download, non quella della generazione della pagina, per esempio dall'intestazione `Date` della risposta, che resta in cache insieme ai dati.
 
+**Implementazione in M1 (2026-11-20).**
+
+- **Ora dei dati:** è l'intestazione `Date` della risposta di AniList. Verificato che resta in cache con i dati: ogni voce di `.next/cache/fetch-cache` contiene `headers.date` accanto al corpo, quindi una pagina rigenerata dalla cache mostra l'ora del download, non quella della generazione.
+- **Dove si calcola:** nel browser, perché anche l'HTML della pagina è in cache e l'ora del server al momento della generazione non dice niente sulla visita. Se i dati sono di un altro giorno si aggiunge la data: "Dati aggiornati al 17 nov alle 15:16.".
+- **Pagina senza dati in cache:** `src/app/error.tsx` mostra "Non riesco a caricare i dati da AniList. Riprova tra qualche minuto." con il pulsante "Riprova". In produzione l'errore arriva al browser senza messaggio, quindi il testo non distingue le cause: AniList è l'unica fonte di dati delle pagine.
+
+### Verifiche di M1 (2026-11-20)
+
+- **CORS:** AniList risponde alla richiesta preliminare con 204 e `access-control-allow-origin: *`, e permette `POST` con `Content-Type` e `Accept`. La ricerca parte quindi direttamente dal browser.
+- **Intestazioni leggibili dal browser:** `access-control-expose-headers` comprende solo `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`, `Content-Length` e `Content-Range`. `Retry-After` non è leggibile: nel browser il tempo d'attesa dopo un 429 si calcola da `X-RateLimit-Reset`. Il limite è ancora di 30 richieste al minuto (`x-ratelimit-limit: 30`).
+- **Il 429 nel browser:** non provocato apposta, per non consumare il limite. Se AniList lo manda senza le intestazioni CORS, il browser vede un errore di rete: la Ricerca riprova una volta dopo 1 secondo, poi mostra "Non riesco a raggiungere AniList…". Se invece il tempo d'attesa è leggibile, mostra "Riprovo tra {secondi} secondi." e riprova una volta dopo quel tempo. Un 429 senza tempo d'attesa non si riprova. Tutti questi casi sono provati con Playwright su risposte simulate.
+- **Titoli italiani:** la ricerca considera i sinonimi; risultati in SPEC ("Ricerca").
+- **Ora dei dati:** l'intestazione `Date` resta nella cache di `fetch` (vedi "Implementazione in M1" sopra).
+- **Cache su Vercel, non verificata:** l'anteprima del branch chiede l'accesso a Vercel (Deployment Protection), quindi non si può leggere da riga di comando. Resta da fare: aprire un Dettaglio sull'anteprima, annotare l'ora dei dati, fare un nuovo deploy e ricontrollarla.
+
 ## Alternative considerate
 
 - **Tutto dal server.** Cache condivisa anche per la ricerca, ma ogni ricerca di ogni visitatore consumerebbe il limite comune. Scartato.
@@ -83,6 +106,6 @@ Con la cache di `fetch`, un aggiornamento fallito sul server non arriva alla pag
 
 ## Conseguenze
 
-- In M1 va verificato che AniList accetti richieste dirette dal browser (CORS). Se non le accetta, la ricerca passa da una route del nostro server, con la sua cache: questa modifica va registrata aggiornando questo ADR.
+- AniList accetta richieste dirette dal browser (CORS, verificato in M1): la ricerca resta nel browser.
 - I dati di Home, Dettaglio e Calendario possono essere vecchi fino alla durata della loro cache.
 - Gli orari nei messaggi si mostrano nel fuso del browser.

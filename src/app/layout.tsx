@@ -1,6 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk } from "next/font/google";
 import Link from "next/link";
+import { NavigationTracker } from "@/components/back-link";
+import { QueryProvider } from "@/components/query-provider";
+import { SiteNav } from "@/components/site-nav";
+import { pageContainer } from "@/lib/page-container";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -22,8 +26,6 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-const pageContainer = "mx-auto w-full max-w-page px-4 sm:px-6 lg:px-8";
-
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="it" className={spaceGrotesk.variable}>
@@ -35,17 +37,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Vai al contenuto
         </a>
         <header className="sticky top-0 z-40 h-16 border-b border-border bg-bg">
-          <div className={`${pageContainer} flex h-full items-center`}>
+          <div className={`${pageContainer} flex h-full items-center justify-between gap-4`}>
             <Link
               href="/"
               className="flex min-h-11 items-center rounded-control text-h3"
             >
               Anime Tracker
             </Link>
+            <SiteNav />
           </div>
         </header>
-        <main id="contenuto" className={`${pageContainer} flex-1 py-12`}>
-          {children}
+        <main id="contenuto" className="flex-1">
+          <QueryProvider>{children}</QueryProvider>
+          <NavigationTracker />
         </main>
         <footer className="border-t border-border">
           <p className={`${pageContainer} py-8 text-small text-ink-muted`}>

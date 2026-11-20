@@ -155,7 +155,7 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 
 - Scala di Tailwind (unità da 4px). Ritmo principale: 4, 8, 12, 16, 24, 32, 48, 64px.
 - Margine laterale della pagina: 16px su mobile, 24px da 640px, 32px da 1024px. Contenuto al massimo 1280px.
-- Griglia delle card: `repeat(auto-fill, minmax(12rem, 1fr))` tra 640 e 1024px, `11rem` sotto i 640px e da 1024px in su; spazio 16px (24px da 1024px). A 1280px sono 6 colonne.
+- Griglia delle card: `repeat(auto-fill, minmax(12rem, 1fr))` tra 640 e 1024px, `11rem` da 1024px in su, `10rem` sotto i 640px; spazio 16px (24px da 1024px). A 1280px sono 6 colonne; su un telefono largo almeno 352px sono 2 (con 11rem a 390px ne entrava una sola).
 - Raggi: 6px per controlli e badge, 12px per card e pannelli, completo per i chip.
 - Bersagli toccabili di almeno **44×44px**, oltre il minimo WCAG 2.2 di 24×24.
 
@@ -186,12 +186,19 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 - **La prima fila di card è visibile senza scorrere con un viewport di 1280×800.** Altezze misurate nell'anteprima: header 65px, striscia 45px, intestazione 283px, spazio 16px, card 390px: la prima fila finisce a circa 799px. Il margine è di un solo pixel: va riverificato in M3 sull'app vera. Se non basta, si riduce l'intestazione (dimensione massima di `display-xl` o padding), non le card.
 - Su un portatile 1280×800 vero il browser occupa parte dello schermo: lì la fila resta tagliata nella parte bassa.
 
+## Ricerca
+
+- Titolo "Ricerca" in `h1`; sotto, un `<form role="search">` largo al massimo 36rem: etichetta visibile "Titolo dell'anime", campo `type="search"` (altezza minima 44px, fondo `surface`, bordo `border-strong`, raggio 6px), pulsante "Cerca" e un testo d'aiuto collegato con `aria-describedby`.
+- La ricerca parte da sola (ADR-0003); "Cerca" e Invio la fanno partire subito. L'indirizzo segue la ricerca (`?q=`) senza aggiungere voci alla cronologia.
+- Sotto il modulo, un'area `role="status"` annuncia numero di risultati, attesa per il limite di AniList, errori e "nessun risultato". Poi la griglia delle card, con la cascata solo quando i risultati arrivano dalla rete.
+- Durante il caricamento: 12 skeleton nella griglia, contenitore con `aria-busy`, "Caricamento…" per i lettori di schermo.
+
 ## Dettaglio
 
-- **Intestazione:** padding 24px sopra e 56px sotto. Link "← Torna indietro" (`small`, ciano, altezza minima 44px). Da 768px griglia `minmax(12rem, 18rem) 1fr` con spazio di 32px, allineata in basso: copertina a sinistra (al massimo 18rem, raggio 12px, alone `box-shadow: 0 28px 64px -12px` nel colore della tabella della tinta, che resta nei 32px di spazio), a destra etichetta, titolo in `display`, metadati in `small` (episodi, durata, studio, prossimo episodio in ciano) e pulsante primario "Aggiungi alla lista" / "✓ Nella mia lista". Dietro, tinta forte e kanji.
+- **Intestazione:** padding 24px sopra e 56px sotto. Link "← Torna indietro" (`small`, ciano, altezza minima 44px). Da 768px griglia `minmax(12rem, 18rem) 1fr` con spazio di 32px, allineata in basso: copertina a sinistra (al massimo 18rem, raggio 12px, alone `box-shadow: 0 28px 64px -12px` nel colore della tabella della tinta, che resta nei 32px di spazio), a destra etichetta, titolo in `display`, metadati in `small` (episodi, durata, studio, prossimo episodio in ciano: entro 6 giorni giorno della settimana e ora, oltre anche la data, "Ep. 1181 · dom 3 gen, 15:16") e pulsante primario "Aggiungi alla lista" / "✓ Nella mia lista". Dietro, tinta forte e kanji.
 - **Corpo in due colonne da 1024px:**
   - colonna principale (al massimo 65 caratteri per riga): Trama, Generi, Prossimi episodi;
-  - colonna laterale di 20rem (`<aside aria-label="Scheda">`), che resta visibile scorrendo (`position: sticky; top: 88px`, cioè header più 24px): pannelli "Informazioni" (formato, episodi, durata, stagione, titolo originale) e "Studi", su `surface`, raggio 12px, padding 20px × 24px, spazio di 16px tra i pannelli, titoli in `h3`. Le informazioni sono un `<dl>` a due colonne (`max-content 1fr`, spazio 8px × 24px), etichette in `ink-muted`, valori con `tabular-nums`.
+  - colonna laterale di 20rem (`<aside aria-label="Scheda">`), che resta visibile scorrendo (`position: sticky; top: 88px`, cioè header più 24px): pannelli "Informazioni" (formato, episodi, durata, stagione, titolo originale) e "Studi", su `surface`, raggio 12px, padding 20px × 24px, spazio di 16px tra i pannelli, titoli in `h3`. Le informazioni sono un `<dl>` a due colonne (`max-content 1fr`, spazio 8px × 24px), etichette in `ink-muted`, valori con `tabular-nums`. In fondo alla colonna, solo quando i dati superano la durata della loro cache, la nota "Dati aggiornati alle {ora}." di ADR-0003 in `small` `ink-muted`.
   - Spazio tra le due colonne 64px, tra le sezioni della colonna principale 56px; padding del corpo 64px sopra e 96px sotto.
   - Sotto i 1024px la colonna laterale va dopo quella principale.
 - **Generi:** chip con la tinta della copertina (vedi la tabella della tinta).
@@ -240,7 +247,7 @@ Usata in Home, Ricerca e Lista.
 
 ### Badge "in onda"
 
-Testo `cyan` su fondo `bg` pieno (12,36:1), in basso a sinistra sulla copertina: "Ep. 7 · mer 16:30". Giorno e ora sono nel fuso del browser, calcolati nel browser (come per i prossimi episodi del Dettaglio) da `nextAiringEpisode.airingAt` (verificato nello schema: `AiringSchedule.airingAt: Int!`, `episode: Int!`).
+Testo `cyan` su fondo `bg` pieno (12,36:1), in basso a sinistra sulla copertina: "Ep. 7 · mer 16:30". Il giorno della settimana basta solo se l'episodio esce entro 6 giorni, altrimenti un episodio tra 45 giorni sembrerebbe della settimana in corso. Oltre i 6 giorni il badge mostra solo la data, senza giorno della settimana né ora ("Ep. 1181 · 3 gen"), così resta su una riga; l'orario completo è nel Dettaglio. Giorno e ora sono nel fuso del browser, calcolati nel browser (come per i prossimi episodi del Dettaglio) da `nextAiringEpisode.airingAt` (verificato nello schema: `AiringSchedule.airingAt: Int!`, `episode: Int!`).
 
 ### Stati della card
 

@@ -1,6 +1,9 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  // Same "@/" alias as tsconfig.json.
+  resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   test: {
     // Playwright specs live outside src/ and must not be picked up here.
     include: ["src/**/*.test.ts"],
