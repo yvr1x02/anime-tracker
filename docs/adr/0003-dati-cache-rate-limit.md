@@ -44,7 +44,7 @@ Motivi, dalla documentazione di Next.js 16.4.6 inclusa nel pacchetto:
 | Nuova build con AniList in 429 | Build riuscita, ma la pagina torna ai dati della **prima** build, più vecchi di quelli serviti prima | Build riuscita, la pagina mostra **gli ultimi dati** scaricati |
 | Build senza dati in cache, AniList in 429 | — | La build si ferma con un errore: non si pubblica una pagina vuota |
 
-La prova gira su `next start`, che tiene la cache su disco. **Da verificare su Vercel**: dati vecchi durante un 429 e cache che sopravvive a un nuovo deploy. Non ancora fatto alla chiusura di M1: l'anteprima è protetta dall'autenticazione di Vercel (vedi "Verifiche di M1").
+La prova gira su `next start`, che tiene la cache su disco. **Su Vercel, verificato in M2 (2026-11-20):** la cache di `fetch` sopravvive a un nuovo deploy (vedi "Verifica su Vercel"). Il comportamento durante un 429 non è stato provocato su Vercel, per non consumare il limite di AniList apposta: resta verificato solo in locale.
 
 **Conseguenze della scelta:** si rinuncia al Partial Prefetching, che richiede Cache Components. Le parti personali delle pagine (ADR-0004) si caricano comunque dal browser.
 
@@ -96,7 +96,13 @@ Con la cache di `fetch`, un aggiornamento fallito sul server non arriva alla pag
 - **Il 429 nel browser:** non provocato apposta, per non consumare il limite. Se AniList lo manda senza le intestazioni CORS, il browser vede un errore di rete: la Ricerca riprova una volta dopo 1 secondo, poi mostra "Non riesco a raggiungere AniList…". Se invece il tempo d'attesa è leggibile, mostra "Riprovo tra {secondi} secondi." e riprova una volta dopo quel tempo. Un 429 senza tempo d'attesa non si riprova. Tutti questi casi sono provati con Playwright su risposte simulate.
 - **Titoli italiani:** la ricerca considera i sinonimi; risultati in SPEC ("Ricerca").
 - **Ora dei dati:** l'intestazione `Date` resta nella cache di `fetch` (vedi "Implementazione in M1" sopra).
-- **Cache su Vercel, non verificata:** l'anteprima del branch chiede l'accesso a Vercel (Deployment Protection), quindi non si può leggere da riga di comando. Resta da fare: aprire un Dettaglio sull'anteprima, annotare l'ora dei dati, fare un nuovo deploy e ricontrollarla.
+- **Cache su Vercel:** rimandata a M2, perché l'anteprima chiede l'accesso a Vercel (Deployment Protection) e non si legge da riga di comando.
+
+### Verifica su Vercel (M2, 2026-11-20)
+
+- **La cache sopravvive a un nuovo deploy.** Sull'anteprima del branch `m2`, `/anime/457` aveva i dati scaricati alle 10:40:48 UTC. Dopo un nuovo deploy dello stesso branch (10:55:49), la pagina, rigenerata dal deploy nuovo, mostrava ancora i dati delle 10:40:48: nessun nuovo download. Che rispondesse il deploy nuovo è stato controllato su una pagina cambiata in quel commit.
+- **La documentazione di Vercel** (Data Cache, letta il 2026-11-20) lo conferma: cache persistente tra i deploy, separata tra produzione e anteprime, divisa per regione, e su Hobby e Pro condivisa da tutti i progetti del team.
+- **Attenzione alla chiave della cache:** l'anteprima di `m1` e quella di `m2` non condividevano la voce di `/anime/457`, perché in M2 la richiesta ad AniList costruisce le intestazioni in un altro modo e Next le usa nella chiave. Un cambio a come si fa una richiesta ad AniList rende quindi "nuove" le voci in cache, che si riscaricano una volta.
 
 ## Alternative considerate
 

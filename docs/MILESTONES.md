@@ -4,7 +4,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 **Regola per ogni milestone:** ogni nuova pagina entra nel controllo di accessibilità di `e2e/accessibility.spec.ts` (axe, WCAG 2.2 AA) nello stesso commit che la aggiunge.
 
-**Milestone attiva:** M2
+**Milestone attiva:** M3
 
 ## M0 — Fondamenta (completata il 2026-11-19)
 
@@ -30,7 +30,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - La transizione card → Dettaglio e la misura con CPU rallentata 4×, previste qui, passano a M6 (decisione del 2026-11-20: prima tutte le funzionalità, poi lo stile).
 - La verifica della cache di `fetch` su Vercel (ADR-0003) passa a M2: l'anteprima chiede l'accesso a Vercel e non si è potuta fare da qui.
 
-## M2 — Login e La mia lista
+## M2 — Login e La mia lista (completata il 2026-11-20)
 
 - Login OAuth con AniList (ADR-0004): avvio, ritorno con verifica di `state`, cookie di sessione `__Host-`, logout che svuota anche la cache di TanStack Query. Due applicazioni AniList (sviluppo e produzione) e variabili d'ambiente su Vercel.
 - Pagina "La mia lista" con filtro per stato, letta da AniList con una sola richiesta.
