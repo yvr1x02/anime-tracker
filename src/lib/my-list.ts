@@ -7,21 +7,38 @@ import type { ListEntry } from "@/lib/list";
 
 export const MY_LIST_KEY = ["my-list"] as const;
 
-/** GET /api/list, with our server's answers turned into the errors the retry rules know. */
-async function fetchMyList(signal: AbortSignal): Promise<ListEntry[]> {
+/** Our server's answers turned into the errors the retry rules and the messages know. */
+async function callListApi<T>(path: string, init: RequestInit): Promise<T> {
   let response: Response;
   try {
-    response = await fetch("/api/list", { signal, cache: "no-store" });
+    response = await fetch(path, { cache: "no-store", ...init });
   } catch (cause) {
-    throw new AniListError(`List unreachable: ${String(cause)}`);
+    throw new AniListError(`List API unreachable: ${String(cause)}`);
   }
   if (response.status === 401) throw new NotLoggedInError();
   if (response.status === 429) {
     const body = (await response.json().catch(() => null)) as { retryAfterSeconds?: number | null } | null;
     throw new AniListRateLimitError(body?.retryAfterSeconds ?? null);
   }
-  if (!response.ok) throw new AniListError("List request failed", response.status);
-  return (await response.json()) as ListEntry[];
+  if (!response.ok) throw new AniListError("List API request failed", response.status);
+  return (await response.json()) as T;
+}
+
+function fetchMyList(signal: AbortSignal): Promise<ListEntry[]> {
+  return callListApi("/api/list", { signal });
+}
+
+/**
+ * POST a change to our server. `keepalive` lets a change still in its 800ms wait reach the server when the
+ * page is hidden or closed (ADR-0004); a same-origin fetch carries the cookie and Origin either way.
+ */
+export function postListChange<T>(path: "/api/list/entry" | "/api/list/entry/delete", body: unknown, keepalive = false) {
+  return callListApi<T>(path, {
+    method: "POST",
+    keepalive,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
 }
 
 /** The logged-in user's list, read once per session and then updated by each change (ADR-0004). */

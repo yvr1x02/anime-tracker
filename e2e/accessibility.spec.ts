@@ -32,3 +32,11 @@ test("no WCAG A/AA violations on the logged-in list", async ({ page }) => {
   const { violations } = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
   expect(violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
 });
+
+test("no WCAG A/AA violations with the entry editor open", async ({ page }) => {
+  await logIn(page, "/lista");
+  await page.getByRole("button", { name: /^Modifica: / }).first().click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  const { violations } = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
+  expect(violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
+});

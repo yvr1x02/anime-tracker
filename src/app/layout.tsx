@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { AccountMenu } from "@/components/account-menu";
 import { NavigationTracker } from "@/components/back-link";
+import { ListEditingProvider } from "@/components/list-editing";
 import { QueryProvider } from "@/components/query-provider";
 import { SiteNav } from "@/components/site-nav";
 import { pageContainer } from "@/lib/page-container";
@@ -56,7 +57,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </div>
         </header>
         <main id="contenuto" className="flex-1">
-          <QueryProvider>{children}</QueryProvider>
+          <QueryProvider>
+            <ListEditingProvider>{children}</ListEditingProvider>
+          </QueryProvider>
           <NavigationTracker />
         </main>
         <footer className="border-t border-border">

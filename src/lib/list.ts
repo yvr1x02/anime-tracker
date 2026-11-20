@@ -1,8 +1,6 @@
-import type { UserAnimeListQuery } from "@/gql/graphql";
+import type { ListEntryFieldsFragment, UserAnimeListQuery } from "@/gql/graphql";
 
-type Lists = NonNullable<NonNullable<UserAnimeListQuery["MediaListCollection"]>["lists"]>;
-type RawEntry = NonNullable<NonNullable<NonNullable<Lists[number]>["entries"]>[number]>;
-export type ListEntry = RawEntry & { media: NonNullable<RawEntry["media"]> };
+export type ListEntry = ListEntryFieldsFragment & { media: NonNullable<ListEntryFieldsFragment["media"]> };
 
 /**
  * All entries of a list, once each, newest change first. An entry can sit both in its status list and in

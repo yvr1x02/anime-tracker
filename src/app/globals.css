@@ -226,7 +226,8 @@
       --y: -6px;
     }
 
-    .anime-card:active {
+    /* Pressing the card itself, not one of its buttons. */
+    .anime-card:has(.anime-card-link:active) {
       --s: 0.97;
       transition-duration: var(--duration-instant);
     }
@@ -302,6 +303,21 @@
     .nav-link[aria-current="page"]::after {
       inset-inline: 0.75rem;
     }
+  }
+
+  /* Entry editor: a modal <dialog> on surface, the page dimmed behind it. */
+  .entry-editor {
+    width: min(28rem, calc(100% - 2rem));
+    margin: auto;
+    padding: 1.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-panel);
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+  }
+
+  .entry-editor::backdrop {
+    background-color: rgb(0 0 0 / 0.6);
   }
 
   /* Skeleton: shows up after 150ms so quick loads don't flash, with a sheen sweeping across. */

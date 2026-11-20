@@ -2,15 +2,20 @@
 
 import { useState } from "react";
 import { AnimeCard } from "@/components/anime-card";
+import { EditEntryButton } from "@/components/entry-editor";
+import { useListEditing } from "@/components/list-editing";
 import type { MediaListStatus } from "@/gql/graphql";
-import { listStatusLabel } from "@/lib/anime-labels";
+import { animeTitle, listStatusLabel } from "@/lib/anime-labels";
 import { cardGrid } from "@/lib/card-grid";
 import { type ListEntry, entrySummary } from "@/lib/list";
 
 const statuses = Object.keys(listStatusLabel) as MediaListStatus[];
 
-/** A list's cards with the status filters (docs/DESIGN.md, "Pulsanti e filtri"). */
-export function AnimeList({ entries }: { entries: ListEntry[] }) {
+/**
+ * A list's cards with the status filters (docs/DESIGN.md, "Pulsanti e filtri"). `editable` adds the
+ * controls of the logged-in user's own list; the demo stays read only.
+ */
+export function AnimeList({ entries, editable = false }: { entries: ListEntry[]; editable?: boolean }) {
   const [filter, setFilter] = useState<MediaListStatus | null>(null);
   const shown = filter ? entries.filter((entry) => entry.status === filter) : entries;
   const count = (status: MediaListStatus | null) =>
@@ -45,11 +50,35 @@ export function AnimeList({ entries }: { entries: ListEntry[] }) {
                   {!filter && entry.status && `${listStatusLabel[entry.status]} · `}
                   {entrySummary(entry)}
                 </p>
+                {editable && <EntryControls entry={entry} />}
               </AnimeCard>
             </li>
           ))}
         </ul>
       )}
     </>
+  );
+}
+
+/** "+1" for what is being watched, and the editor. Above the card's stretched link, so they get the clicks. */
+function EntryControls({ entry }: { entry: ListEntry }) {
+  const { addEpisode } = useListEditing();
+  const watching = entry.status === "CURRENT" || entry.status === "REPEATING";
+  const more = !entry.media.episodes || (entry.progress ?? 0) < entry.media.episodes;
+
+  return (
+    <div className="relative z-10 mt-2 flex flex-wrap gap-2">
+      {watching && more && (
+        <button
+          type="button"
+          aria-label={`+1 episodio visto: ${animeTitle(entry.media.title)}`}
+          onClick={() => addEpisode(entry)}
+          className="button tabular-nums"
+        >
+          +1
+        </button>
+      )}
+      <EditEntryButton target={{ media: entry.media, entry }} label="Modifica" />
+    </div>
   );
 }

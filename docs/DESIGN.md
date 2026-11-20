@@ -230,7 +230,14 @@ Usata in Home, Ricerca e Lista.
 └──────────────────────┘  padding testo 12px, spazio interno 4px
 ```
 
-Nella lista, sotto il numero di episodi, una riga in `small` `ink-muted` con stato (solo nel filtro "Tutti"), episodi visti e voto: "Sto guardando · 5 visti · voto 8".
+Nella lista, sotto il numero di episodi, una riga in `small` `ink-muted` con stato (solo nel filtro "Tutti"), episodi visti e voto: "Sto guardando · 5 visti · voto 8". Nella lista dell'utente collegato, sotto quella riga, i pulsanti "+1" (solo per "Sto guardando" e "In rewatch", finché ci sono episodi) e "Modifica", sopra il link esteso della card.
+
+### Modifica di una voce
+
+- `<dialog>` modale nativo (focus intrappolato, Esc chiude, al chiudersi il focus torna al pulsante che l'ha aperto): fondo `surface`, bordo `border`, raggio 12px, padding 24px, largo al massimo 28rem; dietro, la pagina scurita al 60%.
+- Campi con etichetta visibile: Stato, Episodi visti (con il totale), Voto (Nessun voto, 1–10), Note. Pulsanti "Salva" (primario), "Annulla" e, per una voce esistente, "Elimina dalla lista" in `danger`.
+- **Eliminazione:** "Elimina dalla lista" sostituisce i pulsanti con la domanda "Eliminare «Titolo» dalla lista su AniList? Non si può annullare." e i pulsanti "Elimina" e "Non eliminare"; il focus va sulla domanda.
+- **Errore di salvataggio:** la voce torna com'era e in basso a sinistra compare un riquadro `role="alert"` con bordo `danger`, il messaggio e "Chiudi". Resta finché non si chiude o non si fa un'altra modifica.
 
 ### Semantica e accessibilità
 

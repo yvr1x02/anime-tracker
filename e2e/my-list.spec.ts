@@ -52,3 +52,149 @@ test("/api/list without a session answers 401 and is never cached", async ({ req
   expect(response.status()).toBe(401);
   expect(response.headers()["cache-control"]).toContain("no-store");
 });
+
+const card = (page: import("@playwright/test").Page, title: string) =>
+  page.getByRole("article").filter({ has: page.getByRole("heading", { name: title }) });
+
+function entryRequests(page: import("@playwright/test").Page) {
+  const bodies: Record<string, unknown>[] = [];
+  page.on("request", (request) => {
+    if (request.url().endsWith("/api/list/entry") && request.method() === "POST") bodies.push(request.postDataJSON());
+  });
+  return bodies;
+}
+
+test.describe("editing", () => {
+  test.use({ timezoneId: "Europe/Rome" });
+
+  test("+1 clicks show at once and go to AniList as one request, 800ms after the last", async ({ page }) => {
+    await logIn(page, "/lista");
+    const bodies = entryRequests(page);
+    const anime = card(page, "Senza palinsesto");
+    // A one-episode film: the button goes once the total is reached.
+    await anime.getByRole("button", { name: "+1 episodio visto: Senza palinsesto" }).click();
+
+    await expect(anime).toContainText("1 visto");
+    await expect(anime.getByRole("button", { name: /\+1/ })).toHaveCount(0);
+    expect(bodies).toEqual([]);
+    await expect.poll(() => bodies).toEqual([{ mediaId: 4, progress: 1 }]);
+  });
+
+  test("several quick +1 clicks are grouped", async ({ page }) => {
+    // Hoshi no Kioku back to Sto guardando with 0 episodes, through the API, to have room for clicks.
+    await logIn(page, "/lista");
+    await page.evaluate(() =>
+      fetch("/api/list/entry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mediaId: 1, status: "CURRENT", progress: 0 }),
+      }),
+    );
+    await page.reload();
+    const bodies = entryRequests(page);
+    const plusOne = card(page, "Hoshi no Kioku").getByRole("button", { name: "+1 episodio visto: Hoshi no Kioku" });
+
+    await plusOne.click();
+    await plusOne.click();
+    await plusOne.click();
+
+    await expect(card(page, "Hoshi no Kioku")).toContainText("3 visti");
+    await expect.poll(() => bodies).toEqual([{ mediaId: 1, progress: 3 }]);
+    await page.waitForTimeout(1000);
+    expect(bodies).toHaveLength(1);
+  });
+
+  test("a +1 still waiting is sent when the page is left", async ({ page }) => {
+    await logIn(page, "/lista");
+    await card(page, "Senza palinsesto").getByRole("button", { name: /\+1/ }).click();
+
+    await page.goto("/ricerca");
+    await page.goto("/lista");
+
+    await expect(card(page, "Senza palinsesto")).toContainText("1 visto");
+  });
+
+  test("Completato fills the episodes and the end date, in the browser's time zone", async ({ page }) => {
+    await logIn(page, "/lista");
+    const bodies = entryRequests(page);
+    await card(page, "Senza palinsesto").getByRole("button", { name: "Modifica: Senza palinsesto" }).click();
+    const dialog = page.getByRole("dialog", { name: "Modifica «Senza palinsesto»" });
+
+    await dialog.getByLabel("Stato").selectOption({ label: "Completato" });
+    await dialog.getByRole("button", { name: "Salva" }).click();
+
+    await expect(dialog).toBeHidden();
+    await expect(card(page, "Senza palinsesto")).toContainText("Completato · 1 visto");
+    const [year, month, day] = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" }).format(new Date()).split("-");
+    await expect
+      .poll(() => bodies)
+      .toEqual([{ mediaId: 4, status: "COMPLETED", completedAt: { year: +year, month: +month, day: +day }, progress: 1 }]);
+    await page.reload();
+    await expect(card(page, "Senza palinsesto")).toContainText("Completato · 1 visto");
+  });
+
+  test("the editor sends only what changed", async ({ page }) => {
+    await logIn(page, "/lista");
+    const bodies = entryRequests(page);
+    await card(page, "Hoshi no Kioku").getByRole("button", { name: "Modifica: Hoshi no Kioku" }).click();
+    const dialog = page.getByRole("dialog");
+
+    await dialog.getByLabel("Note").fill("Da rivedere");
+    await dialog.getByRole("button", { name: "Salva" }).click();
+
+    await expect.poll(() => bodies).toEqual([{ mediaId: 1, notes: "Da rivedere" }]);
+  });
+
+  test("a change AniList refuses goes back and says so", async ({ page, request }) => {
+    await request.post(`${FAKE_ANILIST}/__fail-saves`, { data: { count: 1 } });
+    await logIn(page, "/lista");
+
+    await card(page, "Senza palinsesto").getByRole("button", { name: /\+1/ }).click();
+    await expect(card(page, "Senza palinsesto")).toContainText("1 visto");
+
+    // Next.js has its own alert region for route changes: pick ours by its text.
+    await expect(page.getByRole("alert").filter({ hasText: "la modifica non è stata salvata" })).toBeVisible();
+    await expect(card(page, "Senza palinsesto")).toContainText("0 visti");
+  });
+
+  test("removing asks for confirmation first", async ({ page }) => {
+    await logIn(page, "/lista");
+    await card(page, "Hoshi no Kioku").getByRole("button", { name: "Modifica: Hoshi no Kioku" }).click();
+    const dialog = page.getByRole("dialog");
+
+    await dialog.getByRole("button", { name: "Elimina dalla lista" }).click();
+    await expect(dialog.getByText("Eliminare «Hoshi no Kioku» dalla lista su AniList? Non si può annullare.")).toBeFocused();
+    await dialog.getByRole("button", { name: "Non eliminare" }).click();
+    await dialog.getByRole("button", { name: "Elimina dalla lista" }).click();
+    await dialog.getByRole("button", { name: "Elimina", exact: true }).click();
+
+    await expect(card(page, "Hoshi no Kioku")).toHaveCount(0);
+    await page.reload();
+    await expect(page.getByRole("article")).toHaveCount(1);
+  });
+
+  test("Esc closes the editor and focus goes back to its button", async ({ page }) => {
+    await logIn(page, "/lista");
+    const edit = card(page, "Hoshi no Kioku").getByRole("button", { name: "Modifica: Hoshi no Kioku" });
+    await edit.click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+
+    await page.keyboard.press("Escape");
+
+    await expect(page.getByRole("dialog")).toBeHidden();
+    await expect(edit).toBeFocused();
+  });
+});
+
+test("the change routes refuse other sites, missing sessions and bad input", async ({ page, request }) => {
+  const save = { mediaId: 1, progress: 2 };
+  expect((await request.post("/api/list/entry", { data: save, headers: { Origin: "http://localhost:3100" } })).status()).toBe(401);
+
+  await logIn(page, "/lista");
+  const fromPage = (path: string, body: unknown, origin?: string) =>
+    page.request.post(path, { data: body, headers: { Origin: origin ?? "http://localhost:3100" } });
+  expect((await fromPage("/api/list/entry", save, "https://evil.example")).status()).toBe(403);
+  expect((await fromPage("/api/list/entry/delete", { id: 201 }, "https://evil.example")).status()).toBe(403);
+  expect((await fromPage("/api/list/entry", { mediaId: 1, score: 42 })).status()).toBe(400);
+  expect((await fromPage("/api/list/entry/delete", { id: "201" })).status()).toBe(400);
+});

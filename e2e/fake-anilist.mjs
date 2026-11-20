@@ -48,6 +48,8 @@ const anime = {
   },
   5: { id: 5, title: { romaji: "AniList al limite" } },
   6: { id: 6, title: { romaji: "Errore passeggero" } },
+  // Only in a custom list of the demo profile. Not 5 or 6: cards get prefetched, which would use up their failures.
+  8: { id: 8, title: { romaji: "Lista personalizzata" }, format: "OVA", episodes: 2 },
   // Adult anime: the app must never show it, so queries ask for isAdult: false.
   3: { id: 3, isAdult: true, title: { romaji: "Solo per adulti" } },
 };
@@ -84,7 +86,7 @@ const demoLists = [
   { entries: [listEntry(101, 1, "CURRENT", 5, 8, 300)] },
   { entries: [listEntry(102, 4, "COMPLETED", 1, 0, 200)] },
   { entries: [listEntry(103, 3, "PLANNING", 0, 0, 500)] },
-  { isCustomList: true, entries: [listEntry(101, 1, "CURRENT", 5, 8, 300), listEntry(104, 6, "PLANNING", 0, 0, 100)] },
+  { isCustomList: true, entries: [listEntry(101, 1, "CURRENT", 5, 8, 300), listEntry(104, 8, "PLANNING", 0, 0, 100)] },
 ];
 
 // The logged-in test user's own list (Viewer id 7). Changes go here; POST /__reset restores it.
@@ -97,6 +99,26 @@ let myLists = initialMyLists();
 // POST /__revoke with {"token"} stops one, as when a user revokes the app: other tests' logins keep working.
 let tokensIssued = 0;
 const revokedTokens = new Set();
+// POST /__fail-saves with {"count"}: the next saves answer 500, to test going back to the previous value.
+let failingSaves = 0;
+let nextEntryId = 300;
+
+// Like AniList: one entry per anime; only the variables sent change; scoreRaw is out of 100.
+function saveEntry({ mediaId, scoreRaw, ...changes }) {
+  let entry = myLists.flatMap((list) => list.entries).find((item) => item.media.id === mediaId);
+  if (!entry) {
+    entry = listEntry(nextEntryId++, mediaId, "PLANNING", 0, 0, 0);
+    myLists[0].entries.push(entry);
+  }
+  Object.assign(entry, changes, { updatedAt: Math.floor(Date.now() / 1000) });
+  if (scoreRaw !== undefined) entry.score = Math.round(scoreRaw / 10);
+  return { SaveMediaListEntry: entry };
+}
+
+function deleteEntry({ id }) {
+  for (const list of myLists) list.entries = list.entries.filter((entry) => entry.id !== id);
+  return { DeleteMediaListEntry: { deleted: true } };
+}
 
 const notFound = { data: { Media: null }, errors: [{ message: "Not Found.", status: 404 }] };
 // Anime 4 comes with a Date two hours old, as if served from a cache that has not been refreshed.
@@ -123,6 +145,7 @@ http
     }
     if (url.pathname === "/__reset") {
       myLists = initialMyLists();
+      failingSaves = 0;
       response.writeHead(204);
       response.end();
       return;
@@ -130,6 +153,12 @@ http
     let body = "";
     request.on("data", (chunk) => (body += chunk));
     request.on("end", () => {
+      if (url.pathname === "/__fail-saves") {
+        failingSaves = JSON.parse(body).count;
+        response.writeHead(204);
+        response.end();
+        return;
+      }
       if (url.pathname === "/__revoke") {
         revokedTokens.add(JSON.parse(body).token);
         response.writeHead(204);
@@ -154,6 +183,22 @@ http
       if (request.headers.authorization && !authorized) {
         response.writeHead(400, { "Content-Type": "application/json" });
         response.end(JSON.stringify(invalidToken));
+        return;
+      }
+      if (query.includes("mutation SaveListEntry") || query.includes("mutation DeleteListEntry")) {
+        if (!authorized) {
+          response.writeHead(400, { "Content-Type": "application/json" });
+          response.end(JSON.stringify(invalidToken));
+          return;
+        }
+        if (failingSaves > 0) {
+          failingSaves--;
+          response.writeHead(500, { "Content-Type": "application/json" });
+          response.end(JSON.stringify({ data: null, errors: [{ message: "Internal error", status: 500 }] }));
+          return;
+        }
+        response.writeHead(200, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ data: query.includes("mutation SaveListEntry") ? saveEntry(variables) : deleteEntry(variables) }));
         return;
       }
       if (query.includes("query UserAnimeList") && variables?.userId === viewer.id) {

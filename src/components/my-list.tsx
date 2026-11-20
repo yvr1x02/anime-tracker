@@ -60,5 +60,5 @@ export function MyList() {
     );
   }
 
-  return <AnimeList entries={list.data} />;
+  return <AnimeList entries={list.data} editable />;
 }
