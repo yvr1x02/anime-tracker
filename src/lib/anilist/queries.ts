@@ -69,3 +69,13 @@ export const SearchAnimeQuery = graphql(`
     }
   }
 `);
+
+// Sent once at login, with the new token, to show the user's name (ADR-0004).
+export const ViewerQuery = graphql(`
+  query Viewer {
+    Viewer {
+      id
+      name
+    }
+  }
+`);

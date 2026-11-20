@@ -164,6 +164,7 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 - Fisso in alto (`position: sticky`), fondo `bg`, bordo inferiore `border`, altezza 64px. Contiene il nome dell'app e la navigazione.
 - Ha un `view-transition-name` proprio (`site-header`) ed è escluso dalle animazioni delle View Transitions: è il punto di riferimento fisso.
 - Voci di navigazione: `small`, peso 500, `ink-muted`, altezza minima 44px, padding orizzontale 12px. La voce attiva ha `aria-current="page"`, testo `ink` e un **indicatore**: barretta di 2px in `ink`, raggio 2px, rientrata di 12px ai lati, 6px sopra il bordo inferiore della voce. L'indicatore ha un `view-transition-name` proprio (`nav-indicator`), così scorre verso la nuova voce.
+- A destra della navigazione, l'account: "Accedi" in ciano, che porta a `/accesso`; da collegati, il nome in `small` `ink-muted` e il pulsante "Esci" (un `<form method="post">`). Compare solo nel browser, perché il nome viene da un cookie (ADR-0004).
 - Sotto l'header, solo nella Home, c'è la striscia "in onda ora" (vedi la sezione dedicata).
 
 ## Pulsanti e filtri

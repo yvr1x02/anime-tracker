@@ -52,6 +52,16 @@ const anime = {
   3: { id: 3, isAdult: true, title: { romaji: "Solo per adulti" } },
 };
 
+// OAuth values come from playwright.config.ts (e2e/secrets.ts), so tests and fake agree.
+const oauth = {
+  clientId: process.env.E2E_CLIENT_ID,
+  clientSecret: process.env.E2E_CLIENT_SECRET,
+  accessToken: process.env.E2E_ACCESS_TOKEN,
+  code: "e2e-code",
+};
+const viewer = { id: 7, name: "UtenteDiProva" };
+const unauthorized = { data: { Viewer: null }, errors: [{ message: "Invalid token", status: 401 }] };
+
 const notFound = { data: { Media: null }, errors: [{ message: "Not Found.", status: 404 }] };
 // Anime 4 comes with a Date two hours old, as if served from a cache that has not been refreshed.
 const staleDates = { 4: new Date((startedAt - 2 * HOUR) * 1000).toUTCString() };
@@ -60,6 +70,17 @@ const failures = { 5: Infinity, 6: 1 };
 
 http
   .createServer((request, response) => {
+    const url = new URL(request.url, `http://localhost:${PORT}`);
+    // Like AniList after the user approves: straight back to the app with a code and the same state.
+    if (request.method === "GET" && url.pathname === "/oauth/authorize") {
+      const redirect = new URL(url.searchParams.get("redirect_uri"));
+      const known = url.searchParams.get("client_id") === oauth.clientId;
+      redirect.searchParams.set(known ? "code" : "error", known ? oauth.code : "invalid_client");
+      if (url.searchParams.has("state")) redirect.searchParams.set("state", url.searchParams.get("state"));
+      response.writeHead(302, { Location: redirect.toString() });
+      response.end();
+      return;
+    }
     if (request.method !== "POST") {
       response.end("fake AniList");
       return;
@@ -67,7 +88,24 @@ http
     let body = "";
     request.on("data", (chunk) => (body += chunk));
     request.on("end", () => {
+      if (url.pathname === "/oauth/token") {
+        const grant = JSON.parse(body);
+        const valid =
+          grant.grant_type === "authorization_code" &&
+          grant.client_id === oauth.clientId &&
+          grant.client_secret === oauth.clientSecret &&
+          grant.code === oauth.code;
+        response.writeHead(valid ? 200 : 400, { "Content-Type": "application/json" });
+        response.end(JSON.stringify(valid ? { token_type: "Bearer", access_token: oauth.accessToken } : { error: "invalid_grant" }));
+        return;
+      }
       const { query, variables } = JSON.parse(body);
+      if (query.includes("query Viewer")) {
+        const authorized = request.headers.authorization === `Bearer ${oauth.accessToken}`;
+        response.writeHead(authorized ? 200 : 401, { "Content-Type": "application/json" });
+        response.end(JSON.stringify(authorized ? { data: { Viewer: viewer } } : unauthorized));
+        return;
+      }
       if (failures[variables?.id] > 0) {
         failures[variables.id]--;
         response.writeHead(429, { "Retry-After": "60" });

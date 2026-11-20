@@ -138,6 +138,13 @@
     transition: transform var(--duration-base) var(--spring-bouncy);
   }
 
+  /* Primary: one per view (docs/DESIGN.md, accents). */
+  .button-primary {
+    border-color: var(--color-pink);
+    background-color: var(--color-pink);
+    color: var(--color-on-accent);
+  }
+
   .button:active {
     transform: scale(0.97);
     transition: transform var(--duration-instant) var(--ease-out);
