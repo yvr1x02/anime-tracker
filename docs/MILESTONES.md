@@ -4,7 +4,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 **Regola per ogni milestone:** ogni nuova pagina entra nel controllo di accessibilità di `e2e/accessibility.spec.ts` (axe, WCAG 2.2 AA) nello stesso commit che la aggiunge.
 
-**Milestone attiva:** M3
+**Milestone attiva:** M4
 
 ## M0 — Fondamenta (completata il 2026-11-19)
 
@@ -40,7 +40,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Verifiche elencate in ADR-0004, "Da verificare all'implementazione".
 - Verifica su Vercel della cache di `fetch`, rimasta da M1 (ADR-0003): ora dei dati di un Dettaglio prima e dopo un nuovo deploy.
 
-## M3 — Home
+## M3 — Home (completata il 2026-11-20)
 
 - Anime della stagione in corso, ordinati per popolarità, con l'anime più popolare in evidenza (`docs/DESIGN.md`, "Home").
 - **"Continua a guardare"** per chi è collegato (SPEC, "Home"): anime della lista con episodi usciti e non visti, calcolati dai dati della lista, senza richieste in più. È la base di M4.
