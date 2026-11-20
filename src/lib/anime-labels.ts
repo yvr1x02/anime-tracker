@@ -31,3 +31,31 @@ export const statusLabel: Record<MediaStatus, string> = {
 export function episodesLabel(episodes: number): string {
   return episodes === 1 ? "1 episodio" : `${episodes} episodi`;
 }
+
+// AniList's GenreCollection on 2026-11-20. A Map, so names like "constructor" can't hit Object's prototype.
+const genreLabels = new Map([
+  ["Action", "Azione"],
+  ["Adventure", "Avventura"],
+  ["Comedy", "Commedia"],
+  ["Drama", "Drammatico"],
+  ["Ecchi", "Ecchi"],
+  ["Fantasy", "Fantasy"],
+  ["Hentai", "Hentai"],
+  ["Horror", "Horror"],
+  ["Mahou Shoujo", "Majokko"],
+  ["Mecha", "Mecha"],
+  ["Music", "Musica"],
+  ["Mystery", "Mistero"],
+  ["Psychological", "Psicologico"],
+  ["Romance", "Sentimentale"],
+  ["Sci-Fi", "Fantascienza"],
+  ["Slice of Life", "Vita quotidiana"],
+  ["Sports", "Sport"],
+  ["Supernatural", "Soprannaturale"],
+  ["Thriller", "Thriller"],
+]);
+
+/** Italian name of an AniList genre; a genre AniList adds later keeps its English name. */
+export function genreLabel(genre: string): string {
+  return genreLabels.get(genre) ?? genre;
+}

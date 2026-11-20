@@ -12,7 +12,12 @@ test("detail page shows the anime from AniList", async ({ page }) => {
   const info = page.getByRole("complementary", { name: "Scheda" });
   await expect(info.getByText("Concluso")).toBeVisible();
   await expect(info.getByText("Studio di Prova")).toBeVisible();
-  await expect(page.getByRole("listitem").filter({ hasText: "Fantascienza" })).toBeVisible();
+  // AniList's English genres in Italian; one missing from the table stays in English.
+  await expect(page.getByRole("region", { name: "Generi" }).getByRole("listitem")).toHaveText([
+    "Avventura",
+    "Fantascienza",
+    "Isekai",
+  ]);
 });
 
 test("description is shown as plain text, with markup removed", async ({ page }) => {

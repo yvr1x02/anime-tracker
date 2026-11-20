@@ -7,7 +7,7 @@ import { NextEpisode, UpcomingEpisodes } from "@/components/upcoming-episodes";
 import { AniListError } from "@/lib/anilist/client";
 import { AnimeDetailQuery } from "@/lib/anilist/queries";
 import { requestAniListCached } from "@/lib/anilist/server";
-import { episodesLabel, formatLabel, seasonLabel, statusLabel } from "@/lib/anime-labels";
+import { episodesLabel, formatLabel, genreLabel, seasonLabel, statusLabel } from "@/lib/anime-labels";
 import { coverTintProps } from "@/lib/cover-tint";
 import { descriptionToParagraphs } from "@/lib/description";
 import { pageContainer } from "@/lib/page-container";
@@ -128,7 +128,7 @@ export default async function AnimeDetailPage({ params }: PageProps<"/anime/[id]
               <ul className="mt-4 flex flex-wrap gap-2">
                 {genres.map((genre) => (
                   <li key={genre} className="genre-chip rounded-full px-3 py-1 text-small">
-                    {genre}
+                    {genreLabel(genre)}
                   </li>
                 ))}
               </ul>

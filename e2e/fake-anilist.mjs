@@ -21,7 +21,7 @@ const anime = {
     coverImage: { medium: null, large: null, extraLarge: null, color: "#e4a15d" },
     description:
       'Una storia inventata per i test &amp; nient&#39;altro.<br><br>\nSecondo paragrafo<script>alert("x")</script> con <i>corsivo</i><img src=x onerror="alert(1)">.',
-    genres: ["Avventura", "Fantascienza"],
+    genres: ["Adventure", "Sci-Fi", "Isekai"],
     studios: { nodes: [{ id: 10, name: "Studio di Prova" }] },
     format: "TV",
     status: "FINISHED",
