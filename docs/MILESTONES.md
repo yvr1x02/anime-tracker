@@ -4,7 +4,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 **Regola per ogni milestone:** ogni nuova pagina entra nel controllo di accessibilità di `e2e/accessibility.spec.ts` (axe, WCAG 2.2 AA) nello stesso commit che la aggiunge.
 
-**Milestone attiva:** M1
+**Milestone attiva:** M2
 
 ## M0 — Fondamenta (completata il 2026-11-19)
 
@@ -19,7 +19,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Comandi compilati nel `CLAUDE.md`.
 - La misura del movimento con CPU rallentata 4×, prevista qui, passa a M1: si fa sull'app vera, non sull'anteprima di `docs/DESIGN.md`.
 
-## M1 — Ricerca e Dettaglio
+## M1 — Ricerca e Dettaglio (completata il 2026-11-20)
 
 - Client per AniList e prime query tipizzate.
 - Pagina di Ricerca (ADR-0003: 400 ms, almeno 3 caratteri).
@@ -28,6 +28,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Pagina d'errore (`error.tsx`) in italiano, con i messaggi di ADR-0003.
 - Verifiche: richieste dirette dal browser ad AniList (CORS); ricerca dei titoli italiani tra i sinonimi.
 - La transizione card → Dettaglio e la misura con CPU rallentata 4×, previste qui, passano a M6 (decisione del 2026-11-20: prima tutte le funzionalità, poi lo stile).
+- La verifica della cache di `fetch` su Vercel (ADR-0003) passa a M2: l'anteprima chiede l'accesso a Vercel e non si è potuta fare da qui.
 
 ## M2 — Login e La mia lista
 
@@ -37,6 +38,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Regole automatiche su date ed episodi.
 - Modalità demo in sola lettura senza login (`ANILIST_DEMO_USERNAME`).
 - Verifiche elencate in ADR-0004, "Da verificare all'implementazione".
+- Verifica su Vercel della cache di `fetch`, rimasta da M1 (ADR-0003): ora dei dati di un Dettaglio prima e dopo un nuovo deploy.
 
 ## M3 — Home
 
