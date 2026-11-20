@@ -378,4 +378,64 @@ test.describe("Continua a guardare", () => {
     await expect(section.getByRole("status")).toHaveText("Sei in pari con Senza palinsesto");
     await expect(section.getByText("Sei in pari: nessun episodio arretrato.")).toBeVisible();
   });
+
+  test("from the keyboard, catching up in the editor moves focus past the card once the dialog closes", async ({ page }) => {
+    await logIn(page, "/");
+    await page.evaluate(() =>
+      fetch("/api/list/entry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mediaId: 1, status: "CURRENT", progress: 10 }),
+      }),
+    );
+    await page.reload();
+    const section = page.getByRole("region", { name: "Continua a guardare" });
+    await expect(section.getByRole("article")).toHaveCount(2);
+
+    // Hoshi no Kioku, 10 of 12: the episodes set to 12 in the editor.
+    await section.getByRole("button", { name: "Modifica: Hoshi no Kioku" }).focus();
+    await page.keyboard.press("Enter");
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel(/^Episodi visti/).focus();
+    await page.keyboard.press("ControlOrMeta+A");
+    await page.keyboard.type("12");
+    await page.keyboard.press("Enter");
+
+    await expect(dialog).toBeHidden();
+    await expect(section.getByRole("link", { name: "Senza palinsesto", exact: true })).toBeFocused();
+    await expect(section.getByRole("status")).toHaveText("Sei in pari con Hoshi no Kioku");
+    await expect(section.getByRole("article")).toHaveCount(1);
+
+    // Senza palinsesto, the last card: Completato fills the episodes, so that is catching up too.
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Tab");
+    await expect(section.getByRole("button", { name: "Modifica: Senza palinsesto" })).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(dialog.getByLabel("Stato")).toBeFocused();
+    await page.keyboard.type("Comp");
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Enter");
+
+    await expect(dialog).toBeHidden();
+    await expect(section.getByRole("heading", { name: "Continua a guardare" })).toBeFocused();
+    await expect(section.getByRole("status")).toHaveText("Sei in pari con Senza palinsesto");
+    await expect(section.getByText("Sei in pari: nessun episodio arretrato.")).toBeVisible();
+  });
+
+  test("a card leaving for another status also moves focus, with its own announcement", async ({ page }) => {
+    await logIn(page, "/");
+    const section = page.getByRole("region", { name: "Continua a guardare" });
+    await expect(section.getByRole("article")).toHaveCount(1);
+
+    await section.getByRole("button", { name: "Modifica: Senza palinsesto" }).focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("dialog").getByLabel("Stato")).toBeFocused();
+    await page.keyboard.type("In p");
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Enter");
+
+    await expect(section.getByRole("heading", { name: "Continua a guardare" })).toBeFocused();
+    await expect(section.getByRole("status")).toHaveText("Senza palinsesto non è più in Continua a guardare");
+    await expect(section.getByText("Nessun altro anime da continuare.")).toBeVisible();
+  });
 });

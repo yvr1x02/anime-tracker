@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AnimeCard } from "@/components/anime-card";
-import { EditEntryButton } from "@/components/entry-editor";
+import { EditEntryButton, type EditOutcome } from "@/components/entry-editor";
 import { useListEditing } from "@/components/list-editing";
 import type { MediaListStatus } from "@/gql/graphql";
 import { animeTitle, listStatusLabel } from "@/lib/anime-labels";
@@ -61,7 +61,15 @@ export function AnimeList({ entries, editable = false }: { entries: ListEntry[];
 }
 
 /** "+1" for what is being watched, and the editor. Above the card's stretched link, so they get the clicks. */
-export function EntryControls({ entry, onAddEpisode }: { entry: ListEntry; onAddEpisode?: () => void }) {
+export function EntryControls({
+  entry,
+  onAddEpisode,
+  onEditDone,
+}: {
+  entry: ListEntry;
+  onAddEpisode?: () => void;
+  onEditDone?: (outcome: EditOutcome) => (() => void) | undefined;
+}) {
   const { addEpisode } = useListEditing();
   const watching = entry.status === "CURRENT" || entry.status === "REPEATING";
   const more = !entry.media.episodes || (entry.progress ?? 0) < entry.media.episodes;
@@ -81,7 +89,7 @@ export function EntryControls({ entry, onAddEpisode }: { entry: ListEntry; onAdd
           +1
         </button>
       )}
-      <EditEntryButton target={{ media: entry.media, entry }} label="Modifica" />
+      <EditEntryButton target={{ media: entry.media, entry }} label="Modifica" onDone={onEditDone} />
     </div>
   );
 }

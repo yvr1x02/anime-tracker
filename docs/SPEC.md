@@ -35,7 +35,8 @@ Dalle card si può aggiungere un anime alla lista.
   - **Quali anime:** quelli in "Sto guardando" e in "In rewatch" (con l'etichetta "Rewatch" sulla card), dall'ultima modifica, al massimo 6.
   - **La frase dipende dallo stato dell'anime:** in corso, "Sei indietro di N episodi"; concluso o cancellato, "Ti mancano N episodi"; al singolare per un episodio ("Sei indietro di 1 episodio", "Ti manca 1 episodio").
   - Se non ci sono arretrati, la sezione non compare.
-  - **In pari con "+1":** la card sparisce, il focus passa al titolo della card successiva (o al titolo della sezione, se era l'ultima) e un annuncio per i lettori di schermo dice "Sei in pari con {titolo}". Se era l'ultima, la sezione resta con "Sei in pari: nessun episodio arretrato." fino alla visita successiva.
+  - **In pari con "+1" o dalla modifica della voce** (episodi fino agli arretrati, o "Completato"): la card sparisce, il focus passa al titolo della card successiva (o al titolo della sezione, se era l'ultima) e un annuncio per i lettori di schermo dice "Sei in pari con {titolo}". Se era l'ultima, la sezione resta con "Sei in pari: nessun episodio arretrato." fino alla visita successiva.
+  - Se la card sparisce per un altro motivo (un altro stato, o la voce eliminata), il focus si sposta allo stesso modo e l'annuncio dice "{titolo} non è più in Continua a guardare"; dopo l'ultima, "Nessun altro anime da continuare."
   - Si calcola dalla lista già letta per la sessione (ADR-0004): nessuna richiesta in più ad AniList.
   - Senza login la sezione non compare.
 

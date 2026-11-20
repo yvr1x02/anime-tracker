@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AnimeCard, AnimeCardSkeleton } from "@/components/anime-card";
 import { EntryControls } from "@/components/anime-list";
+import type { EditOutcome } from "@/components/entry-editor";
 import { NotLoggedInError } from "@/lib/auth/errors";
 import { useViewer } from "@/lib/auth/use-viewer";
 import { animeTitle } from "@/lib/anime-labels";
@@ -21,8 +22,8 @@ export function ContinueWatching() {
   const list = useMyList(Boolean(viewer));
   const now = useNow();
   const [announcement, setAnnouncement] = useState("");
-  // Set when the user caught up with the last card here: the section stays, so focus has somewhere to go.
-  const [allCaughtUp, setAllCaughtUp] = useState(false);
+  // Set when the last card here went away: the section stays with this note, so focus has somewhere to go.
+  const [emptyNote, setEmptyNote] = useState<string | null>(null);
 
   if (!viewer || list.error instanceof NotLoggedInError) return null;
 
@@ -56,20 +57,36 @@ export function ContinueWatching() {
   }
 
   const items = continueWatching(list.data, now);
-  if (items.length === 0 && !allCaughtUp) return null;
+  if (items.length === 0 && !emptyNote) return null;
 
   /**
-   * A "+1" that catches up removes its card, and the focus with it. Before that happens, focus moves to the
-   * next card's title, or to the section's heading after the last one, and the live region says so.
+   * A card about to go away would take the keyboard focus with it. Focus moves first to the next card's
+   * title, or to the section's heading after the last one, and the live region says why.
    */
-  function catchUp(index: number) {
-    const { entry } = items[index];
+  function moveFocusPast(index: number, caughtUp: boolean) {
+    const title = animeTitle(items[index].entry.media.title);
     const next = items[index + 1];
     const target = document.getElementById(next ? `continua-${next.entry.media.id}` : "continua");
     // The next card's title link, or the heading itself.
     (target?.querySelector<HTMLElement>("a") ?? target)?.focus();
-    setAnnouncement(`Sei in pari con ${animeTitle(entry.media.title)}`);
-    if (items.length === 1) setAllCaughtUp(true);
+    setAnnouncement(caughtUp ? `Sei in pari con ${title}` : `${title} non è più in Continua a guardare`);
+    if (items.length === 1) {
+      setEmptyNote(caughtUp ? "Sei in pari: nessun episodio arretrato." : "Nessun altro anime da continuare.");
+    }
+  }
+
+  /** After the editor: does the card leave (caught up, another status, removed)? Then focus goes past it. */
+  function afterEdit(index: number, outcome: EditOutcome) {
+    if (!outcome) return undefined;
+    const { entry, behind } = items[index];
+    if ("deleted" in outcome) return () => moveFocusPast(index, false);
+    const status = outcome.change.status ?? entry.status;
+    const progress = outcome.change.progress ?? entry.progress ?? 0;
+    // Completato fills the episodes to the total (SPEC, automatic rules): that is catching up too.
+    const caughtUp = status === "COMPLETED" || progress >= (entry.progress ?? 0) + behind;
+    const stillWatching = status === "CURRENT" || status === "REPEATING";
+    if (!caughtUp && stillWatching) return undefined;
+    return () => moveFocusPast(index, caughtUp);
   }
 
   return (
@@ -80,9 +97,7 @@ export function ContinueWatching() {
       <p role="status" className="sr-only">
         {announcement}
       </p>
-      {items.length === 0 ? (
-        <p className="mt-2 text-ink-muted">Sei in pari: nessun episodio arretrato.</p>
-      ) : null}
+      {items.length === 0 ? <p className="mt-2 text-ink-muted">{emptyNote}</p> : null}
       <ul className={`${cardGrid} mt-4 empty:hidden`}>
         {items.map(({ entry, behind }, index) => (
           <li key={entry.id} id={`continua-${entry.media.id}`}>
@@ -93,7 +108,11 @@ export function ContinueWatching() {
                 </p>
               )}
               <p className="text-small font-medium text-cyan tabular-nums">{backlogText(behind, entry.media.status)}</p>
-              <EntryControls entry={entry} onAddEpisode={behind === 1 ? () => catchUp(index) : undefined} />
+              <EntryControls
+                entry={entry}
+                onAddEpisode={behind === 1 ? () => moveFocusPast(index, true) : undefined}
+                onEditDone={(outcome) => afterEdit(index, outcome)}
+              />
             </AnimeCard>
           </li>
         ))}
