@@ -11,7 +11,8 @@ async function logIn(page: Page, from = "/") {
   await page.goto(from);
   await header(page).getByRole("link", { name: "Accedi" }).click();
   await page.getByRole("link", { name: "Accedi con AniList" }).click();
-  await expect(header(page).getByText(e2eOAuth.viewer.name)).toBeVisible();
+  // "Esci" shows at every width; the name is hidden on phones.
+  await expect(header(page).getByRole("button", { name: "Esci" })).toBeVisible();
 }
 
 test("login goes through AniList and back to the page it started from", async ({ page }) => {
@@ -112,4 +113,27 @@ test("logout from another site is refused", async ({ page, context }) => {
 
   expect(response.status()).toBe(403);
   expect((await context.cookies()).map((cookie) => cookie.name)).toContain("__Host-session");
+});
+
+test("on a 360px phone the header stays on one line, logged out and in", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 640 });
+  const fits = async () => {
+    await expect(page.getByRole("link", { name: "La mia lista" })).toBeVisible();
+    const { scroll, width, headerHeight, linkHeight } = await page.evaluate(() => ({
+      scroll: document.documentElement.scrollWidth,
+      width: window.innerWidth,
+      headerHeight: document.querySelector("header")!.getBoundingClientRect().height,
+      linkHeight: document.querySelector('nav a[href="/lista"]')!.getBoundingClientRect().height,
+    }));
+    expect(scroll).toBeLessThanOrEqual(width);
+    expect(headerHeight).toBe(64);
+    expect(linkHeight).toBe(44);
+  };
+
+  await page.goto("/lista");
+  await expect(header(page).getByRole("link", { name: "Accedi" })).toBeVisible();
+  await fits();
+
+  await logIn(page, "/lista");
+  await fits();
 });

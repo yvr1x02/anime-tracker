@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { type PointerEvent, useEffect, useRef } from "react";
+import { type PointerEvent, type ReactNode, useEffect, useRef } from "react";
 import { CoverImage } from "@/components/cover-image";
 import type { MediaFormat, MediaSeason } from "@/gql/graphql";
 import { type AiringEpisode, formatCardAiring, toISO, upcomingEpisodes } from "@/lib/airing";
@@ -31,8 +31,11 @@ function canTilt(event: PointerEvent) {
   return event.pointerType === "mouse" && tiltQuery.matches;
 }
 
-/** Anime card (docs/DESIGN.md, "Card dell'anime"): the title's link covers the whole card. */
-export function AnimeCard({ anime }: { anime: AnimeCardData }) {
+/**
+ * Anime card (docs/DESIGN.md, "Card dell'anime"): the title's link covers the whole card. `children` adds
+ * lines under the title, such as the list entry in La mia lista.
+ */
+export function AnimeCard({ anime, children }: { anime: AnimeCardData; children?: ReactNode }) {
   const title = animeTitle(anime.title);
   const label = formatSeasonLine(anime.format, anime.season, anime.seasonYear);
   const cover = anime.coverImage;
@@ -82,6 +85,7 @@ export function AnimeCard({ anime }: { anime: AnimeCardData }) {
           </Link>
         </h3>
         {anime.episodes ? <p className="text-small text-ink-muted tabular-nums">{episodesLabel(anime.episodes)}</p> : null}
+        {children}
       </div>
     </article>
   );

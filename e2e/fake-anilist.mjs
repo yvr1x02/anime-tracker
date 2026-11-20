@@ -62,6 +62,30 @@ const oauth = {
 const viewer = { id: 7, name: "UtenteDiProva" };
 const unauthorized = { data: { Viewer: null }, errors: [{ message: "Invalid token", status: 401 }] };
 
+// The demo profile's public list (ANILIST_DEMO_USERNAME=UtenteDemo in playwright.config.ts). On purpose:
+// an entry repeated in a custom list, one only in a custom list, and an adult anime the app must hide.
+const listMedia = (id) => {
+  const { airingSchedule, description, genres, studios, status, duration, ...card } = anime[id];
+  return { ...card, isAdult: Boolean(card.isAdult), nextAiringEpisode: null };
+};
+const listEntry = (id, mediaId, status, progress, score, updatedAt) => ({
+  id,
+  status,
+  progress,
+  score,
+  notes: null,
+  updatedAt,
+  startedAt: { year: null, month: null, day: null },
+  completedAt: { year: null, month: null, day: null },
+  media: listMedia(mediaId),
+});
+const demoLists = [
+  { entries: [listEntry(101, 1, "CURRENT", 5, 8, 300)] },
+  { entries: [listEntry(102, 4, "COMPLETED", 1, 0, 200)] },
+  { entries: [listEntry(103, 3, "PLANNING", 0, 0, 500)] },
+  { isCustomList: true, entries: [listEntry(101, 1, "CURRENT", 5, 8, 300), listEntry(104, 6, "PLANNING", 0, 0, 100)] },
+];
+
 const notFound = { data: { Media: null }, errors: [{ message: "Not Found.", status: 404 }] };
 // Anime 4 comes with a Date two hours old, as if served from a cache that has not been refreshed.
 const staleDates = { 4: new Date((startedAt - 2 * HOUR) * 1000).toUTCString() };
@@ -100,6 +124,18 @@ http
         return;
       }
       const { query, variables } = JSON.parse(body);
+      if (query.includes("query UserAnimeList")) {
+        const found = variables?.userName === "UtenteDemo";
+        response.writeHead(found ? 200 : 404, { "Content-Type": "application/json" });
+        response.end(
+          JSON.stringify(
+            found
+              ? { data: { MediaListCollection: { lists: demoLists } } }
+              : { data: { MediaListCollection: null }, errors: [{ message: "User not found", status: 404 }] },
+          ),
+        );
+        return;
+      }
       if (query.includes("query Viewer")) {
         const authorized = request.headers.authorization === `Bearer ${oauth.accessToken}`;
         response.writeHead(authorized ? 200 : 401, { "Content-Type": "application/json" });

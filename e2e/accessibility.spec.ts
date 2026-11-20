@@ -5,7 +5,7 @@ import { mockAniList, searchResults } from "./anilist-browser";
 // WCAG 2.0, 2.1 and 2.2 at levels A and AA. Every new page gets an entry here.
 const wcagAA = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
-for (const path of ["/", "/pagina-che-non-esiste", "/anime/1", "/anime/4", "/anime/5", "/ricerca", "/accesso", "/accesso?esito=uscito"]) {
+for (const path of ["/", "/pagina-che-non-esiste", "/anime/1", "/anime/4", "/anime/5", "/ricerca", "/accesso", "/accesso?esito=uscito", "/lista"]) {
   test(`no WCAG A/AA violations on ${path}`, async ({ page }) => {
     await page.goto(path);
     const { violations } = await new AxeBuilder({ page }).withTags(wcagAA).analyze();

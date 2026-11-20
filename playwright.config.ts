@@ -34,6 +34,7 @@ export default defineConfig({
         ANILIST_CLIENT_ID: e2eOAuth.clientId,
         ANILIST_CLIENT_SECRET: e2eOAuth.clientSecret,
         ANILIST_REDIRECT_URI: `${baseURL}/api/auth/callback`,
+        ANILIST_DEMO_USERNAME: "UtenteDemo",
       },
       reuseExistingServer: false,
       timeout: 120_000,

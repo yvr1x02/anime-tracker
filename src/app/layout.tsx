@@ -42,11 +42,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <div className={`${pageContainer} flex h-full items-center justify-between gap-4`}>
             <Link
               href="/"
-              className="flex min-h-11 items-center rounded-control text-h3"
+              className="flex min-h-11 items-center rounded-control text-h3 whitespace-nowrap"
             >
               Anime Tracker
             </Link>
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center sm:gap-2">
               <SiteNav />
               {/* Suspense: AccountMenu reads the address, which static pages only know in the browser. */}
               <Suspense fallback={null}>

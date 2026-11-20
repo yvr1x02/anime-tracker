@@ -60,6 +60,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 - Transizione card → Dettaglio con le View Transitions (`docs/DESIGN.md`, "Card → Dettaglio"): la copertina passa dalla card al Dettaglio, l'header resta fermo, il focus va sul titolo e al ritorno sulla card; con movimento ridotto solo dissolvenza.
 - **Misura con CPU rallentata 4×** (Chrome DevTools, a macchina scarica) della transizione vera. Se perde frame diventa una dissolvenza, secondo il budget di prestazioni di `docs/DESIGN.md`.
+- Menu dell'header per il telefono: da M2 la navigazione scorre in orizzontale sotto i 640px, una soluzione provvisoria che non regge altre voci (Calendario, Statistiche).
 - Revisione dell'aspetto delle pagine fatte fino a qui. Appunti dell'utente: _da completare_.
 
 ## M7 — Rifinitura

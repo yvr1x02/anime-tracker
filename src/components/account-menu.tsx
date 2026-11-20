@@ -27,7 +27,7 @@ export function AccountMenu() {
     return (
       <Link
         href={pathname === "/accesso" ? "/accesso" : `/accesso?da=${encodeURIComponent(here)}`}
-        className="flex min-h-11 items-center rounded-control px-3 text-small font-medium text-cyan"
+        className="flex min-h-11 items-center rounded-control px-2 text-small font-medium whitespace-nowrap text-cyan sm:px-3"
       >
         Accedi
       </Link>
@@ -36,10 +36,11 @@ export function AccountMenu() {
 
   return (
     <div className="flex items-center gap-2">
-      <span className="max-w-40 truncate text-small text-ink-muted">{viewer.name}</span>
+      {/* Hidden on phones, where the header has room only for the navigation and "Esci". */}
+      <span className="hidden max-w-40 truncate text-small text-ink-muted sm:inline">{viewer.name}</span>
       {/* A real form POST: the new page load also empties the in-memory query cache. */}
       <form method="post" action="/api/auth/logout">
-        <button type="submit" className="flex min-h-11 items-center rounded-control px-3 text-small font-medium">
+        <button type="submit" className="flex min-h-11 items-center rounded-control px-2 text-small font-medium whitespace-nowrap sm:px-3">
           Esci
         </button>
       </form>

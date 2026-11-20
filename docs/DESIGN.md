@@ -165,6 +165,7 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 - Ha un `view-transition-name` proprio (`site-header`) ed è escluso dalle animazioni delle View Transitions: è il punto di riferimento fisso.
 - Voci di navigazione: `small`, peso 500, `ink-muted`, altezza minima 44px, padding orizzontale 12px. La voce attiva ha `aria-current="page"`, testo `ink` e un **indicatore**: barretta di 2px in `ink`, raggio 2px, rientrata di 12px ai lati, 6px sopra il bordo inferiore della voce. L'indicatore ha un `view-transition-name` proprio (`nav-indicator`), così scorre verso la nuova voce.
 - A destra della navigazione, l'account: "Accedi" in ciano, che porta a `/accesso`; da collegati, il nome in `small` `ink-muted` e il pulsante "Esci" (un `<form method="post">`). Compare solo nel browser, perché il nome viene da un cookie (ADR-0004).
+- **Sotto i 640px (provvisorio, fino al menu per il telefono di M6):** voci e "Accedi"/"Esci" con padding orizzontale di 8px; la navigazione scorre in orizzontale dentro l'header, con una sfumatura di 24px a destra; il nome dell'utente non compare. L'header resta su una riga, alto 64px, anche a 360px.
 - Sotto l'header, solo nella Home, c'è la striscia "in onda ora" (vedi la sezione dedicata).
 
 ## Pulsanti e filtri
@@ -228,6 +229,8 @@ Usata in Home, Ricerca e Lista.
 │ 12 episodi           │  small, text-muted
 └──────────────────────┘  padding testo 12px, spazio interno 4px
 ```
+
+Nella lista, sotto il numero di episodi, una riga in `small` `ink-muted` con stato (solo nel filtro "Tutti"), episodi visti e voto: "Sto guardando · 5 visti · voto 8".
 
 ### Semantica e accessibilità
 

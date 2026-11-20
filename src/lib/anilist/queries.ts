@@ -79,3 +79,55 @@ export const ViewerQuery = graphql(`
     }
   }
 `);
+
+// One request for a whole list (ADR-0004): the demo profile by name, the logged-in user by id.
+// MediaListCollection has no isAdult filter, so isAdult comes back and src/lib/list.ts drops those.
+export const UserAnimeListQuery = graphql(`
+  query UserAnimeList($userId: Int, $userName: String) {
+    MediaListCollection(userId: $userId, userName: $userName, type: ANIME, forceSingleCompletedList: true) {
+      lists {
+        entries {
+          id
+          status
+          progress
+          score(format: POINT_10)
+          notes
+          updatedAt
+          startedAt {
+            year
+            month
+            day
+          }
+          completedAt {
+            year
+            month
+            day
+          }
+          media {
+            id
+            isAdult
+            title {
+              romaji
+              english
+              native
+            }
+            coverImage {
+              medium
+              large
+              extraLarge
+              color
+            }
+            format
+            season
+            seasonYear
+            episodes
+            nextAiringEpisode {
+              episode
+              airingAt
+            }
+          }
+        }
+      }
+    }
+  }
+`);

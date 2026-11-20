@@ -1,4 +1,4 @@
-import type { MediaFormat, MediaSeason, MediaStatus } from "@/gql/graphql";
+import type { MediaFormat, MediaListStatus, MediaSeason, MediaStatus } from "@/gql/graphql";
 
 export const formatLabel: Record<MediaFormat, string> = {
   TV: "TV",
@@ -26,6 +26,16 @@ export const statusLabel: Record<MediaStatus, string> = {
   NOT_YET_RELEASED: "Non ancora uscito",
   CANCELLED: "Cancellato",
   HIATUS: "In pausa",
+};
+
+/** SPEC, "Stati": AniList's list statuses, in the order the filters show them. */
+export const listStatusLabel: Record<MediaListStatus, string> = {
+  CURRENT: "Sto guardando",
+  PLANNING: "Da vedere",
+  COMPLETED: "Completato",
+  PAUSED: "In pausa",
+  DROPPED: "Droppato",
+  REPEATING: "In rewatch",
 };
 
 type Title = { romaji: string | null; english: string | null; native: string | null } | null;
