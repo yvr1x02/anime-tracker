@@ -28,6 +28,23 @@ export const statusLabel: Record<MediaStatus, string> = {
   HIATUS: "In pausa",
 };
 
+type Title = { romaji: string | null; english: string | null; native: string | null } | null;
+
+/** The title shown everywhere: romaji first, as AniList's own pages do. */
+export function animeTitle(title: Title): string {
+  return title?.romaji ?? title?.english ?? title?.native ?? "Anime senza titolo";
+}
+
+/** "Autunno 2026", or just the year when the season is unknown. */
+export function seasonText(season: MediaSeason | null, year: number | null): string | undefined {
+  return season && year ? `${seasonLabel[season]} ${year}` : year?.toString();
+}
+
+/** "TV · Autunno 2026": the label above the title in cards and in the detail header. */
+export function formatSeasonLine(format: MediaFormat | null, season: MediaSeason | null, year: number | null): string {
+  return [format && formatLabel[format], seasonText(season, year)].filter(Boolean).join(" · ");
+}
+
 export function episodesLabel(episodes: number): string {
   return episodes === 1 ? "1 episodio" : `${episodes} episodi`;
 }

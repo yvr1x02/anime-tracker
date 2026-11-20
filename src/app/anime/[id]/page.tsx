@@ -8,7 +8,16 @@ import { NextEpisode, UpcomingEpisodes } from "@/components/upcoming-episodes";
 import { AniListError } from "@/lib/anilist/client";
 import { AnimeDetailQuery } from "@/lib/anilist/queries";
 import { requestAniListCached } from "@/lib/anilist/server";
-import { episodesLabel, formatLabel, genreLabel, genreLang, seasonLabel, statusLabel } from "@/lib/anime-labels";
+import {
+  animeTitle,
+  episodesLabel,
+  formatLabel,
+  formatSeasonLine,
+  genreLabel,
+  genreLang,
+  seasonText,
+  statusLabel,
+} from "@/lib/anime-labels";
 import { coverTintProps } from "@/lib/cover-tint";
 import { descriptionToParagraphs } from "@/lib/description";
 import { pageContainer } from "@/lib/page-container";
@@ -36,30 +45,23 @@ const getAnime = cache(async (rawId: string) => {
   }
 });
 
-type Anime = Awaited<ReturnType<typeof getAnime>>["anime"];
-
-function mainTitle(anime: Anime): string {
-  return anime.title?.romaji ?? anime.title?.english ?? anime.title?.native ?? "Anime senza titolo";
-}
-
 export async function generateMetadata({ params }: PageProps<"/anime/[id]">): Promise<Metadata> {
   const { anime } = await getAnime((await params).id);
   return {
-    title: mainTitle(anime),
+    title: animeTitle(anime.title),
     description: descriptionToParagraphs(anime.description)[0]?.slice(0, 160),
   };
 }
 
 export default async function AnimeDetailPage({ params }: PageProps<"/anime/[id]">) {
   const { anime, fetchedAt } = await getAnime((await params).id);
-  const title = mainTitle(anime);
+  const title = animeTitle(anime.title);
   const englishTitle = anime.title?.english && anime.title.english !== title ? anime.title.english : null;
   const paragraphs = descriptionToParagraphs(anime.description);
   const genres = (anime.genres ?? []).filter((genre): genre is string => Boolean(genre));
   const studios = (anime.studios?.nodes ?? []).filter((studio) => studio !== null);
-  const season =
-    anime.season && anime.seasonYear ? `${seasonLabel[anime.season]} ${anime.seasonYear}` : anime.seasonYear?.toString();
-  const label = [anime.format && formatLabel[anime.format], season].filter(Boolean).join(" · ");
+  const season = seasonText(anime.season, anime.seasonYear);
+  const label = formatSeasonLine(anime.format, anime.season, anime.seasonYear);
   const facts = [
     anime.episodes && episodesLabel(anime.episodes),
     anime.duration && `${anime.duration} min`,
