@@ -1,4 +1,5 @@
 import { AnimeCard } from "@/components/anime-card";
+import { ContinueWatching } from "@/components/continue-watching";
 import { FeaturedAnime } from "@/components/featured-anime";
 import { ListToggle } from "@/components/list-actions";
 import { SeasonAnimeQuery } from "@/lib/anilist/queries";
@@ -23,7 +24,7 @@ export default async function Home() {
   const [featured, ...others] = (data.Page?.media ?? []).filter((item) => item !== null);
 
   return (
-    <div className={`${pageContainer} pt-5 pb-12`}>
+    <div className={`home ${pageContainer} pt-5 pb-12`}>
       {/* docs/DESIGN.md, "Home": two columns from 1024px, stacked below. */}
       <header className="grid items-end gap-8 pb-3 lg:grid-cols-[1fr_auto]">
         <div>
@@ -42,9 +43,14 @@ export default async function Home() {
         )}
       </header>
 
+      <ContinueWatching />
+
       <section aria-labelledby="stagione" className="mt-4">
-        {/* For screen readers: a visible heading would push the first row below 800px (docs/DESIGN.md). */}
-        <h2 id="stagione" className="sr-only">
+        {/*
+          Hidden unless Continua a guardare is on the page: for logged-out visitors a visible heading would push
+          the first row below 800px (docs/DESIGN.md); after Continua a guardare it separates the two grids.
+        */}
+        <h2 id="stagione" className="season-heading sr-only text-h2">
           Gli altri anime della stagione
         </h2>
         {!featured ? (

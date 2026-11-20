@@ -4,6 +4,7 @@ import { entrySummary, listEntries } from "./list";
 const media = (id: number, isAdult = false) => ({
   id,
   isAdult,
+  status: null,
   title: { romaji: `Anime ${id}`, english: null, native: null },
   coverImage: null,
   format: null,

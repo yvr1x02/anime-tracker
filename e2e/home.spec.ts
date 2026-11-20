@@ -26,3 +26,13 @@ test("logged out, a season card's + leads to the login", async ({ page }) => {
 
   await expect(page).toHaveURL("/accesso?da=%2F");
 });
+
+test("logged out, the Home has no Continua a guardare and no space waiting for it", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("article", { name: "Hoshi no Kioku" })).toBeVisible();
+  // Give the browser time to read the cookie: nothing personal may appear.
+  await page.waitForTimeout(500);
+
+  await expect(page.getByRole("heading", { name: "Continua a guardare" })).toHaveCount(0);
+  await expect(page.locator("[aria-busy]")).toHaveCount(0);
+});

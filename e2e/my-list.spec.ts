@@ -323,3 +323,22 @@ test.describe("from cards and the detail page", () => {
     await expect(page).toHaveURL("/accesso?da=%2Fanime%2F1");
   });
 });
+
+test.describe("Continua a guardare", () => {
+  test("shows the user's arrears on the Home, and leaves once caught up", async ({ page }) => {
+    await logIn(page, "/");
+    const section = page.getByRole("region", { name: "Continua a guardare" });
+
+    // Senza palinsesto: Sto guardando, 0 of 1 episodes, finished. Hoshi no Kioku is completed: not here.
+    await expect(section.getByRole("article")).toHaveCount(1);
+    await expect(section.getByRole("article")).toContainText("Senza palinsesto");
+    await expect(section.getByRole("article")).toContainText("Ti manca 1 episodio");
+    // With the section there, the season grid's heading shows, to tell the two grids apart.
+    await expect(page.getByRole("heading", { name: "Gli altri anime della stagione" })).toBeVisible();
+
+    await section.getByRole("button", { name: "+1 episodio visto: Senza palinsesto" }).click();
+
+    await expect(section).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Gli altri anime della stagione" })).not.toBeInViewport();
+  });
+});

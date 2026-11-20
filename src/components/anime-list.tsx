@@ -61,7 +61,7 @@ export function AnimeList({ entries, editable = false }: { entries: ListEntry[];
 }
 
 /** "+1" for what is being watched, and the editor. Above the card's stretched link, so they get the clicks. */
-function EntryControls({ entry }: { entry: ListEntry }) {
+export function EntryControls({ entry }: { entry: ListEntry }) {
   const { addEpisode } = useListEditing();
   const watching = entry.status === "CURRENT" || entry.status === "REPEATING";
   const more = !entry.media.episodes || (entry.progress ?? 0) < entry.media.episodes;

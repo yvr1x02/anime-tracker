@@ -46,6 +46,7 @@ export const SearchAnimeQuery = graphql(`
     Page(page: 1, perPage: $perPage) {
       media(search: $search, type: ANIME, isAdult: false, sort: SEARCH_MATCH) {
         id
+        status
         title {
           romaji
           english
@@ -76,6 +77,7 @@ export const SeasonAnimeQuery = graphql(`
     Page(page: 1, perPage: $perPage) {
       media(season: $season, seasonYear: $seasonYear, type: ANIME, isAdult: false, sort: [POPULARITY_DESC]) {
         id
+        status
         title {
           romaji
           english
@@ -134,6 +136,7 @@ export const ListEntryFields = graphql(`
     media {
       id
       isAdult
+      status
       title {
         romaji
         english

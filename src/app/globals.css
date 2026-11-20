@@ -178,6 +178,18 @@
     transition-timing-function: var(--ease-out);
   }
 
+  /* The season grid's heading shows once Continua a guardare is on the Home (overrides sr-only). */
+  .home:has(#continua) .season-heading {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 2rem 0 1rem;
+    overflow: visible;
+    clip-path: none;
+    clip: auto;
+    white-space: normal;
+  }
+
   /* The Home's featured anime: rounder panel, and its strong glow always on (docs/DESIGN.md, "Home"). */
   .featured-anime {
     border-radius: 1rem;

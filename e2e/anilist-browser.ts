@@ -10,6 +10,7 @@ const cors = {
 export const searchResults = [
   {
     id: 1,
+    status: "FINISHED",
     title: { romaji: "Hoshi no Kioku", english: "Memory of the Stars", native: "星の記憶" },
     coverImage: null,
     format: "TV",
@@ -20,6 +21,7 @@ export const searchResults = [
   },
   {
     id: 4,
+    status: "FINISHED",
     title: { romaji: "Senza palinsesto", english: null, native: null },
     coverImage: null,
     format: "MOVIE",
