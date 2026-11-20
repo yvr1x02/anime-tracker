@@ -24,8 +24,8 @@ export function FeaturedAnime({ anime }: { anime: AnimeCardData }) {
       className={`anime-card featured-anime grid grid-cols-[auto_1fr] items-end gap-5 p-4 ${tint.className ?? ""}`}
       style={tint.style}
     >
-      <div className="w-[clamp(8rem,11vw,11rem)]">
-        <CoverImage cover={cover} title={title} sizes="clamp(8rem, 11vw, 11rem)" eager className="rounded-[0.5rem]" />
+      <div className="w-[clamp(8rem,10vw,10rem)]">
+        <CoverImage cover={cover} title={title} sizes="clamp(8rem, 10vw, 10rem)" eager className="rounded-[0.5rem]" />
       </div>
       <div className="min-w-0">
         <p className="text-label uppercase text-cyan">N. 1 della stagione</p>

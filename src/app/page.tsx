@@ -1,6 +1,7 @@
 import { AnimeCard } from "@/components/anime-card";
 import { ContinueWatching } from "@/components/continue-watching";
 import { FeaturedAnime } from "@/components/featured-anime";
+import { TonightPicker } from "@/components/tonight-picker";
 import { ListToggle } from "@/components/list-actions";
 import { SeasonAnimeQuery } from "@/lib/anilist/queries";
 import { requestAniListCached } from "@/lib/anilist/server";
@@ -34,7 +35,6 @@ export default async function Home() {
             <br />
             {year}
           </h1>
-          <p className="mt-4 max-w-md text-ink-muted">Gli anime di questa stagione su AniList, dal più popolare.</p>
         </div>
         {featured && (
           <div className="lg:max-w-xl">
@@ -43,12 +43,14 @@ export default async function Home() {
         )}
       </header>
 
+      <TonightPicker />
+
       <ContinueWatching />
 
       <section aria-labelledby="stagione" className="mt-4">
         {/*
-          Hidden unless Continua a guardare is on the page: for logged-out visitors a visible heading would push
-          the first row below 800px (docs/DESIGN.md); after Continua a guardare it separates the two grids.
+          Hidden unless suggestions or Continua a guardare are on the page: otherwise a visible heading would push
+          the first row below 800px (docs/DESIGN.md); after another grid it separates the two.
         */}
         <h2 id="stagione" className="season-heading text-h2">
           Gli altri anime della stagione

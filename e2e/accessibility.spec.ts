@@ -62,3 +62,11 @@ test("no WCAG A/AA violations on the Home, logged in with Continua a guardare", 
   const { violations } = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
   expect(violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
 });
+
+test("no WCAG A/AA violations on the Home with Cosa guardo stasera? suggestions", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Serata intera" }).click();
+  await expect(page.getByRole("region", { name: "Cosa guardo stasera?" }).getByRole("article")).toHaveCount(3);
+  const { violations } = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
+  expect(violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
+});

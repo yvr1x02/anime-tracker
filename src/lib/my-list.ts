@@ -61,3 +61,18 @@ export function useListEntry(mediaId: number, loggedIn: boolean | undefined) {
   if (!loggedIn || list.error instanceof NotLoggedInError) return { state: "logged-out" } as const;
   return { state: "logged-in", entry: list.data?.find((item) => item.media.id === mediaId) ?? null } as const;
 }
+
+export type DemoList = { userName: string; entries: ListEntry[] };
+
+/**
+ * Without login, Cosa guardo stasera? uses the demo profile's public list from our server (cached there for
+ * an hour). Only asked for once a time is picked; a 404 means the demo profile is not available.
+ */
+export function useDemoList(enabled: boolean) {
+  return useQuery({
+    queryKey: ["demo-list"],
+    queryFn: ({ signal }) => callListApi<DemoList>("/api/demo-list", { signal }),
+    staleTime: 60 * 60 * 1000,
+    enabled,
+  });
+}

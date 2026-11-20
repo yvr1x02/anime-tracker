@@ -193,7 +193,7 @@
     white-space: nowrap;
   }
 
-  .home:has(#continua) .season-heading {
+  .home:has(#continua, #stasera-proposte) .season-heading {
     position: static;
     width: auto;
     height: auto;
