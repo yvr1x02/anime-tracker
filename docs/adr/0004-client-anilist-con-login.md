@@ -62,7 +62,7 @@ Ogni pagina lo dichiara nel footer: "Anime Tracker è un client non ufficiale pe
 
 - **Home, Ricerca, Dettaglio e Calendario** funzionano per intero.
   - Il pulsante "+" delle card spiega che serve l'accesso e porta al login.
-  - Il filtro "solo la mia lista" del Calendario è disattivato, con la spiegazione "Accedi con AniList per filtrare la tua lista".
+  - Il filtro "solo la mia lista" del Calendario usa la lista pubblica del profilo demo, con l'avviso, come "Cosa guardo stasera?" (modifica del 2026-11-20, M5: prima era disattivato con la spiegazione "Accedi con AniList per filtrare la tua lista").
 - **La mia lista e Statistiche: modalità demo in sola lettura**, con la lista pubblica del profilo indicato in `ANILIST_DEMO_USERNAME`. È una variabile d'ambiente del server, non segreta: deve essere un profilo pubblico del proprietario del progetto. Oggi è `yvr1x0202`, un account creato apposta per la demo; la sua lista risulta pubblica sia in una finestra anonima sia con una richiesta senza token, verificate il 2026-11-19.
   - Lettura senza token: `MediaListCollection(userName: …, type: ANIME)`. La documentazione conferma che i dati degli utenti pubblici si leggono senza autenticazione.
   - Questi dati sono uguali per tutti, quindi si tengono in cache sul server per 1 ora, come gli altri dati pubblici (ADR-0003).

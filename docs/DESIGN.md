@@ -196,6 +196,17 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
   - **Con la striscia di M7** (circa 45px) la fila andrebbe oltre gli 800px: in M7 la regola si rivaluta insieme alla striscia, invece di ridurre ancora l'intestazione.
 - Su un portatile 1280×800 vero il browser occupa parte dello schermo: lì la fila resta tagliata nella parte bassa.
 
+## Calendario
+
+- Titolo "Calendario" in `h1`, sotto l'intervallo della settimana ("23–29 novembre") e la nota "Messa in onda in Giappone, nel fuso del tuo browser ({fuso})". Poi i filtri "Tutti" / "Solo la mia lista" (`role="group"`, `aria-pressed`) e, in modalità demo dopo la scelta del filtro, l'avviso demo.
+- **Da 1024px, 7 colonne** da lunedì a domenica, ognuna una `section` con il giorno in `h2` (`small`, peso 600: "lun 23"). Le righe sono compatte: orario (`tabular-nums`), copertina piccola (32px, 2/3), titolo su due righe al massimo e "Ep. 7"; tutta la riga porta al Dettaglio.
+  - **Oggi:** colonna su `surface` con bordo `cyan` in alto e "Oggi" nel titolo.
+  - **Episodi già usciti:** in `ink-muted`, con "già uscito" per i lettori di schermo.
+  - **Segno "Adesso"** nella colonna di oggi, tra l'ultimo episodio uscito e il primo in arrivo: una linea `cyan` di 1px con l'etichetta "Adesso" in `label`. Nessuna animazione; si sposta quando l'orologio della pagina (una volta al minuto) fa uscire un episodio. È solo visivo: per i lettori di schermo basta "già uscito".
+- **Sotto i 1024px, un elenco giorno per giorno** che per la settimana corrente parte da oggi; i titoli dei giorni sono "Oggi", "Domani" e poi "sab 22 nov".
+- In fondo, "Settimana successiva →" (fino a 12 settimane dopo quella corrente) e, nelle settimane future, "Torna a questa settimana".
+- Finché il browser non ha calcolato giorni e orari, le colonne mostrano righe d'attesa della stessa altezza, come nel Dettaglio.
+
 ## Ricerca
 
 - Titolo "Ricerca" in `h1`; sotto, un `<form role="search">` largo al massimo 36rem: etichetta visibile "Titolo dell'anime", campo `type="search"` (altezza minima 44px, fondo `surface`, bordo `border-strong`, raggio 6px), pulsante "Cerca" e un testo d'aiuto collegato con `aria-describedby`.
