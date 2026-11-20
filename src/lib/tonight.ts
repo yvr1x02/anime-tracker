@@ -120,7 +120,7 @@ export function tonightCandidates(entries: ListEntry[], time: TimeOption, nowMs:
 
 /**
  * Pages of suggestions: the first holds the best of each kind, in priority order, then the next candidates
- * up to 3; "Altre proposte" walks the rest, 3 at a time, in the full order.
+ * up to 3, shown in the full order; "Altre proposte" walks the rest, 3 at a time, in the full order.
  */
 export function tonightPages(candidates: Suggestion[]): Suggestion[][] {
   const first: Suggestion[] = [];
@@ -132,6 +132,8 @@ export function tonightPages(candidates: Suggestion[]): Suggestion[][] {
     if (first.length >= PAGE_SIZE) break;
     if (!first.includes(candidate)) first.push(candidate);
   }
+  // Shown in the full order, so a filler of a higher kind does not come after a lower one.
+  first.sort((a, b) => candidates.indexOf(a) - candidates.indexOf(b));
   const rest = candidates.filter((candidate) => !first.includes(candidate));
   const pages = first.length > 0 ? [first] : [];
   for (let start = 0; start < rest.length; start += PAGE_SIZE) pages.push(rest.slice(start, start + PAGE_SIZE));

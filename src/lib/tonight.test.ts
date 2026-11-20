@@ -145,6 +145,16 @@ describe("tonightPages", () => {
     expect(pages).toEqual([["A", "B", "C"], ["D"]]);
   });
 
+  it("shows a filler of a higher kind before a lower kind's best", () => {
+    const mixed = [
+      entry("Da recuperare A", { status: "CURRENT", progress: 1, updatedAt: 300, media: { status: "FINISHED", episodes: 50, duration: 24 } }),
+      entry("Da recuperare B", { status: "CURRENT", progress: 1, updatedAt: 200, media: { status: "FINISHED", episodes: 50, duration: 24 } }),
+      entry("Da cominciare", { status: "PLANNING", createdAt: 10, media: { status: "FINISHED", episodes: 12, duration: 24 } }),
+    ];
+    const [first] = tonightPages(tonightCandidates(mixed, min30, now));
+    expect(first.map((s) => s.entry.media.title?.romaji)).toEqual(["Da recuperare A", "Da recuperare B", "Da cominciare"]);
+  });
+
   it("has no pages without candidates", () => {
     expect(tonightPages([])).toEqual([]);
   });
