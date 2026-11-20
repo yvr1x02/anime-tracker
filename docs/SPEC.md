@@ -93,7 +93,20 @@ La funzione principale del sito: aiuta a scegliere cosa guardare nel tempo che s
   - **titoli in "Da vedere" adatti alla durata**, per esempio un film che sta nel tempo indicato.
 - Si calcola dai dati della lista già letta, con la durata degli episodi (`Media.duration`) aggiunta ai suoi campi: nessuna richiesta in più ad AniList.
 - Senza login funziona in modalità demo, sulla lista pubblica del profilo demo.
-- Da decidere nel piano della milestone (M4): dove compare, quanto dura la "serata intera", regole e ordine delle proposte, cosa si mostra quando non c'è niente da proporre.
+- **Dove:** nella Home, subito sotto l'intestazione della stagione, prima di "Continua a guardare".
+- **Durate:** 30, 60 e 120 minuti; "serata intera" vale 180 minuti.
+- **Candidate:** dalla lista, solo titoli già usciti e con la durata di un episodio nota. Cinque tipi, in ordine di priorità:
+  1. **La finisci stasera:** in "Sto guardando" o "In rewatch", tutti gli episodi che mancano sono usciti e stanno nel tempo. "Ti manca 1 episodio: 24 minuti", "Ti mancano 3 episodi: la finisci in 1 ora e 12 minuti".
+  2. **Arretrati di un anime in corso:** in "Sto guardando" o "In rewatch", anime in corso con episodi arretrati; si propongono quanti ne stanno nel tempo, almeno uno. "Sei indietro di 2 episodi: 48 minuti", oppure "Sei indietro di 5 episodi: stasera 2, 48 minuti".
+  3. **Una serie da recuperare:** come il tipo 1, ma quello che manca non sta nel tempo. "Ti mancano 10 episodi: stasera 2, 48 minuti".
+  4. **Da vedere, sta tutto nel tempo:** film, OVA o serie brevi in "Da vedere" la cui durata totale sta nel tempo. "Film di 1 ora e 50 minuti: sta nelle tue 2 ore".
+  5. **Da vedere, da cominciare:** in "Da vedere", un episodio sta nel tempo. "Comincia: 2 episodi in 48 minuti".
+  - Per i tipi 4 e 5 una seconda riga dice da quanto il titolo è nella lista: "È nella tua lista da 5 mesi" (`MediaList.createdAt`).
+- **Ordine:** a parità di tipo, per i tipi 1–3 prima l'anime modificato più di recente; per i tipi 4 e 5 prima il titolo in lista da più tempo. Si mostrano 3 proposte: la prima candidata di ogni tipo, in ordine di priorità, poi le successive fino a 3.
+- **Altre proposte:** un pulsante mostra le 3 candidate successive, nell'ordine completo, senza nuove richieste; quando sono finite, il pulsante dice "Non ci sono altre proposte".
+- **Niente di adatto:** con la lista vuota, un invito a Ricerca e agli anime della stagione; se niente sta nel tempo scelto, "Niente nella tua lista sta in 30 minuti." con un pulsante per la durata successiva (tranne che per la serata intera) e il link a Ricerca.
+- **Modalità demo:** senza login le proposte vengono dalla lista pubblica del profilo demo, con l'avviso e l'invito ad accedere; nessun "+1" né modifica.
+- **Richieste:** con login nessuna in più (la lista della sessione). In demo la lista si chiede al nostro server alla prima scelta di una durata; il server la tiene in cache 1 ora, con la stessa voce di "La mia lista" (ADR-0003).
 
 ## La lista personale
 
