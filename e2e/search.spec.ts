@@ -138,11 +138,11 @@ test("Torna indietro goes back to the search and its results", async ({ page }) 
   expect(searches).toEqual(["hoshi"]);
 });
 
-test("Torna indietro on a detail page opened directly leads to the search", async ({ page }) => {
+test("Torna indietro on a detail page opened directly leads to the Home", async ({ page }) => {
   await page.goto("/anime/1");
 
   await page.getByRole("link", { name: "Torna indietro" }).click();
 
-  await expect(page).toHaveURL("/ricerca");
-  await expect(page.getByRole("heading", { level: 1, name: "Ricerca" })).toBeVisible();
+  await expect(page).toHaveURL("/");
+  await expect(page.getByText("Stagione in corso")).toBeVisible();
 });
