@@ -188,7 +188,7 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 
 ## Dettaglio
 
-- **Intestazione:** padding 24px sopra e 56px sotto. Link "← Torna indietro" (`small`, ciano, altezza minima 44px). Da 768px griglia `minmax(12rem, 18rem) 1fr` con spazio di 32px, allineata in basso: copertina a sinistra (al massimo 18rem, raggio 12px, alone `box-shadow: 0 28px 64px -12px` nel colore della tabella della tinta, che resta nei 32px di spazio), a destra etichetta, titolo in `display`, metadati in `small` (episodi, durata, studio, prossimo episodio in ciano) e pulsante primario "Aggiungi alla lista" / "✓ Nella mia lista". Dietro, tinta forte e kanji.
+- **Intestazione:** padding 24px sopra e 56px sotto. Link "← Torna indietro" (`small`, ciano, altezza minima 44px). Da 768px griglia `minmax(12rem, 18rem) 1fr` con spazio di 32px, allineata in basso: copertina a sinistra (al massimo 18rem, raggio 12px, alone `box-shadow: 0 28px 64px -12px` nel colore della tabella della tinta, che resta nei 32px di spazio), a destra etichetta, titolo in `display`, metadati in `small` (episodi, durata, studio, prossimo episodio in ciano, nel formato del badge "in onda" delle card) e pulsante primario "Aggiungi alla lista" / "✓ Nella mia lista". Dietro, tinta forte e kanji.
 - **Corpo in due colonne da 1024px:**
   - colonna principale (al massimo 65 caratteri per riga): Trama, Generi, Prossimi episodi;
   - colonna laterale di 20rem (`<aside aria-label="Scheda">`), che resta visibile scorrendo (`position: sticky; top: 88px`, cioè header più 24px): pannelli "Informazioni" (formato, episodi, durata, stagione, titolo originale) e "Studi", su `surface`, raggio 12px, padding 20px × 24px, spazio di 16px tra i pannelli, titoli in `h3`. Le informazioni sono un `<dl>` a due colonne (`max-content 1fr`, spazio 8px × 24px), etichette in `ink-muted`, valori con `tabular-nums`.
@@ -240,7 +240,7 @@ Usata in Home, Ricerca e Lista.
 
 ### Badge "in onda"
 
-Testo `cyan` su fondo `bg` pieno (12,36:1), in basso a sinistra sulla copertina: "Ep. 7 · mer 16:30". Giorno e ora sono nel fuso del browser, calcolati nel browser (come per i prossimi episodi del Dettaglio) da `nextAiringEpisode.airingAt` (verificato nello schema: `AiringSchedule.airingAt: Int!`, `episode: Int!`).
+Testo `cyan` su fondo `bg` pieno (12,36:1), in basso a sinistra sulla copertina: "Ep. 7 · mer 16:30". Il giorno della settimana basta solo se l'episodio esce entro 6 giorni; oltre si aggiunge la data ("Ep. 7 · dom 3 gen, 15:16"), altrimenti un episodio tra 45 giorni sembrerebbe della settimana in corso. Giorno e ora sono nel fuso del browser, calcolati nel browser (come per i prossimi episodi del Dettaglio) da `nextAiringEpisode.airingAt` (verificato nello schema: `AiringSchedule.airingAt: Int!`, `episode: Int!`).
 
 ### Stati della card
 

@@ -64,7 +64,7 @@ export function UpcomingEpisodes({ schedule }: { schedule: Schedule }) {
   );
 }
 
-/** "Ep. 7 · gio 16:30" (with the date beyond a week) in cyan, for the detail header; nothing when no episode is scheduled. */
+/** "Ep. 7 · gio 16:30" (with the date beyond 6 days) in cyan, for the detail header; nothing when no episode is scheduled. */
 export function NextEpisode({ schedule }: { schedule: Schedule }) {
   const now = useNow();
   const next = now === null ? undefined : upcomingEpisodes(schedule, now)[0];
