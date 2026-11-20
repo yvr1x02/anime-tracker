@@ -55,6 +55,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 - Calcoli sulla lista letta da AniList, testati con Vitest; modalità demo senza login.
 - Grafici Recharts con alternativa testuale dei dati.
+- **Distribuzione dei voti in "La mia lista"** (SPEC, "La mia lista"): grafico a barre per voto intero; un clic su una barra filtra la lista su quel voto, un secondo clic toglie il filtro. Barre usabili da tastiera (pulsanti con `aria-pressed`), alternativa testuale in tabella. Lo stesso componente serve alla pagina Statistiche. Prima di scriverlo, verificare nella documentazione di Recharts se le barre si possono rendere pulsanti accessibili; altrimenti barre disegnate con HTML e CSS.
 
 ## M6 — Passata di stile
 

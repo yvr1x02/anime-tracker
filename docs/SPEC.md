@@ -48,6 +48,12 @@ La scheda di un anime: copertina, titolo, trama, generi, studio, numero e durata
 
 Gli anime della lista AniList dell'utente, filtrabili per stato. Per ogni voce si modificano stato, episodi visti, voto e note; una voce si rimuove dopo una conferma. Senza login: modalità demo.
 
+- **Distribuzione dei voti (M5):** sopra la lista, un grafico a barre con il numero di anime per voto, una barra per ogni voto intero da 1 a 10 (la barra 8 comprende i voti da 8,0 a 8,9); gli anime senza voto non contano.
+  - Un clic su una barra filtra la lista su quel voto, insieme al filtro per stato; un secondo clic sulla stessa barra toglie il filtro. La barra attiva si distingue anche senza colore.
+  - Le barre si usano da tastiera: ognuna è un pulsante con lo stato premuto (`aria-pressed`) e un nome completo, per esempio "Voto 8: 12 anime".
+  - Alternativa testuale: gli stessi numeri in una tabella, leggibile da lettori di schermo e da chi non vede il grafico.
+  - È lo stesso componente della "Distribuzione dei voti" delle Statistiche.
+
 ### 5. Calendario della settimana
 
 - Mostra gli episodi in uscita nella settimana, con copertina, titolo, numero dell'episodio e orario.
@@ -62,7 +68,7 @@ Calcolate a partire dalla lista personale letta da AniList, con una sola richies
 
 - **Numeri chiave:** anime per stato, episodi visti, ore guardate (episodi visti × durata di un episodio), voto medio.
 - **Generi più visti:** grafico a barre.
-- **Distribuzione dei voti:** da 1 a 10.
+- **Distribuzione dei voti:** da 1 a 10, con lo stesso grafico di "La mia lista" (barre da tastiera, alternativa testuale). Qui un clic su una barra porta a "La mia lista" filtrata su quel voto.
 - **Studi più presenti:** i primi 5.
 
 ## La lista personale
