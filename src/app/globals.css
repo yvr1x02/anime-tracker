@@ -178,7 +178,21 @@
     transition-timing-function: var(--ease-out);
   }
 
-  /* The season grid's heading shows once Continua a guardare is on the Home (overrides sr-only). */
+  /*
+   * The season grid's heading: for screen readers only, until another grid is above it on the Home. Both
+   * states live here: Tailwind's sr-only sits in the utilities layer, which would always win over this one.
+   */
+  .season-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
   .home:has(#continua) .season-heading {
     position: static;
     width: auto;
@@ -186,7 +200,6 @@
     margin: 2rem 0 1rem;
     overflow: visible;
     clip-path: none;
-    clip: auto;
     white-space: normal;
   }
 

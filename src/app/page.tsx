@@ -50,7 +50,7 @@ export default async function Home() {
           Hidden unless Continua a guardare is on the page: for logged-out visitors a visible heading would push
           the first row below 800px (docs/DESIGN.md); after Continua a guardare it separates the two grids.
         */}
-        <h2 id="stagione" className="season-heading sr-only text-h2">
+        <h2 id="stagione" className="season-heading text-h2">
           Gli altri anime della stagione
         </h2>
         {!featured ? (
