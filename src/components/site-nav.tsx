@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// Pages join the list as they arrive (Calendario in M4, Statistiche in M5…).
+// Pages join the list as they arrive (Calendario in M5, Statistiche in M6…).
 const items = [
   { href: "/ricerca", label: "Ricerca" },
   { href: "/lista", label: "La mia lista" },
@@ -14,7 +14,7 @@ export function SiteNav() {
   const pathname = usePathname();
 
   return (
-    // On phones the items scroll sideways inside the 64px header (a stopgap until M6's mobile menu).
+    // On phones the items scroll sideways inside the 64px header (a stopgap until M7's mobile menu).
     <nav aria-label="Principale" className="nav-scroll min-w-0">
       <ul className="flex">
         {items.map(({ href, label }) => (

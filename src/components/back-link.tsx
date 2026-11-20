@@ -21,7 +21,7 @@ export function NavigationTracker() {
 
 /**
  * "← Torna indietro" (docs/DESIGN.md, Dettaglio): back in history when the previous page is in the app,
- * so a search keeps its results; otherwise, for a page opened directly, a plain link to the search.
+ * so a search keeps its results; otherwise, for a page opened directly, a plain link to the Home.
  */
 export function BackLink() {
   const router = useRouter();
@@ -35,7 +35,7 @@ export function BackLink() {
 
   return (
     <Link
-      href="/ricerca"
+      href="/"
       onClick={goBack}
       className="inline-flex min-h-11 items-center gap-1 rounded-control text-small text-cyan underline-offset-2 hover:underline"
     >

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { type PointerEvent, type ReactNode, useEffect, useRef } from "react";
 import { CoverImage } from "@/components/cover-image";
-import type { MediaFormat, MediaSeason } from "@/gql/graphql";
+import type { MediaFormat, MediaSeason, MediaStatus } from "@/gql/graphql";
 import { type AiringEpisode, formatCardAiring, toISO, upcomingEpisodes } from "@/lib/airing";
 import { animeTitle, episodesLabel, formatSeasonLine } from "@/lib/anime-labels";
 import { cardTilt } from "@/lib/card-tilt";
@@ -13,6 +13,7 @@ import { useNow } from "@/lib/use-now";
 /** Fields a query must ask for to draw a card (checked in schema/anilist.graphql). */
 export type AnimeCardData = {
   id: number;
+  status: MediaStatus | null;
   title: { romaji: string | null; english: string | null; native: string | null } | null;
   coverImage: { medium: string | null; large: string | null; extraLarge: string | null; color: string | null } | null;
   format: MediaFormat | null;

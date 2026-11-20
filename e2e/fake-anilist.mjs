@@ -68,8 +68,8 @@ const invalidToken = { data: null, errors: [{ message: "Invalid token", status: 
 // The demo profile's public list (ANILIST_DEMO_USERNAME=UtenteDemo in playwright.config.ts). On purpose:
 // an entry repeated in a custom list, one only in a custom list, and an adult anime the app must hide.
 const listMedia = (id) => {
-  const { title, coverImage = null, format = null, season = null, seasonYear = null, episodes = null } = anime[id];
-  return { id, isAdult: Boolean(anime[id].isAdult), title, coverImage, format, season, seasonYear, episodes, nextAiringEpisode: null };
+  const { title, coverImage = null, format = null, season = null, seasonYear = null, episodes = null, status = null } = anime[id];
+  return { id, isAdult: Boolean(anime[id].isAdult), status, title, coverImage, format, season, seasonYear, episodes, nextAiringEpisode: null };
 };
 const listEntry = (id, mediaId, status, progress, score, updatedAt) => ({
   id,
@@ -223,6 +223,15 @@ http
               : { data: { MediaListCollection: null }, errors: [{ message: "User not found", status: 404 }] },
           ),
         );
+        return;
+      }
+      // The Home's season, whatever season is asked: the same invented anime, most popular first.
+      if (query.includes("query SeasonAnime")) {
+        const season = [1, 4, 8].map(listMedia);
+        const upcoming = schedule.filter((node) => node.airingAt > Date.now() / 1000).sort((a, b) => a.airingAt - b.airingAt);
+        season[0].nextAiringEpisode = upcoming[0] ?? null;
+        response.writeHead(200, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ data: { Page: { media: season } } }));
         return;
       }
       if (query.includes("query Viewer")) {

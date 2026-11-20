@@ -105,6 +105,7 @@ export default async function AnimeDetailPage({ params }: PageProps<"/anime/[id]
                 media={{
                   id: anime.id,
                   isAdult: false,
+                  status: anime.status,
                   title: anime.title,
                   coverImage: anime.coverImage,
                   format: anime.format,

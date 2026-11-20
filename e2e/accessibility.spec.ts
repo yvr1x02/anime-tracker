@@ -55,3 +55,10 @@ test("no WCAG A/AA violations on search results and the detail page, logged in",
   const detail = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
   expect(detail.violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
 });
+
+test("no WCAG A/AA violations on the Home, logged in with Continua a guardare", async ({ page }) => {
+  await logIn(page, "/");
+  await expect(page.getByRole("region", { name: "Continua a guardare" }).getByRole("article")).not.toHaveCount(0);
+  const { violations } = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
+  expect(violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
+});

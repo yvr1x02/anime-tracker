@@ -82,7 +82,7 @@ AniList fornisce `Media.coverImage.color` (`String`, facoltativo, "Average #hex 
   | Intestazione del Dettaglio | L 0,27, croma `min(c, 0.12)`, piena nel primo 30% e poi sfuma verso `bg` | Sì: verificato sotto |
   | Chip dei generi nel Dettaglio | L 0,32, croma `min(c × 0.8, 0.1)`, sopra `raised` | Sì: verificato sotto |
   | Kanji di sfondo nel Dettaglio | L 0,7, croma `min(c, 0.12)`, opacità 14% | Testo sopra: verificato sotto |
-  | Alone dell'anime in evidenza (Home) | L 0,6, croma `min(c, 0.2)`, opacità fino al 65% | No: è un'ombra esterna (`box-shadow`), dipinta solo fuori dal pannello |
+  | Alone dell'anime in evidenza (Home) | L 0,6, croma `min(c, 0.2)`, opacità `min(c × 13, 0,65)`, cioè fino al 65% | No: è un'ombra esterna (`box-shadow`), dipinta solo fuori dal pannello |
   | Alone della copertina nel Dettaglio | L 0,5, croma `min(c, 0.18)`, opacità fino al 55% | No: resta nei 32px tra copertina e titolo |
 
   Anche qui l'opacità cresce con il croma della copertina, così le copertine grigie non producono aloni grigi.
@@ -165,7 +165,7 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 - Ha un `view-transition-name` proprio (`site-header`) ed è escluso dalle animazioni delle View Transitions: è il punto di riferimento fisso.
 - Voci di navigazione: `small`, peso 500, `ink-muted`, altezza minima 44px, padding orizzontale 12px. La voce attiva ha `aria-current="page"`, testo `ink` e un **indicatore**: barretta di 2px in `ink`, raggio 2px, rientrata di 12px ai lati, 6px sopra il bordo inferiore della voce. L'indicatore ha un `view-transition-name` proprio (`nav-indicator`), così scorre verso la nuova voce.
 - A destra della navigazione, l'account: "Accedi" in ciano, che porta a `/accesso`; da collegati, il nome in `small` `ink-muted` e il pulsante "Esci" (un `<form method="post">`). Compare solo nel browser, perché il nome viene da un cookie (ADR-0004).
-- **Sotto i 640px (provvisorio, fino al menu per il telefono di M6):** voci e "Accedi"/"Esci" con padding orizzontale di 8px; la navigazione scorre in orizzontale dentro l'header, con una sfumatura di 24px a destra; il nome dell'utente non compare. L'header resta su una riga, alto 64px, anche a 360px.
+- **Sotto i 640px (provvisorio, fino al menu per il telefono di M7):** voci e "Accedi"/"Esci" con padding orizzontale di 8px; la navigazione scorre in orizzontale dentro l'header, con una sfumatura di 24px a destra; il nome dell'utente non compare. L'header resta su una riga, alto 64px, anche a 360px.
 - Sotto l'header, solo nella Home, c'è la striscia "in onda ora" (vedi la sezione dedicata).
 
 ## Pulsanti e filtri
@@ -184,8 +184,14 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
   - Il pannello si comporta come una card: tutto cliccabile, sollevamento al passaggio del mouse, anello di focus, copertina che si trasforma in quella del Dettaglio.
   - Intestazione: padding verticale 20px sopra e 12px sotto, spazio di 32px tra le colonne. Pannello: padding 16px, raggio 16px, griglia `auto 1fr` con spazio di 20px, contenuto allineato in basso; copertina con raggio 8px. Alone: `box-shadow: 0 0 72px 12px` nel colore indicato nella tabella della tinta.
   - Sotto i 1024px le due colonne si impilano: prima il titolo, poi l'anime in evidenza.
-- Sotto l'intestazione, la griglia degli altri anime della stagione in ordine di popolarità, 16px più in basso.
-- **La prima fila di card è visibile senza scorrere con un viewport di 1280×800.** Altezze misurate nell'anteprima: header 65px, striscia 45px, intestazione 283px, spazio 16px, card 390px: la prima fila finisce a circa 799px. Il margine è di un solo pixel: va riverificato in M3 sull'app vera. Se non basta, si riduce l'intestazione (dimensione massima di `display-xl` o padding), non le card.
+- **"Continua a guardare"** (solo per chi è collegato), tra l'intestazione e la griglia: titolo `h2` e una fila di card (al massimo 6) con la riga "Sei indietro di 2 episodi" o "Ti mancano 2 episodi", l'etichetta "Rewatch" per le voci in rewatch e il "+1".
+  - La pagina è uguale per tutti e la sezione si disegna nel browser. Lo spazio d'attesa (titolo e una fila di skeleton) compare solo se il cookie con il nome dice che l'utente è collegato, così chi non è collegato non vede spostamenti. Se non ci sono arretrati, la sezione non compare e lo spazio si chiude.
+  - **Focus quando una card sparisce:** un "+1" che mette in pari sposta subito il focus sul titolo della card successiva, o sul titolo `h2` della sezione (`tabindex="-1"`) dopo l'ultima, e una regione `role="status"` della sezione annuncia "Sei in pari con {titolo}". Dopo l'ultima card la sezione resta, con "Sei in pari: nessun episodio arretrato." in `ink-muted`, finché non si ricarica la pagina.
+  - Dalla modifica della voce vale lo stesso, alla chiusura del dialogo (il focus non può uscire prima da un dialogo modale), invece di tornare al pulsante "Modifica" che sta per sparire. In pari vuol dire episodi fino agli arretrati o "Completato". Se la card sparisce per un altro stato o perché la voce è eliminata, l'annuncio è "{titolo} non è più in Continua a guardare" e, dopo l'ultima, "Nessun altro anime da continuare."
+- Sotto l'intestazione (o sotto "Continua a guardare"), la griglia degli altri anime della stagione in ordine di popolarità, 16px più in basso. Il suo titolo `h2` "Gli altri anime della stagione" è solo per i lettori di schermo, perché visibile sposterebbe la prima fila oltre gli 800px; diventa visibile (32px sopra, 16px sotto) quando c'è "Continua a guardare", per separare le due griglie (`:has()`).
+- **La prima fila di card è visibile senza scorrere con un viewport di 1280×800.** Altezze misurate nell'anteprima: header 65px, striscia 45px, intestazione 283px, spazio 16px, card 390px: la prima fila finisce a circa 799px. Se non basta, si riduce l'intestazione (dimensione massima di `display-xl` o padding), non le card.
+  - **Verificato in M3 sull'app vera (2026-11-20), senza la striscia:** header 64px, intestazione fino a 366px (pannello in evidenza alto 243px), prima fila fino a **775px**, con una card dal titolo su due righe. Un test di Playwright lo controlla (`e2e/home.spec.ts`).
+  - **Con la striscia di M7** (circa 45px) la fila arriverebbe a circa 820px: quando si aggiunge, va ridotta l'intestazione.
 - Su un portatile 1280×800 vero il browser occupa parte dello schermo: lì la fila resta tagliata nella parte bassa.
 
 ## Ricerca
@@ -337,6 +343,8 @@ I valori vengono da un piccolo script che simula una molla smorzata e semplifica
 
 ### Striscia "in onda ora"
 
+Spostata in M7 (Passata di stile): in M3 la Home non la ha.
+
 - **Posizione: una riga propria sotto l'header, a tutta la larghezza del contenuto, sia su mobile sia su desktop.** Contiene l'etichetta "In onda ora" (ciano, con un punto), la zona che scorre e il pulsante "Pausa / Riprendi". Altezza minima 44px, testo `small`.
 - **Su desktop (da 1024px) mostra sempre almeno due voci intere contemporaneamente.** Ogni voce è "**Titolo** · Ep. 15 · sab 23:00" (orario formattato nel browser, nel suo fuso), su una riga, con 32px tra una voce e l'altra. A 1024px la zona pienamente visibile (tolte etichetta, pulsante e sfumature) è di circa 620px, quindi ogni voce è larga al massimo **18rem** (288px). Se il titolo non ci sta, si accorcia con i puntini (`text-overflow: ellipsis`) mentre numero dell'episodio e orario restano interi. I lettori di schermo leggono comunque il titolo completo, che resta nel testo della pagina.
 - Contenuto duplicato per il ciclo continuo: la copia ha `aria-hidden="true"` e `inert`, quindi lettori di schermo e tastiera vedono gli elementi una volta sola. L'animazione sposta la traccia di `-50%` in ciclo.
@@ -414,4 +422,4 @@ I colori del testo si chiamano `ink` e `ink-muted`: in Tailwind il prefisso `tex
 - **Ottimizzazione delle copertine (M1):** `next/image` passa dall'ottimizzazione di Vercel, che sul piano gratuito ha limiti mensili; l'alternativa è `<img>` con gli URL di AniList, che offre già tre dimensioni (`medium`, `large`, `extraLarge`).
 - **Noto Sans JP:** byte scaricati su un sistema senza font giapponesi e spazio nella build.
 - **Pulsante "+" (M2):** cosa succede premendolo quando l'anime è già nella lista.
-- **Spazio della prima fila nella Home (M3):** riverificare il margine di 1px a 1280×800 sull'app vera.
+- **Spazio della prima fila nella Home:** verificato in M3 (775px senza la striscia, vedi "Home"); da rifare quando la striscia arriva in M7.

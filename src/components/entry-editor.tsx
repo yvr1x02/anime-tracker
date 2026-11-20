@@ -15,17 +15,28 @@ const field = "min-h-11 w-full rounded-control border border-border-strong bg-ra
  * A button that opens the entry's editor: status, episodes seen, score, notes, and removal after a
  * confirmation (SPEC, "La mia lista"). A native modal <dialog> keeps focus inside and closes with Esc.
  */
+/** What the editor did: the change sent, or the removal. Null when closed without changes. */
+export type EditOutcome = { change: EntryChange } | { deleted: true } | null;
+
 export function EditEntryButton({
   target,
   label,
   className = "button",
+  onDone,
 }: {
   target: EditTarget;
   label: string;
   className?: string;
+  /**
+   * Told what the editor did, before the change is sent. It may return where focus goes once the dialog has
+   * closed (focus can't leave a modal dialog before), instead of back to this button: for a button about to
+   * disappear with its card.
+   */
+  onDone?: (outcome: EditOutcome) => (() => void) | undefined;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLButtonElement>(null);
+  const afterClose = useRef<(() => void) | undefined>(undefined);
   const [open, setOpen] = useState(false);
   const title = animeTitle(target.media.title);
 
@@ -49,17 +60,38 @@ export function EditEntryButton({
         aria-labelledby={`${target.media.id}-editor-title`}
         onClose={() => {
           setOpen(false);
-          opener.current?.focus();
+          const moveFocus = afterClose.current;
+          afterClose.current = undefined;
+          if (moveFocus) moveFocus();
+          else opener.current?.focus();
         }}
         className="entry-editor"
       >
-        {open && <EditorForm target={target} title={title} close={() => dialog.current?.close()} />}
+        {open && (
+          <EditorForm
+            target={target}
+            title={title}
+            close={(outcome) => {
+              afterClose.current = onDone?.(outcome);
+              dialog.current?.close();
+            }}
+          />
+        )}
       </dialog>
     </>
   );
 }
 
-function EditorForm({ target, title, close }: { target: EditTarget; title: string; close: () => void }) {
+function EditorForm({
+  target,
+  title,
+  close,
+}: {
+  target: EditTarget;
+  title: string;
+  /** Closes the dialog; the outcome is said first, so focus can be placed after closing. */
+  close: (outcome: EditOutcome) => void;
+}) {
   const { save, remove } = useListEditing();
   const { entry, media } = target;
   const ids = useId();
@@ -86,8 +118,9 @@ function EditorForm({ target, title, close }: { target: EditTarget; title: strin
     if (Number(progress) !== (entry?.progress ?? 0)) change.progress = Number(progress);
     if (parsedScore !== (entry?.score ?? 0)) change.score = parsedScore;
     if (notes !== (entry?.notes ?? "")) change.notes = notes;
-    close();
-    if (Object.keys(change).length > 0) void save(target, change);
+    const changed = Object.keys(change).length > 0;
+    close(changed ? { change } : null);
+    if (changed) void save(target, change);
   }
 
   return (
@@ -169,7 +202,7 @@ function EditorForm({ target, title, close }: { target: EditTarget; title: strin
             <button
               type="button"
               onClick={() => {
-                close();
+                close({ deleted: true });
                 void remove(entry);
               }}
               className="button border-danger text-danger"
@@ -186,7 +219,7 @@ function EditorForm({ target, title, close }: { target: EditTarget; title: strin
           <button type="submit" className="button button-primary">
             Salva
           </button>
-          <button type="button" onClick={close} className="button">
+          <button type="button" onClick={() => close(null)} className="button">
             Annulla
           </button>
           {entry && (

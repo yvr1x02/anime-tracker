@@ -46,6 +46,38 @@ export const SearchAnimeQuery = graphql(`
     Page(page: 1, perPage: $perPage) {
       media(search: $search, type: ANIME, isAdult: false, sort: SEARCH_MATCH) {
         id
+        status
+        title {
+          romaji
+          english
+          native
+        }
+        coverImage {
+          medium
+          large
+          extraLarge
+          color
+        }
+        format
+        season
+        seasonYear
+        episodes
+        nextAiringEpisode {
+          episode
+          airingAt
+        }
+      }
+    }
+  }
+`);
+
+// The Home (ADR-0003: server, cached 6 hours). The fields are those of AnimeCardData.
+export const SeasonAnimeQuery = graphql(`
+  query SeasonAnime($season: MediaSeason!, $seasonYear: Int!, $perPage: Int!) {
+    Page(page: 1, perPage: $perPage) {
+      media(season: $season, seasonYear: $seasonYear, type: ANIME, isAdult: false, sort: [POPULARITY_DESC]) {
+        id
+        status
         title {
           romaji
           english
@@ -104,6 +136,7 @@ export const ListEntryFields = graphql(`
     media {
       id
       isAdult
+      status
       title {
         romaji
         english

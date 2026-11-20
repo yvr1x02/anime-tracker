@@ -34,7 +34,8 @@ test("skip link moves keyboard focus past the header", async ({ page }) => {
 
   await page.keyboard.press("Tab");
   await expect(page.locator(":focus")).toHaveCount(1);
-  await expect(page.locator("header :focus")).toHaveCount(0);
+  // The site header (banner), not the Home's own season header inside <main>.
+  await expect(page.getByRole("banner").locator(":focus")).toHaveCount(0);
 });
 
 test.describe("on a 390px phone", () => {
@@ -48,7 +49,7 @@ test.describe("on a 390px phone", () => {
     await expect(skipLink).toBeFocused();
 
     const skip = await skipLink.boundingBox();
-    const header = await page.locator("header").boundingBox();
+    const header = await page.getByRole("banner").boundingBox();
     expect(skip!.y + skip!.height).toBeLessThanOrEqual(header!.y);
 
     const overflows = await page.evaluate(
