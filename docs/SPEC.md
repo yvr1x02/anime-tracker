@@ -14,10 +14,10 @@ Un client non ufficiale e complementare di AniList per seguire i propri anime, b
 
 ## Con e senza login
 
-- **Senza login** Home, Ricerca, Dettaglio e Calendario funzionano per intero.
+- **Senza login** Home, Ricerca, Dettaglio e Calendario funzionano per intero, tranne la sezione personale "Continua a guardare" della Home, che non compare.
   - Il pulsante "+" delle card spiega che serve l'accesso e porta al login.
   - Il filtro "solo la mia lista" del Calendario è disattivato, con la spiegazione "Accedi con AniList per filtrare la tua lista".
-  - La mia lista e Statistiche sono in **modalità demo**: mostrano in sola lettura la lista pubblica di un profilo AniList dimostrativo, con l'avviso "Modalità demo: lista pubblica di {nome} su AniList, in sola lettura. Accedi con AniList per vedere e modificare la tua." I controlli di modifica non compaiono. Se il profilo demo non è disponibile, al posto della lista compare un messaggio.
+  - La mia lista, Statistiche e "Cosa guardo stasera?" sono in **modalità demo**: mostrano in sola lettura la lista pubblica di un profilo AniList dimostrativo, con l'avviso "Modalità demo: lista pubblica di {nome} su AniList, in sola lettura. Accedi con AniList per vedere e modificare la tua." I controlli di modifica non compaiono. Se il profilo demo non è disponibile, al posto della lista compare un messaggio.
 - **Con login** si aggiungono, modificano e rimuovono le voci della propria lista AniList.
 - **Uscita:** il logout chiude la sessione nell'app; la pagina spiega che l'accesso si può revocare anche dalle impostazioni dell'account AniList.
 
@@ -28,6 +28,12 @@ Un client non ufficiale e complementare di AniList per seguire i propri anime, b
 Gli anime della stagione in corso, ordinati per popolarità. La stagione si calcola dalla data corrente: inverno gennaio–marzo, primavera aprile–giugno, estate luglio–settembre, autunno ottobre–dicembre.
 
 Dalle card si può aggiungere un anime alla lista.
+
+- **Continua a guardare** (solo per chi è collegato): gli anime della propria lista con episodi già usciti e non ancora visti, con quanti ne mancano ("Sei indietro di 2 episodi").
+  - **Episodi usciti, secondo AniList:** per un anime concluso o cancellato, il numero totale di episodi; per un anime in corso, il numero del prossimo episodio in programma meno uno (`Media.nextAiringEpisode`), contando come uscito anche il prossimo se il suo orario è già passato. Se AniList non dà né il prossimo episodio né il totale, l'anime non compare.
+  - **Episodi arretrati** = episodi usciti − episodi visti, quando sono più di zero.
+  - Si calcola dalla lista già letta per la sessione (ADR-0004): nessuna richiesta in più ad AniList.
+  - Senza login la sezione non compare.
 
 ### 2. Ricerca
 
@@ -48,7 +54,7 @@ La scheda di un anime: copertina, titolo, trama, generi, studio, numero e durata
 
 Gli anime della lista AniList dell'utente, filtrabili per stato. Per ogni voce si modificano stato, episodi visti, voto e note; una voce si rimuove dopo una conferma. Senza login: modalità demo.
 
-- **Distribuzione dei voti (M5):** sopra la lista, un grafico a barre con il numero di anime per voto, una barra per ogni voto intero da 1 a 10 (la barra 8 comprende i voti da 8,0 a 8,9); gli anime senza voto non contano.
+- **Distribuzione dei voti (M6):** sopra la lista, un grafico a barre con il numero di anime per voto, una barra per ogni voto intero da 1 a 10 (la barra 8 comprende i voti da 8,0 a 8,9); gli anime senza voto non contano.
   - Un clic su una barra filtra la lista su quel voto, insieme al filtro per stato; un secondo clic sulla stessa barra toglie il filtro. La barra attiva si distingue anche senza colore.
   - Le barre si usano da tastiera: ognuna è un pulsante con lo stato premuto (`aria-pressed`) e un nome completo, per esempio "Voto 8: 12 anime".
   - Alternativa testuale: gli stessi numeri in una tabella, leggibile da lettori di schermo e da chi non vede il grafico.
@@ -70,6 +76,19 @@ Calcolate a partire dalla lista personale letta da AniList, con una sola richies
 - **Generi più visti:** grafico a barre.
 - **Distribuzione dei voti:** da 1 a 10, con lo stesso grafico di "La mia lista" (barre da tastiera, alternativa testuale). Qui un clic su una barra porta a "La mia lista" filtrata su quel voto.
 - **Studi più presenti:** i primi 5.
+
+### 7. Cosa guardo stasera?
+
+La funzione principale del sito: aiuta a scegliere cosa guardare nel tempo che si ha.
+
+- L'utente indica quanto tempo ha: 30 minuti, 1 ora, 2 ore, serata intera.
+- L'app propone **2–3 opzioni dalla sua lista AniList**, ognuna con il motivo:
+  - **episodi arretrati** di un anime che sta guardando: "Sei indietro di 2 episodi: 48 minuti" (episodi × durata di un episodio);
+  - **serie quasi finite:** "Ti manca 1 episodio";
+  - **titoli in "Da vedere" adatti alla durata**, per esempio un film che sta nel tempo indicato.
+- Si calcola dai dati della lista già letta, con la durata degli episodi (`Media.duration`) aggiunta ai suoi campi: nessuna richiesta in più ad AniList.
+- Senza login funziona in modalità demo, sulla lista pubblica del profilo demo.
+- Da decidere nel piano della milestone (M4): dove compare, quanto dura la "serata intera", regole e ordine delle proposte, cosa si mostra quando non c'è niente da proporre.
 
 ## La lista personale
 
