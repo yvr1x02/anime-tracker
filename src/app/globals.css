@@ -203,6 +203,51 @@
     white-space: normal;
   }
 
+  /* Calendar (docs/DESIGN.md, "Calendario"): today's column, and the static Adesso mark inside it. */
+  @media (min-width: 1024px) {
+    .calendar-today {
+      background-color: var(--color-surface);
+      box-shadow: inset 0 2px 0 var(--color-cyan);
+    }
+  }
+
+  /* A calendar row: time, cover, title on phones; in the narrow columns the time goes above the title. */
+  .calendar-row {
+    display: grid;
+    grid-template-areas: "time cover text";
+    grid-template-columns: 2.75rem 2rem 1fr;
+    align-items: start;
+    gap: 0 0.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    .calendar-row {
+      grid-template-areas:
+        "cover time"
+        "cover text";
+      grid-template-columns: 2rem 1fr;
+    }
+  }
+
+  .now-mark {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-block: 0.25rem;
+    color: var(--color-cyan);
+    font-size: var(--text-label);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .now-mark::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: var(--color-cyan);
+  }
+
   /* The Home's featured anime: rounder panel, and its strong glow always on (docs/DESIGN.md, "Home"). */
   .featured-anime {
     border-radius: 1rem;

@@ -132,9 +132,10 @@ let tokensIssued = 0;
 const revokedTokens = new Set();
 // POST /__fail-saves with {"count"}: the next saves answer 500, to test going back to the previous value.
 let failingSaves = 0;
-// POST /__fail-schedule with {"count"}: the next calendar answers fail on their third page (HTTP 500, with
-// the first two pages in the body), as when AniList breaks halfway through a week.
-let failingSchedules = 0;
+// POST /__fail-schedule with {"from", "status"}: the next calendar answer for that window fails on its third
+// page (HTTP status, 500 by default, with the first two pages in the body), as when AniList breaks halfway
+// through a week. One week only, so tests running alongside are not hit.
+let failingSchedule = null;
 let nextEntryId = 300;
 
 // Like AniList: one entry per anime; only the variables sent change; scoreRaw is out of 100 and the list
@@ -192,6 +193,12 @@ http
       response.end();
       return;
     }
+    // When the fake started: tests work out where its invented episodes fall.
+    if (request.method === "GET" && url.pathname === "/__started") {
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end(JSON.stringify({ startedAt }));
+      return;
+    }
     if (request.method !== "POST") {
       response.end("fake AniList");
       return;
@@ -207,7 +214,8 @@ http
     request.on("data", (chunk) => (body += chunk));
     request.on("end", () => {
       if (url.pathname === "/__fail-schedule") {
-        failingSchedules = JSON.parse(body).count;
+        const { from, status = 500 } = JSON.parse(body);
+        failingSchedule = { from, status };
         response.writeHead(204);
         response.end();
         return;
@@ -282,9 +290,10 @@ http
         const inWindow = calendar.filter(({ airingAt }) => airingAt > variables.from && airingAt < variables.to);
         const page = (episodes) => ({ pageInfo: { hasNextPage: false }, airingSchedules: episodes });
         const pages = { p1: page(inWindow), p2: page([]), p3: page([]), p4: page([]), p5: page([]), p6: page([]) };
-        if (failingSchedules > 0) {
-          failingSchedules--;
-          response.writeHead(500, { "Content-Type": "application/json" });
+        if (failingSchedule?.from === variables.from) {
+          const { status } = failingSchedule;
+          failingSchedule = null;
+          response.writeHead(status, { "Content-Type": "application/json" });
           response.end(JSON.stringify({ data: { ...pages, p3: null }, errors: [{ message: "Internal error", status: 500 }] }));
           return;
         }

@@ -199,7 +199,7 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 ## Calendario
 
 - Titolo "Calendario" in `h1`, sotto l'intervallo della settimana ("23–29 novembre") e la nota "Messa in onda in Giappone, nel fuso del tuo browser ({fuso})". Poi i filtri "Tutti" / "Solo la mia lista" (`role="group"`, `aria-pressed`) e, in modalità demo dopo la scelta del filtro, l'avviso demo.
-- **Da 1024px, 7 colonne** da lunedì a domenica, ognuna una `section` con il giorno in `h2` (`small`, peso 600: "lun 23"). Le righe sono compatte: orario (`tabular-nums`), copertina piccola (32px, 2/3), titolo su due righe al massimo e "Ep. 7"; tutta la riga porta al Dettaglio.
+- **Da 1024px, 7 colonne** da lunedì a domenica, ognuna una `section` con il giorno in `h2` (`small`, peso 600: "lun 23"). Le righe sono compatte: copertina piccola (32px, 2/3) a sinistra e, accanto, orario (`tabular-nums`), titolo su due righe al massimo e "Ep. 7"; tutta la riga porta al Dettaglio. Sotto i 1024px la riga è orario · copertina · titolo.
   - **Oggi:** colonna su `surface` con bordo `cyan` in alto e "Oggi" nel titolo.
   - **Episodi già usciti:** in `ink-muted`, con "già uscito" per i lettori di schermo.
   - **Segno "Adesso"** nella colonna di oggi, tra l'ultimo episodio uscito e il primo in arrivo: una linea `cyan` di 1px con l'etichetta "Adesso" in `label`. Nessuna animazione; si sposta quando l'orologio della pagina (una volta al minuto) fa uscire un episodio. È solo visivo: per i lettori di schermo basta "già uscito".

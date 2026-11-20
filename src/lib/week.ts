@@ -26,6 +26,11 @@ export function currentMonday(nowMs: number, timeZone?: string): string {
   return mondayOf(localDate(nowMs, timeZone));
 }
 
+/** The current week's Monday in UTC: all the server can know, since it doesn't see the viewer's zone. */
+export function utcCurrentMonday(): string {
+  return currentMonday(Date.now(), "UTC");
+}
+
 /** The seven dates of a week. */
 export function weekDays(monday: string): string[] {
   return Array.from({ length: 7 }, (_, index) => addDays(monday, index));

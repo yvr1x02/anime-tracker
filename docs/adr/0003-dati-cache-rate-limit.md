@@ -64,6 +64,15 @@ Ogni pagina del Dettaglio si genera alla prima visita (`generateStaticParams` vu
   - la risposta contiene tutte le pagine e nessun errore; un errore anche solo su una pagina (per esempio la terza) fa rifiutare tutta la risposta;
   - l'ultima pagina non dice che ce ne sono altre: se lo dicesse, la settimana sarebbe incompleta e conta come errore;
   - poiché la settimana è una sola voce della cache di `fetch`, una risposta rifiutata non si salva: si serve l'ultima versione completa in cache (stale-while-revalidate, vedi la prova di M0) oppure, se non c'è, la pagina d'errore. Con pagine in richieste separate, la cache avrebbe potuto mescolare pagine di momenti diversi.
+- **Prova locale del 2026-11-20** (build di produzione, finto AniList, cache del calendario portata per la prova a 10 secondi): una settimana completa in cache, poi, scaduta la cache, una risposta che fallisce sulla terza pagina.
+
+  | Guasto | Visite successive |
+  |---|---|
+  | Stato 500, con le prime due pagine nel corpo | Ultima versione completa (stessa ora dei dati); al primo aggiornamento riuscito, i dati nuovi |
+  | Stato 429 | Uguale |
+  | Stato 200 con un errore sulla terza pagina | La cache di `fetch` conserva ogni risposta 200 (codice di Next 16.4.6, `patch-fetch.js`): la risposta difettosa sostituisce quella completa e la settimana mostra la pagina d'errore fino alla scadenza successiva. Mai una settimana a metà, ma nemmeno l'ultima completa |
+
+  Finora AniList ha sempre dato i suoi errori con lo stato HTTP corrispondente (400, 404, 429), quindi il terzo caso non è stato visto con AniList vero. Coprirlo richiederebbe di mettere in cache la settimana già validata (per esempio con `unstable_cache`), con una nuova prova: decisione aperta alla chiusura di M5.
 - **Finestra:** il server non conosce il fuso di chi guarda, quindi per la settimana che inizia lunedì D scarica dal lunedì D alle 00:00 UTC meno 14 ore al lunedì successivo più 12 ore: copre quella settimana in ogni fuso, da UTC−12 a UTC+14. Il browser tiene solo gli episodi della settimana nel suo fuso.
 - **Settimane future:** al massimo 12 dopo quella corrente; il parametro della settimana è validato (una data di lunedì, non nel passato, entro il tetto) prima di chiamare AniList.
 - **Costo:** 1 richiesta all'ora per la settimana corrente, condivisa da tutti, più 1 all'ora per ogni settimana futura aperta da qualcuno.
