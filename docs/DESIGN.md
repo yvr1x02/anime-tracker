@@ -155,7 +155,7 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 
 - Scala di Tailwind (unità da 4px). Ritmo principale: 4, 8, 12, 16, 24, 32, 48, 64px.
 - Margine laterale della pagina: 16px su mobile, 24px da 640px, 32px da 1024px. Contenuto al massimo 1280px.
-- Griglia delle card: `repeat(auto-fill, minmax(12rem, 1fr))` tra 640 e 1024px, `11rem` sotto i 640px e da 1024px in su; spazio 16px (24px da 1024px). A 1280px sono 6 colonne.
+- Griglia delle card: `repeat(auto-fill, minmax(12rem, 1fr))` tra 640 e 1024px, `11rem` da 1024px in su, `10rem` sotto i 640px; spazio 16px (24px da 1024px). A 1280px sono 6 colonne; su un telefono largo almeno 352px sono 2 (con 11rem a 390px ne entrava una sola).
 - Raggi: 6px per controlli e badge, 12px per card e pannelli, completo per i chip.
 - Bersagli toccabili di almeno **44×44px**, oltre il minimo WCAG 2.2 di 24×24.
 

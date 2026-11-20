@@ -86,3 +86,16 @@ test("the header marks Ricerca as the current page only there", async ({ page })
   await page.goto("/");
   await expect(link).not.toHaveAttribute("aria-current");
 });
+
+test("on a 390px phone the results are in two columns", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockAniList(page, [ok]);
+  await page.goto("/ricerca?q=hoshi");
+
+  const cards = page.getByRole("article");
+  await expect(cards).toHaveCount(2);
+  await page.waitForFunction(() => document.getAnimations().every((animation) => animation.playState !== "running"));
+  const [first, second] = await Promise.all([cards.nth(0).boundingBox(), cards.nth(1).boundingBox()]);
+  expect(second!.y).toBe(first!.y);
+  expect(second!.x).toBeGreaterThan(first!.x + first!.width);
+});
