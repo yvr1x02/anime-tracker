@@ -28,8 +28,10 @@ export function AnimeSearch() {
     return () => clearTimeout(timer);
   }, [input]);
 
-  // Keeps the address shareable without a server round trip or a history entry per search.
+  // Keeps the address shareable without a server round trip or a history entry per search. Only on a real
+  // change: replacing on mount, before Next stores its own history state, would break the back button.
   useEffect(() => {
+    if ((new URLSearchParams(window.location.search).get("q") ?? "").trim() === term) return;
     window.history.replaceState(null, "", term ? `/ricerca?q=${encodeURIComponent(term)}` : "/ricerca");
   }, [term]);
 

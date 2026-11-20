@@ -45,6 +45,18 @@ test("coming back from a detail page keeps the search, without a new request", a
   expect(searches).toEqual(["hoshi"]);
 });
 
+test("the back button works after opening a search address directly", async ({ page }) => {
+  await mockAniList(page, [ok]);
+  await page.goto("/ricerca?q=hoshi");
+  await page.getByRole("link", { name: "Hoshi no Kioku" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Hoshi no Kioku" })).toBeVisible();
+
+  await page.goBack();
+
+  await expect(page.getByRole("heading", { level: 1, name: "Ricerca" })).toBeVisible();
+  await expect(page.getByRole("article")).toHaveCount(2);
+});
+
 test("no results suggests romaji or English titles", async ({ page }) => {
   await mockAniList(page, [{ status: 200, media: [] }]);
   await page.goto("/ricerca?q=attacco");
