@@ -111,3 +111,38 @@ test("on a 390px phone the results are in two columns", async ({ page }) => {
   expect(second!.y).toBe(first!.y);
   expect(second!.x).toBeGreaterThan(first!.x + first!.width);
 });
+
+test("a card opens its detail page from the keyboard", async ({ page }) => {
+  await mockAniList(page, [ok]);
+  await page.goto("/ricerca?q=hoshi");
+  const link = page.getByRole("link", { name: "Hoshi no Kioku" });
+  await expect(link).toBeVisible();
+
+  await link.focus();
+  await expect(link).toBeFocused();
+  await page.keyboard.press("Enter");
+
+  await expect(page).toHaveURL("/anime/1");
+  await expect(page.getByRole("heading", { level: 1, name: "Hoshi no Kioku" })).toBeVisible();
+});
+
+test("Torna indietro goes back to the search and its results", async ({ page }) => {
+  const searches = await mockAniList(page, [ok]);
+  await page.goto("/ricerca?q=hoshi");
+  await page.getByRole("link", { name: "Hoshi no Kioku" }).click();
+
+  await page.getByRole("link", { name: "Torna indietro" }).click();
+
+  await expect(page).toHaveURL("/ricerca?q=hoshi");
+  await expect(page.getByRole("article")).toHaveCount(2);
+  expect(searches).toEqual(["hoshi"]);
+});
+
+test("Torna indietro on a detail page opened directly leads to the search", async ({ page }) => {
+  await page.goto("/anime/1");
+
+  await page.getByRole("link", { name: "Torna indietro" }).click();
+
+  await expect(page).toHaveURL("/ricerca");
+  await expect(page.getByRole("heading", { level: 1, name: "Ricerca" })).toBeVisible();
+});

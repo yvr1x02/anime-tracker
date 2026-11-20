@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk } from "next/font/google";
 import Link from "next/link";
+import { NavigationTracker } from "@/components/back-link";
 import { QueryProvider } from "@/components/query-provider";
 import { SiteNav } from "@/components/site-nav";
 import { pageContainer } from "@/lib/page-container";
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </header>
         <main id="contenuto" className="flex-1">
           <QueryProvider>{children}</QueryProvider>
+          <NavigationTracker />
         </main>
         <footer className="border-t border-border">
           <p className={`${pageContainer} py-8 text-small text-ink-muted`}>
