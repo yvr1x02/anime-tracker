@@ -81,13 +81,14 @@ export const ViewerQuery = graphql(`
 `);
 
 // The fields of a list entry, shared by the list and by the answer to a change. MediaListCollection has no
-// isAdult filter, so isAdult comes back and src/lib/list.ts drops those.
+// isAdult filter, so isAdult comes back and src/lib/list.ts drops those. POINT_10_DECIMAL keeps one decimal
+// whatever scoring system the user picked on AniList (POINT_10 would truncate 8.9 to 8).
 export const ListEntryFields = graphql(`
   fragment ListEntryFields on MediaList {
     id
     status
     progress
-    score(format: POINT_10)
+    score(format: POINT_10_DECIMAL)
     notes
     updatedAt
     startedAt {

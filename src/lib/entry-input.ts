@@ -1,5 +1,6 @@
 import type { MediaListStatus } from "@/gql/graphql";
 import type { FuzzyDate } from "./list-rules";
+import { isValidScore, toScoreRaw } from "./score";
 
 const STATUSES: readonly MediaListStatus[] = ["CURRENT", "PLANNING", "COMPLETED", "DROPPED", "PAUSED", "REPEATING"];
 const MAX_GRAPHQL_INT = 2_147_483_647;
@@ -28,7 +29,7 @@ function parseDate(value: unknown): FuzzyDate | undefined | null {
 
 /**
  * The body of POST /api/list/entry, checked at the trust boundary: only known fields, in range. Returns the
- * mutation's variables (score 1–10 becomes scoreRaw = score × 10, 0 clears it), or null if anything is off.
+ * mutation's variables (score 1,0–10,0 becomes scoreRaw = score × 10, 0 clears it), or null if anything is off.
  */
 export function parseSaveEntry(body: unknown): SaveEntryVariables | null {
   if (typeof body !== "object" || body === null) return null;
@@ -45,8 +46,8 @@ export function parseSaveEntry(body: unknown): SaveEntryVariables | null {
     variables.progress = progress;
   }
   if (score !== undefined) {
-    if (!isInt(score, 0, 10)) return null;
-    variables.scoreRaw = score * 10;
+    if (!isValidScore(score)) return null;
+    variables.scoreRaw = toScoreRaw(score);
   }
   if (notes !== undefined) {
     if (typeof notes !== "string" || notes.length > MAX_NOTES_LENGTH) return null;

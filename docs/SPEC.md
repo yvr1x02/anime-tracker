@@ -84,7 +84,7 @@ Quelli di AniList, dove la lista è salvata.
 
 - **Stato**
 - **Episodi visti**
-- **Voto personale** da 1 a 10, facoltativo
+- **Voto personale** da 1,0 a 10,0 con un decimale (per esempio 8,5), facoltativo
 - **Data di inizio e data di fine**, compilate in automatico al cambio di stato
 - **Note personali**, facoltative
 

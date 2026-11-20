@@ -8,7 +8,7 @@ test("without login, La mia lista shows the demo profile's public list, read onl
   const cards = page.getByRole("article");
   // Entry 101 is also in a custom list, 104 only there; the adult anime (103) never shows.
   await expect(cards).toHaveCount(3);
-  await expect(cards.nth(0)).toContainText("Sto guardando · 5 visti · voto 8");
+  await expect(cards.nth(0)).toContainText("Sto guardando · 5 visti · voto 8,0");
   await expect(page.getByText("Solo per adulti")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Aggiungi|Modifica|Elimina/ })).toHaveCount(0);
 });

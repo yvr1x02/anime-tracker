@@ -15,7 +15,7 @@ test("logged in, La mia lista is the user's own list, without the demo notice", 
   await expect(cards).toHaveCount(2);
   await expect(cards.nth(0)).toContainText("Senza palinsesto");
   await expect(cards.nth(0)).toContainText("Sto guardando · 0 visti");
-  await expect(cards.nth(1)).toContainText("Completato · 12 visti · voto 9");
+  await expect(cards.nth(1)).toContainText("Completato · 12 visti · voto 9,0");
   await expect(page.getByText(/Modalità demo/)).toHaveCount(0);
 });
 
@@ -144,6 +144,43 @@ test.describe("editing", () => {
     await dialog.getByRole("button", { name: "Salva" }).click();
 
     await expect.poll(() => bodies).toEqual([{ mediaId: 1, notes: "Da rivedere" }]);
+  });
+
+  test("the score takes one decimal, 8,5 is sent as 8.5 and shown as 8,5", async ({ page }) => {
+    await logIn(page, "/lista");
+    const bodies = entryRequests(page);
+    const edit = card(page, "Hoshi no Kioku").getByRole("button", { name: "Modifica: Hoshi no Kioku" });
+    await edit.click();
+    const dialog = page.getByRole("dialog");
+    const score = dialog.getByLabel("Voto");
+    await expect(score).toHaveValue("9,0");
+
+    await score.fill("8,55");
+    await dialog.getByRole("button", { name: "Salva" }).click();
+    await expect(score).toHaveAttribute("aria-invalid", "true");
+    await expect(dialog.getByText(/^Voto non valido/)).toBeVisible();
+    expect(bodies).toEqual([]);
+
+    await score.fill("8,5");
+    await dialog.getByRole("button", { name: "Salva" }).click();
+
+    await expect(card(page, "Hoshi no Kioku")).toContainText("12 visti · voto 8,5");
+    await expect.poll(() => bodies).toEqual([{ mediaId: 1, score: 8.5 }]);
+    await page.reload();
+    await expect(card(page, "Hoshi no Kioku")).toContainText("12 visti · voto 8,5");
+  });
+
+  test("an empty score clears it", async ({ page }) => {
+    await logIn(page, "/lista");
+    const bodies = entryRequests(page);
+    await card(page, "Hoshi no Kioku").getByRole("button", { name: "Modifica: Hoshi no Kioku" }).click();
+
+    await page.getByRole("dialog").getByLabel("Voto").fill("");
+    await page.getByRole("dialog").getByRole("button", { name: "Salva" }).click();
+
+    await expect(card(page, "Hoshi no Kioku")).toContainText("Completato · 12 visti");
+    await expect(card(page, "Hoshi no Kioku")).not.toContainText("voto");
+    await expect.poll(() => bodies).toEqual([{ mediaId: 1, score: 0 }]);
   });
 
   test("a change AniList refuses goes back and says so", async ({ page, request }) => {

@@ -46,7 +46,8 @@ describe("listEntries", () => {
 
 describe("entrySummary", () => {
   it.each([
-    [{ progress: 5, score: 8, media: { episodes: 12 } }, "5 visti · voto 8"],
+    [{ progress: 5, score: 8, media: { episodes: 12 } }, "5 visti · voto 8,0"],
+    [{ progress: 5, score: 8.5, media: { episodes: 12 } }, "5 visti · voto 8,5"],
     [{ progress: 1, score: 0, media: { episodes: 12 } }, "1 visto"],
     [{ progress: 1, score: null, media: { episodes: null } }, "1 episodio visto"],
     [{ progress: null, score: null, media: { episodes: null } }, "0 episodi visti"],

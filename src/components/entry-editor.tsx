@@ -6,6 +6,7 @@ import type { MediaListStatus } from "@/gql/graphql";
 import { animeTitle, listStatusLabel } from "@/lib/anime-labels";
 import { MAX_NOTES_LENGTH } from "@/lib/entry-input";
 import type { EntryChange } from "@/lib/list-rules";
+import { formatScore, parseScore } from "@/lib/score";
 
 const statuses = Object.keys(listStatusLabel) as MediaListStatus[];
 const field = "min-h-11 w-full rounded-control border border-border-strong bg-raised px-3 text-ink";
@@ -64,7 +65,8 @@ function EditorForm({ target, title, close }: { target: EditTarget; title: strin
   const ids = useId();
   const [status, setStatus] = useState<MediaListStatus>(entry?.status ?? "PLANNING");
   const [progress, setProgress] = useState(String(entry?.progress ?? 0));
-  const [score, setScore] = useState(String(entry?.score ?? 0));
+  const [score, setScore] = useState(entry?.score ? formatScore(entry.score) : "");
+  const [scoreInvalid, setScoreInvalid] = useState(false);
   const [notes, setNotes] = useState(entry?.notes ?? "");
   const [confirming, setConfirming] = useState(false);
   // The rule applies only when the status becomes Completato (SPEC, "Regole automatiche").
@@ -73,11 +75,16 @@ function EditorForm({ target, title, close }: { target: EditTarget; title: strin
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    // Only what changed goes to AniList, so a finer score set elsewhere is not rounded away (ADR-0004).
+    const parsedScore = parseScore(score);
+    if (parsedScore === undefined) {
+      setScoreInvalid(true);
+      return;
+    }
+    // Only what changed goes to AniList, so a score set elsewhere is not rewritten (ADR-0004).
     const change: EntryChange = {};
     if (!entry || status !== entry.status) change.status = status;
     if (Number(progress) !== (entry?.progress ?? 0)) change.progress = Number(progress);
-    if (Number(score) !== (entry?.score ?? 0)) change.score = Number(score);
+    if (parsedScore !== (entry?.score ?? 0)) change.score = parsedScore;
     if (notes !== (entry?.notes ?? "")) change.notes = notes;
     close();
     if (Object.keys(change).length > 0) void save(target, change);
@@ -122,14 +129,24 @@ function EditorForm({ target, title, close }: { target: EditTarget; title: strin
 
       <label className="flex flex-col gap-1 text-small font-medium">
         Voto
-        <select value={score} onChange={(event) => setScore(event.target.value)} className={field}>
-          <option value="0">Nessun voto</option>
-          {Array.from({ length: 10 }, (_, index) => (
-            <option key={index + 1} value={index + 1}>
-              {index + 1}
-            </option>
-          ))}
-        </select>
+        <input
+          type="text"
+          inputMode="decimal"
+          autoComplete="off"
+          value={score}
+          onChange={(event) => {
+            setScore(event.target.value);
+            setScoreInvalid(false);
+          }}
+          aria-invalid={scoreInvalid}
+          aria-describedby={`${ids}-score-help`}
+          className={`${field} tabular-nums ${scoreInvalid ? "border-danger" : ""}`}
+        />
+        <span id={`${ids}-score-help`} className={`font-normal ${scoreInvalid ? "text-danger" : "text-ink-muted"}`}>
+          {scoreInvalid
+            ? "Voto non valido: scrivi un numero da 1,0 a 10,0, con al massimo un decimale, oppure lascia vuoto."
+            : "Da 1,0 a 10,0, con un decimale (per esempio 8,5). Vuoto: nessun voto."}
+        </span>
       </label>
 
       <label className="flex flex-col gap-1 text-small font-medium">

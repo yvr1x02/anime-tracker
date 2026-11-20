@@ -29,6 +29,15 @@ describe("parseSaveEntry", () => {
   });
 
   it.each([
+    [8.5, 85],
+    [8.3, 83],
+    [1, 10],
+    [10, 100],
+  ])("turns the decimal score %s into scoreRaw %s", (score, scoreRaw) => {
+    expect(parseSaveEntry({ mediaId: 21, score })).toEqual({ mediaId: 21, scoreRaw });
+  });
+
+  it.each([
     null,
     "21",
     {},
@@ -38,7 +47,9 @@ describe("parseSaveEntry", () => {
     { mediaId: 21, status: "WATCHING" },
     { mediaId: 21, progress: -1 },
     { mediaId: 21, score: 11 },
-    { mediaId: 21, score: 7.5 },
+    { mediaId: 21, score: 8.55 },
+    { mediaId: 21, score: 0.5 },
+    { mediaId: 21, score: "8,5" },
     { mediaId: 21, notes: 42 },
     { mediaId: 21, notes: "x".repeat(MAX_NOTES_LENGTH + 1) },
     { mediaId: 21, startedAt: { year: 2026, month: 13, day: 1 } },

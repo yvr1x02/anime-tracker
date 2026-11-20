@@ -2,7 +2,7 @@ import type { MediaListStatus } from "@/gql/graphql";
 
 export type FuzzyDate = { year: number | null; month: number | null; day: number | null };
 
-/** A change to a list entry: only the fields the user touched. Score is 1–10, or 0 to clear it. */
+/** A change to a list entry: only the fields the user touched. Score is 1,0–10,0 with one decimal, or 0 to clear it. */
 export type EntryChange = {
   status?: MediaListStatus;
   progress?: number;

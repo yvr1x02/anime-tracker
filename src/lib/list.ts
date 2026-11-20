@@ -1,4 +1,5 @@
 import type { ListEntryFieldsFragment, UserAnimeListQuery } from "@/gql/graphql";
+import { formatScore } from "./score";
 
 export type ListEntry = ListEntryFieldsFragment & { media: NonNullable<ListEntryFieldsFragment["media"]> };
 
@@ -18,7 +19,7 @@ export function listEntries(collection: UserAnimeListQuery["MediaListCollection"
 }
 
 /**
- * "5 visti · voto 8" under the card's "12 episodi"; "5 episodi visti" when the card shows no total.
+ * "5 visti · voto 8,5" under the card's "12 episodi"; "5 episodi visti" when the card shows no total.
  * The score only when there is one.
  */
 export function entrySummary(entry: Pick<ListEntry, "progress" | "score"> & { media: { episodes: number | null } }) {
@@ -26,5 +27,5 @@ export function entrySummary(entry: Pick<ListEntry, "progress" | "score"> & { me
   const seen = entry.media.episodes
     ? `${progress} ${progress === 1 ? "visto" : "visti"}`
     : `${progress} ${progress === 1 ? "episodio visto" : "episodi visti"}`;
-  return entry.score ? `${seen} · voto ${entry.score}` : seen;
+  return entry.score ? `${seen} · voto ${formatScore(entry.score)}` : seen;
 }

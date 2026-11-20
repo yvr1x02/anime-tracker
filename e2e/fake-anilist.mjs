@@ -103,7 +103,8 @@ const revokedTokens = new Set();
 let failingSaves = 0;
 let nextEntryId = 300;
 
-// Like AniList: one entry per anime; only the variables sent change; scoreRaw is out of 100.
+// Like AniList: one entry per anime; only the variables sent change; scoreRaw is out of 100 and the list
+// reads it back as POINT_10_DECIMAL.
 function saveEntry({ mediaId, scoreRaw, ...changes }) {
   let entry = myLists.flatMap((list) => list.entries).find((item) => item.media.id === mediaId);
   if (!entry) {
@@ -111,7 +112,7 @@ function saveEntry({ mediaId, scoreRaw, ...changes }) {
     myLists[0].entries.push(entry);
   }
   Object.assign(entry, changes, { updatedAt: Math.floor(Date.now() / 1000) });
-  if (scoreRaw !== undefined) entry.score = Math.round(scoreRaw / 10);
+  if (scoreRaw !== undefined) entry.score = scoreRaw / 10;
   return { SaveMediaListEntry: entry };
 }
 
