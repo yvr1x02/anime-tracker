@@ -338,7 +338,44 @@ test.describe("Continua a guardare", () => {
 
     await section.getByRole("button", { name: "+1 episodio visto: Senza palinsesto" }).click();
 
+    // Caught up with the last card: the section stays for now, so focus has a place, then is gone next visit.
+    await expect(section.getByRole("article")).toHaveCount(0);
+    await expect(section.getByText("Sei in pari: nessun episodio arretrato.")).toBeVisible();
+    const listRead = page.waitForResponse((response) => response.url().endsWith("/api/list"));
+    await page.reload();
+    await listRead;
     await expect(section).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Gli altri anime della stagione" })).not.toBeInViewport();
+  });
+
+  test("from the keyboard, catching up moves focus to the next card, then to the heading, and says so", async ({ page }) => {
+    await logIn(page, "/");
+    // A second card with one episode to go: Hoshi no Kioku back to Sto guardando at 11 of 12.
+    await page.evaluate(() =>
+      fetch("/api/list/entry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mediaId: 1, status: "CURRENT", progress: 11 }),
+      }),
+    );
+    await page.reload();
+    const section = page.getByRole("region", { name: "Continua a guardare" });
+    await expect(section.getByRole("article")).toHaveCount(2);
+
+    // Newest change first: Hoshi no Kioku, then Senza palinsesto.
+    await section.getByRole("button", { name: "+1 episodio visto: Hoshi no Kioku" }).focus();
+    await page.keyboard.press("Enter");
+
+    await expect(section.getByRole("link", { name: "Senza palinsesto", exact: true })).toBeFocused();
+    await expect(section.getByRole("status")).toHaveText("Sei in pari con Hoshi no Kioku");
+    await expect(section.getByRole("article")).toHaveCount(1);
+
+    await page.keyboard.press("Tab");
+    await expect(section.getByRole("button", { name: "+1 episodio visto: Senza palinsesto" })).toBeFocused();
+    await page.keyboard.press("Enter");
+
+    await expect(section.getByRole("heading", { name: "Continua a guardare" })).toBeFocused();
+    await expect(section.getByRole("status")).toHaveText("Sei in pari con Senza palinsesto");
+    await expect(section.getByText("Sei in pari: nessun episodio arretrato.")).toBeVisible();
   });
 });
