@@ -35,7 +35,16 @@ function canTilt(event: PointerEvent) {
  * Anime card (docs/DESIGN.md, "Card dell'anime"): the title's link covers the whole card. `children` adds
  * lines under the title, such as the list entry in La mia lista.
  */
-export function AnimeCard({ anime, children }: { anime: AnimeCardData; children?: ReactNode }) {
+export function AnimeCard({
+  anime,
+  action,
+  children,
+}: {
+  anime: AnimeCardData;
+  /** On the cover's top right, above the stretched link: the list's "+". */
+  action?: ReactNode;
+  children?: ReactNode;
+}) {
   const title = animeTitle(anime.title);
   const label = formatSeasonLine(anime.format, anime.season, anime.seasonYear);
   const cover = anime.coverImage;
@@ -76,6 +85,7 @@ export function AnimeCard({ anime, children }: { anime: AnimeCardData; children?
       <div className="relative">
         <CoverImage cover={cover} title={title} sizes={COVER_SIZES} className="rounded-t-panel" />
         <AiringBadge next={anime.nextAiringEpisode} />
+        {action && <div className="absolute top-2 right-2 z-10">{action}</div>}
       </div>
       <div className="flex flex-col gap-1 p-3">
         {label && <p className="text-label uppercase text-ink-muted">{label}</p>}

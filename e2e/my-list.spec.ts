@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { mockAniList, searchResults } from "./anilist-browser";
 import { FAKE_ANILIST, logIn } from "./session";
 
 // The logged-in user's list lives in the fake AniList and changes: these tests run one at a time, from a reset.
@@ -197,4 +198,75 @@ test("the change routes refuse other sites, missing sessions and bad input", asy
   expect((await fromPage("/api/list/entry/delete", { id: 201 }, "https://evil.example")).status()).toBe(403);
   expect((await fromPage("/api/list/entry", { mediaId: 1, score: 42 })).status()).toBe(400);
   expect((await fromPage("/api/list/entry/delete", { id: "201" })).status()).toBe(400);
+});
+
+test.describe("from cards and the detail page", () => {
+  test.use({ timezoneId: "Europe/Rome" });
+
+  test("logged out, the card's + leads to the login and says why", async ({ page }) => {
+    await mockAniList(page, [{ status: 200, media: searchResults }]);
+    await page.goto("/ricerca?q=hoshi");
+
+    await page.getByRole("link", { name: "Accedi con AniList per aggiungere «Hoshi no Kioku» alla tua lista" }).click();
+
+    await expect(page).toHaveURL("/accesso?da=%2Fricerca%3Fq%3Dhoshi");
+  });
+
+  test("the card's + adds to Da vedere; pressed again it asks before removing", async ({ page }) => {
+    await logIn(page);
+    await mockAniList(page, [{ status: 200, media: searchResults }]);
+    await page.goto("/ricerca?q=hoshi");
+    const bodies = entryRequests(page);
+    // Senza palinsesto is in the list already; Hoshi no Kioku too. Remove Hoshi, then add it back.
+    const toggle = page.getByRole("button", { name: "Hoshi no Kioku: nella mia lista" });
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+
+    await toggle.click();
+    const confirm = page.getByRole("dialog");
+    await expect(confirm).toContainText("Eliminare «Hoshi no Kioku» dalla lista su AniList?");
+    await confirm.getByRole("button", { name: "Non eliminare" }).click();
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    await expect(toggle).toBeFocused();
+
+    await toggle.click();
+    await page.getByRole("dialog").getByRole("button", { name: "Elimina", exact: true }).click();
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    await expect.poll(() => bodies).toEqual([{ mediaId: 1, status: "PLANNING" }]);
+    await page.goto("/lista");
+    await expect(card(page, "Hoshi no Kioku")).toContainText("Da vedere · 0 visti");
+  });
+
+  test("the detail page adds with the chosen status, then shows the entry", async ({ page }) => {
+    await logIn(page);
+    await page.goto("/lista");
+    await card(page, "Hoshi no Kioku").getByRole("button", { name: "Modifica: Hoshi no Kioku" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Elimina dalla lista" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Elimina", exact: true }).click();
+    await expect(card(page, "Hoshi no Kioku")).toHaveCount(0);
+    const bodies = entryRequests(page);
+
+    await page.goto("/anime/1");
+    await page.getByRole("button", { name: "Aggiungi alla lista: Hoshi no Kioku" }).click();
+    const dialog = page.getByRole("dialog", { name: "Aggiungi «Hoshi no Kioku» alla lista" });
+    await dialog.getByLabel("Stato").selectOption({ label: "Sto guardando" });
+    await dialog.getByRole("button", { name: "Salva" }).click();
+
+    await expect(page.getByRole("button", { name: "Nella mia lista: Hoshi no Kioku" })).toBeVisible();
+    await expect(page.getByText("Sto guardando · 0 visti")).toBeVisible();
+    const [year, month, day] = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" }).format(new Date()).split("-");
+    await expect
+      .poll(() => bodies)
+      .toEqual([{ mediaId: 1, status: "CURRENT", startedAt: { year: +year, month: +month, day: +day } }]);
+  });
+
+  test("logged out, the detail page's button leads to the login", async ({ page }) => {
+    await page.goto("/anime/1");
+
+    await page.getByRole("link", { name: "Aggiungi alla lista" }).click();
+
+    await expect(page).toHaveURL("/accesso?da=%2Fanime%2F1");
+  });
 });

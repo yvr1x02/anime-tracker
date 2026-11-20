@@ -2,26 +2,18 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useSyncExternalStore } from "react";
-import { viewerFromCookies } from "@/lib/auth/cookies";
-
-const noSubscription = () => () => {};
+import { useViewer } from "@/lib/auth/use-viewer";
 
 /**
  * "Accedi" or the user's name with "Esci". The name comes from the display cookie (ADR-0004, point 7):
  * shared pages stay cached because the server never reads cookies to draw the header.
  */
 export function AccountMenu() {
-  const cookies = useSyncExternalStore(
-    noSubscription,
-    () => document.cookie,
-    () => null,
-  );
+  const viewer = useViewer();
   const pathname = usePathname();
   const search = useSearchParams().toString();
-  if (cookies === null) return null;
+  if (viewer === undefined) return null;
 
-  const viewer = viewerFromCookies(cookies);
   if (!viewer) {
     const here = search ? `${pathname}?${search}` : pathname;
     return (

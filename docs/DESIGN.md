@@ -242,7 +242,10 @@ Nella lista, sotto il numero di episodi, una riga in `small` `ink-muted` con sta
 ### Semantica e accessibilità
 
 - `<article>` con il titolo come `<h3>` che contiene il link al Dettaglio. Il link si estende a tutta la card con un pseudo-elemento, così l'intera card è cliccabile senza annidare elementi interattivi.
-- Il pulsante "+" è un `<button>` separato, sopra il link, con `aria-pressed` che indica se l'anime è nella lista e nome accessibile completo ("*Titolo*: nella mia lista"). Il comportamento esatto si definisce in M2.
+- Il pulsante "+" è un `<button>` separato, sopra il link, con `aria-pressed` che indica se l'anime è nella lista e nome accessibile completo ("*Titolo*: nella mia lista").
+  - **Comportamento (M2):** premuto aggiunge l'anime a "Da vedere"; premuto di nuovo apre la conferma "Eliminare «Titolo» dalla lista su AniList? Non si può annullare." con "Elimina" e "Non eliminare" (ADR-0004: eliminazione solo dopo una conferma). Per cambiare stato, episodi o voto c'è il Dettaglio.
+  - **Senza login** è un link a `/accesso`, con nome "Accedi con AniList per aggiungere «Titolo» alla tua lista" (ADR-0004).
+  - Nel Dettaglio il pulsante primario "Aggiungi alla lista" apre la modifica della voce, per scegliere subito lo stato; da voce esistente diventa "✓ Nella mia lista", con accanto stato, episodi visti e voto. Senza login porta all'accesso, con la nota "Serve l'accesso con AniList.".
 - La copertina ha `alt=""`: il titolo è già accanto.
 - Il badge "in onda" ha un prefisso per lettori di schermo ("Prossimo episodio:") e non intercetta i clic.
 - La copertina ha proporzioni fisse anche prima del caricamento: nessuno spostamento del layout.

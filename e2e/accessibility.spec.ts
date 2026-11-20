@@ -40,3 +40,18 @@ test("no WCAG A/AA violations with the entry editor open", async ({ page }) => {
   const { violations } = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
   expect(violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
 });
+
+test("no WCAG A/AA violations on search results and the detail page, logged in", async ({ page }) => {
+  await logIn(page);
+  await mockAniList(page, [{ status: 200, media: searchResults }]);
+  await page.goto("/ricerca?q=hoshi");
+  await expect(page.getByRole("button", { name: /: nella mia lista$/ })).toHaveCount(2);
+  await page.waitForFunction(() => document.getAnimations().every((animation) => animation.playState !== "running"));
+  const search = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
+  expect(search.violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
+
+  await page.goto("/anime/1");
+  await expect(page.getByRole("button", { name: "Nella mia lista: Hoshi no Kioku" })).toBeVisible();
+  const detail = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
+  expect(detail.violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
+});

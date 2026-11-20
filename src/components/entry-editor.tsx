@@ -33,7 +33,7 @@ export function EditEntryButton({
       <button
         ref={opener}
         type="button"
-        aria-label={`${label}: ${title}`}
+        aria-label={`${label.replace(/^✓ /, "")}: ${title}`}
         onClick={() => {
           setOpen(true);
           // Open after React has rendered the form inside.

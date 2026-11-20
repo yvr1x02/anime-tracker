@@ -305,6 +305,62 @@
     }
   }
 
+  /*
+   * The card's "+" (docs/DESIGN.md, "Pulsante +"): dark see-through at rest, pink on hover or focus and when
+   * the anime is in the list, where the ✓ pops in with a small bounce.
+   */
+  .list-toggle {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid color-mix(in oklab, var(--color-ink) 24%, transparent);
+    border-radius: 999px;
+    background-color: color-mix(in oklab, var(--color-bg) 72%, transparent);
+    color: var(--color-ink);
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1;
+    transition:
+      background-color var(--duration-instant) var(--ease-out),
+      transform var(--duration-base) var(--spring-bouncy);
+  }
+
+  .list-toggle:hover,
+  .list-toggle:focus-visible,
+  .list-toggle[aria-pressed="true"] {
+    border-color: var(--color-pink);
+    background-color: var(--color-pink);
+    color: var(--color-on-accent);
+  }
+
+  .list-toggle:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--color-bg);
+  }
+
+  .list-toggle[aria-pressed="true"] > span {
+    animation: tick-in var(--duration-base) var(--spring-bouncy);
+  }
+
+  @keyframes tick-in {
+    from {
+      transform: scale(0.4);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .list-toggle:active {
+      transform: scale(0.9);
+      transition-duration: var(--duration-instant);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .list-toggle[aria-pressed="true"] > span {
+      animation: none;
+    }
+  }
+
   /* Entry editor: a modal <dialog> on surface, the page dimmed behind it. */
   .entry-editor {
     width: min(28rem, calc(100% - 2rem));

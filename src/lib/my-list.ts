@@ -42,10 +42,22 @@ export function postListChange<T>(path: "/api/list/entry" | "/api/list/entry/del
 }
 
 /** The logged-in user's list, read once per session and then updated by each change (ADR-0004). */
-export function useMyList() {
+export function useMyList(enabled = true) {
   return useQuery({
     queryKey: MY_LIST_KEY,
     queryFn: ({ signal }) => fetchMyList(signal),
     staleTime: Infinity,
+    enabled,
   });
+}
+
+/**
+ * Where an anime stands for this viewer: unknown while the browser reads the cookie, logged out, or logged
+ * in with its entry (null when not in the list). A session AniList ended counts as logged out.
+ */
+export function useListEntry(mediaId: number, loggedIn: boolean | undefined) {
+  const list = useMyList(loggedIn === true);
+  if (loggedIn === undefined) return { state: "unknown" } as const;
+  if (!loggedIn || list.error instanceof NotLoggedInError) return { state: "logged-out" } as const;
+  return { state: "logged-in", entry: list.data?.find((item) => item.media.id === mediaId) ?? null } as const;
 }
