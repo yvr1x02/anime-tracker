@@ -1,15 +1,15 @@
 import { airedEpisodes, episodesBehind } from "./backlog";
 import type { ListEntry } from "./list";
 
+export type TimeOption = { minutes: number; label: string; fits: string };
+
 /** The time choices of "Cosa guardo stasera?" (SPEC): the whole evening is 180 minutes. */
-export const TIME_OPTIONS = [
+export const TIME_OPTIONS: readonly TimeOption[] = [
   { minutes: 30, label: "30 minuti", fits: "nei tuoi 30 minuti" },
   { minutes: 60, label: "1 ora", fits: "nella tua ora" },
   { minutes: 120, label: "2 ore", fits: "nelle tue 2 ore" },
   { minutes: 180, label: "Serata intera", fits: "nella tua serata" },
-] as const;
-
-export type TimeOption = (typeof TIME_OPTIONS)[number];
+];
 
 /**
  * Kinds in priority order (SPEC): 1 finish it tonight, 2 catch up with an airing anime, 3 a finished series

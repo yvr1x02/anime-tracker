@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MediaFormat, MediaListStatus, MediaStatus } from "@/gql/graphql";
 import type { ListEntry } from "./list";
-import { TIME_OPTIONS, formatMinutes, inListSince, tonightCandidates, tonightPages } from "./tonight";
+import { TIME_OPTIONS, type TimeOption, formatMinutes, inListSince, tonightCandidates, tonightPages } from "./tonight";
 
 const now = Date.parse("2026-11-20T20:00:00Z");
 const DAY = 24 * 3600;
@@ -46,7 +46,7 @@ function entry(title: string, { status, progress = 0, updatedAt = 0, createdAt =
   };
 }
 
-const reasons = (time: (typeof TIME_OPTIONS)[number], list: ListEntry[]) =>
+const reasons = (time: TimeOption, list: ListEntry[]) =>
   tonightCandidates(list, time, now).map(({ entry: e, kind, reason }) => [e.media.title?.romaji, kind, reason]);
 
 // A list with every kind: what each time choice makes of it.

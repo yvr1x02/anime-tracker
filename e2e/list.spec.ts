@@ -35,3 +35,12 @@ test("the header marks La mia lista as the current page", async ({ page }) => {
     page.getByRole("navigation", { name: "Principale" }).getByRole("link", { name: "La mia lista" }),
   ).toHaveAttribute("aria-current", "page");
 });
+
+test("/api/demo-list gives the demo profile's public list, for Cosa guardo stasera?", async ({ request }) => {
+  const response = await request.get("/api/demo-list");
+
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.userName).toBe("UtenteDemo");
+  expect(body.entries).toHaveLength(5);
+});
