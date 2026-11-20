@@ -22,6 +22,7 @@ Con Next.js (ADR-0001) le richieste possono partire dal server o dal browser:
 | Dettaglio | Server | 1 ora | Uguale per tutti e indicizzabile; prossimo episodio e numero di episodi cambiano durante la stagione |
 | Calendario | Server, per settimana | 1 ora | Uguale per tutti; gli orari possono essere spostati. Il filtro "solo la mia lista" si applica nel browser |
 | Ricerca | Browser, direttamente ad AniList | — | Ogni ricerca è diversa; ogni visitatore usa il proprio limite |
+| Lista demo (La mia lista e "Cosa guardo stasera?" senza login, da M4) | Server; per "Cosa guardo stasera?" il browser la chiede a `/api/demo-list` alla prima scelta di una durata | 1 ora | Uguale per tutti: le due pagine fanno la stessa richiesta e condividono la stessa voce della cache |
 
 ### Meccanismo di cache (scelto in M0, 2026-11-19)
 

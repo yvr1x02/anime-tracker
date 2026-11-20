@@ -4,7 +4,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 **Regola per ogni milestone:** ogni nuova pagina entra nel controllo di accessibilità di `e2e/accessibility.spec.ts` (axe, WCAG 2.2 AA) nello stesso commit che la aggiunge.
 
-**Milestone attiva:** M4
+**Milestone attiva:** M5
 
 ## M0 — Fondamenta (completata il 2026-11-19)
 
@@ -47,7 +47,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - "← Torna indietro" nel Dettaglio: quando il Dettaglio è stato aperto direttamente, porta alla Home invece che a `/ricerca`.
 - Verifica sull'app vera che la prima fila di card della Home sia visibile a 1280×800 (`docs/DESIGN.md`, "Da decidere o verificare più avanti").
 
-## M4 — Cosa guardo stasera?
+## M4 — Cosa guardo stasera? (completata il 2026-11-20)
 
 - La funzione di SPEC, "Cosa guardo stasera?": dato il tempo disponibile, 2–3 proposte dalla lista dell'utente, ognuna con il motivo; modalità demo senza login.
 - Calcoli in funzioni pure testate con Vitest (episodi arretrati, minuti, scelta e ordine delle proposte), con fusi orari espliciti.
