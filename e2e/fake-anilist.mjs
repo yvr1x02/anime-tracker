@@ -113,6 +113,12 @@ function saveEntry({ mediaId, scoreRaw, ...changes }) {
   }
   Object.assign(entry, changes, { updatedAt: Math.floor(Date.now() / 1000) });
   if (scoreRaw !== undefined) entry.score = scoreRaw / 10;
+  // Like AniList (seen on 2026-11-20): watching the last episode completes the entry and fills the end date.
+  if (entry.status === "CURRENT" && entry.media.episodes && entry.progress >= entry.media.episodes) {
+    const today = new Date();
+    entry.status = "COMPLETED";
+    entry.completedAt = { year: today.getUTCFullYear(), month: today.getUTCMonth() + 1, day: today.getUTCDate() };
+  }
   return { SaveMediaListEntry: entry };
 }
 

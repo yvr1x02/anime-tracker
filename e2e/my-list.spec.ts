@@ -81,6 +81,22 @@ test.describe("editing", () => {
     await expect.poll(() => bodies).toEqual([{ mediaId: 4, progress: 1 }]);
   });
 
+  test("when AniList completes the entry by itself, the card shows what AniList returned", async ({ page }) => {
+    await logIn(page, "/lista");
+    const bodies = entryRequests(page);
+    const anime = card(page, "Senza palinsesto");
+
+    // The last episode of a one-episode film: only the episodes are sent, AniList answers COMPLETED.
+    await anime.getByRole("button", { name: "+1 episodio visto: Senza palinsesto" }).click();
+
+    await expect.poll(() => bodies).toEqual([{ mediaId: 4, progress: 1 }]);
+    await expect(anime).toContainText("Completato · 1 visto");
+    await page.getByRole("group", { name: "Filtra per stato" }).getByRole("button", { name: "Completato (2)" }).click();
+    await expect(page.getByRole("article")).toHaveCount(2);
+    await page.reload();
+    await expect(card(page, "Senza palinsesto")).toContainText("Completato · 1 visto");
+  });
+
   test("several quick +1 clicks are grouped", async ({ page }) => {
     // Hoshi no Kioku back to Sto guardando with 0 episodes, through the API, to have room for clicks.
     await logIn(page, "/lista");
