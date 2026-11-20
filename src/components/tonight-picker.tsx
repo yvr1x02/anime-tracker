@@ -23,13 +23,20 @@ export function TonightPicker() {
   const loggedIn = viewer === undefined ? undefined : viewer !== null;
   const [time, setTime] = useState<TimeOption | null>(null);
   const [page, setPage] = useState(0);
+  // True after "Ricomincia dalle prime", so the live region says the first ones are back.
+  const [restarted, setRestarted] = useState(false);
   const mine = useMyList(loggedIn === true);
   const demo = useDemoList(loggedIn === false && time !== null);
   const now = useNow();
 
   function choose(option: TimeOption) {
     setTime(option);
-    setPage(0);
+    goTo(0);
+  }
+
+  function goTo(next: number, restart = false) {
+    setPage(next);
+    setRestarted(restart);
   }
 
   const view =
@@ -37,7 +44,8 @@ export function TonightPicker() {
       ? resultsView({
           time,
           page,
-          setPage,
+          restarted,
+          goTo,
           choose,
           now,
           source: loggedIn ? { kind: "mine", query: mine } : { kind: "demo", query: demo },
@@ -82,14 +90,16 @@ type Source =
 function resultsView({
   time,
   page,
-  setPage,
+  restarted,
+  goTo,
   choose,
   now,
   source,
 }: {
   time: TimeOption;
   page: number;
-  setPage: (page: number) => void;
+  restarted: boolean;
+  goTo: (page: number, restart?: boolean) => void;
   choose: (option: TimeOption) => void;
   now: number | null;
   source: Source;
@@ -178,7 +188,8 @@ function resultsView({
   const current = pages[shown];
   const last = shown >= pages.length - 1;
   const more = current.length === 1 ? "Un'altra proposta" : `Altre ${current.length} proposte`;
-  const status = `${shown === 0 ? proposals(current.length) : more} per ${timeText}`;
+  const again = current.length === 1 ? "Di nuovo la prima proposta" : `Di nuovo le prime ${current.length} proposte`;
+  const status = `${shown > 0 ? more : restarted ? again : proposals(current.length)} per ${timeText}`;
 
   return {
     status,
@@ -197,15 +208,12 @@ function resultsView({
             </li>
           ))}
         </ul>
-        {/* Stays focusable once the suggestions are over, so keyboard focus is never dropped. */}
-        <button
-          type="button"
-          aria-disabled={last}
-          onClick={() => !last && setPage(shown + 1)}
-          className="button mt-4 aria-disabled:cursor-not-allowed aria-disabled:text-ink-muted"
-        >
-          {last ? "Non ci sono altre proposte" : "Altre proposte"}
-        </button>
+        {/* After the last page the same button starts over, so focus stays on it. With one page it has no use. */}
+        {pages.length > 1 && (
+          <button type="button" onClick={() => (last ? goTo(0, true) : goTo(shown + 1))} className="button mt-4">
+            {last ? "Ricomincia dalle prime" : "Altre proposte"}
+          </button>
+        )}
       </div>
     ),
   };

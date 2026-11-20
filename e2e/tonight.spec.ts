@@ -28,7 +28,8 @@ test("without login, 30 minuti suggests from the demo list, asked for only now",
   await expect(suggestion(page, "Hoshi no Kioku")).toContainText("Ti mancano 7 episodi: stasera 1, 24 minuti");
   await expect(suggestion(page, "Lista personalizzata")).toContainText("Comincia: 1 episodio in 30 minuti");
   await expect(suggestion(page, "Lista personalizzata")).toContainText("È nella tua lista da 4 mesi");
-  await expect(picker(page).getByRole("button", { name: "Non ci sono altre proposte" })).toHaveAttribute("aria-disabled", "true");
+  // Only three candidates for 30 minutes: one page, so no button to page through them.
+  await expect(picker(page).getByRole("button", { name: /Altre proposte|Ricomincia dalle prime/ })).toHaveCount(0);
   // With suggestions above it, the season grid's heading is no longer screen-reader only (sr-only is absolute).
   await expect(page.getByRole("heading", { name: "Gli altri anime della stagione" })).toHaveCSS("position", "static");
 
@@ -38,7 +39,7 @@ test("without login, 30 minuti suggests from the demo list, asked for only now",
   expect(demoReads).toHaveLength(1);
 });
 
-test("from the keyboard, the whole evening and Altre proposte, focus staying on the button", async ({ page }) => {
+test("from the keyboard, the whole evening, Altre proposte and Ricomincia dalle prime, focus staying on the button", async ({ page }) => {
   await page.goto("/");
   await times(page).getByRole("button", { name: "Serata intera" }).focus();
   await page.keyboard.press("Enter");
@@ -57,11 +58,18 @@ test("from the keyboard, the whole evening and Altre proposte, focus staying on 
   await expect(titles).toHaveText(["Film lungo"]);
   await expect(suggestion(page, "Film lungo")).toContainText("Film di 2 ore e 30 minuti: sta nella tua serata");
   await expect(suggestion(page, "Film lungo")).toContainText("È nella tua lista da 1 mese");
-  const over = picker(page).getByRole("button", { name: "Non ci sono altre proposte" });
-  await expect(over).toBeFocused();
-  await expect(over).toHaveAttribute("aria-disabled", "true");
+  // The suggestions are over: the same button now starts again from the first ones.
+  const restart = picker(page).getByRole("button", { name: "Ricomincia dalle prime" });
+  await expect(restart).toBeFocused();
   await page.keyboard.press("Enter");
-  await expect(titles).toHaveText(["Film lungo"]);
+
+  await expect(picker(page).getByRole("status")).toHaveText("Di nuovo le prime 3 proposte per la serata intera");
+  await expect(titles).toHaveText(["Hoshi no Kioku", "Serie in corso", "Lista personalizzata"]);
+  await expect(picker(page).getByRole("button", { name: "Altre proposte" })).toBeFocused();
+
+  // A new time choice starts fresh: no "Di nuovo".
+  await times(page).getByRole("button", { name: "2 ore" }).click();
+  await expect(picker(page).getByRole("status")).not.toContainText("Di nuovo");
 });
 
 test.describe("logged in", () => {

@@ -103,7 +103,7 @@ La funzione principale del sito: aiuta a scegliere cosa guardare nel tempo che s
   5. **Da vedere, da cominciare:** in "Da vedere", un episodio sta nel tempo. "Comincia: 2 episodi in 48 minuti".
   - Per i tipi 4 e 5 una seconda riga dice da quanto il titolo è nella lista: "È nella tua lista da 5 mesi" (`MediaList.createdAt`).
 - **Ordine:** a parità di tipo, per i tipi 1–3 prima l'anime modificato più di recente; per i tipi 4 e 5 prima il titolo in lista da più tempo. Si mostrano 3 proposte: la prima candidata di ogni tipo, in ordine di priorità, poi le successive fino a 3.
-- **Altre proposte:** un pulsante mostra le 3 candidate successive, nell'ordine completo, senza nuove richieste; quando sono finite, il pulsante dice "Non ci sono altre proposte".
+- **Altre proposte:** un pulsante mostra le 3 candidate successive, nell'ordine completo, senza nuove richieste. Quando sono finite, lo stesso pulsante diventa "Ricomincia dalle prime" e riporta alle prime 3 proposte, con l'annuncio "Di nuovo le prime 3 proposte per …". Se le proposte stanno tutte nella prima pagina, il pulsante non c'è.
 - **Niente di adatto:** con la lista vuota, un invito a Ricerca e agli anime della stagione; se niente sta nel tempo scelto, "Niente nella tua lista sta in 30 minuti." con un pulsante per la durata successiva (tranne che per la serata intera) e il link a Ricerca.
 - **Modalità demo:** senza login le proposte vengono dalla lista pubblica del profilo demo, con l'avviso e l'invito ad accedere; nessun "+1" né modifica.
 - **Richieste:** con login nessuna in più (la lista della sessione). In demo la lista si chiede al nostro server alla prima scelta di una durata; il server la tiene in cache 1 ora, con la stessa voce di "La mia lista" (ADR-0003).
