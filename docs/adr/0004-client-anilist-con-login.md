@@ -94,6 +94,19 @@ Non c'è un database. Il server non salva niente: il token sta solo nel cookie d
 - **Prove manuali con l'account demo `yvr1x0202`.** Regole: si usano solo anime che non sono già nella lista e alla fine si cancellano; le voci esistenti non si modificano mai. Prima delle prove si elencano le voci attuali, dopo si verifica che siano identiche.
 - **Controllo del secret:** `scripts/check-secret.mjs` cerca il client secret di `.env.local` nei file tracciati da git e nella cronologia, e stampa solo se lo ha trovato, mai il valore.
 
+### 8. Verifiche dell'implementazione (M2, 2026-11-20)
+
+Prove reali con l'applicazione di sviluppo e l'account demo `yvr1x0202`, sull'anime di prova Frieren, assente dalla lista e cancellato alla fine. Le 84 voci della lista sono risultate identiche prima e dopo, compreso `updatedAt`.
+
+- **`state`:** AniList lo rimanda al `redirect_uri` insieme a `code`. Il controllo di `state` funziona e il rischio di login forzato non resta aperto.
+- **Date automatiche:** al passaggio a "Sto guardando" AniList **non** compila la data di inizio, quindi la regola della SPEC serve. Al passaggio a "Completato" AniList compila da sé la data di fine e porta gli episodi al totale: la nostra regola invia gli stessi valori, quindi applicarla due volte non cambia niente (la data è quella del fuso del browser).
+- **Completamento automatico:** quando gli episodi visti arrivano al totale, AniList porta da sé lo stato a "Completato". L'interfaccia lo mostra, perché sostituisce la voce con la risposta di AniList.
+- **`score(format: POINT_10)` tronca, non arrotonda:** 85/100 e 89/100 diventano 8, 95/100 diventa 9. Per questo il voto si invia solo se l'utente lo cambia (`scoreRaw` = voto × 10).
+- **Limite di richieste per IP:** con un token e senza, dallo stesso indirizzo, `X-RateLimit-Remaining` scende dello stesso contatore (29 → 27 e 26 → 24 con una richiesta autenticata e una di controllo in mezzo). Tutte le richieste del nostro server, anche di utenti diversi, condividono quindi un solo limite: l'ipotesi prudente del punto 3 è confermata.
+- **Revoca:** su AniList, Impostazioni → Apps (`https://anilist.co/settings/apps`) elenca le applicazioni autorizzate, ciascuna con "Revoke App". La documentazione non descrive una revoca via API. La pagina di accesso e quella di uscita linkano le impostazioni.
+- **Modifica inviata alla chiusura della pagina:** `fetch` con `keepalive` porta il cookie di sessione e un `Origin` valido. Provato con Playwright: una modifica lasciata in attesa arriva al server anche se si cambia pagina subito.
+- **`Origin`:** le modifiche sono Route Handler in `POST`, non Server Actions; il controllo dell'`Origin` è nel nostro codice (`isSameOrigin`), provato con Playwright con un `Origin` estraneo e senza sessione.
+
 ## Alternative considerate
 
 - **Implicit Grant**, con il token nel browser: senza server, ma il token (valido 1 anno, con accesso quasi completo) sarebbe leggibile da JavaScript e quindi esposto a un attacco XSS. Scartato.

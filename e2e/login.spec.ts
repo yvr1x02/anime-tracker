@@ -98,7 +98,11 @@ test("logout removes both cookies and explains how to revoke access", async ({ p
   await header(page).getByRole("button", { name: "Esci" }).click();
 
   await expect(page).toHaveURL("/accesso?esito=uscito");
-  await expect(page.getByRole("status")).toContainText("impostazioni del tuo account AniList");
+  await expect(page.getByRole("status")).toContainText("Per revocare del tutto l'accesso");
+  await expect(page.getByRole("status").getByRole("link", { name: "Impostazioni → Apps" })).toHaveAttribute(
+    "href",
+    "https://anilist.co/settings/apps",
+  );
   expect((await context.cookies()).map((cookie) => cookie.name)).toEqual([]);
   await expect(header(page).getByRole("link", { name: "Accedi" })).toBeVisible();
 });

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { safeReturnPath } from "@/lib/auth/request-checks";
 import { oauthConfig } from "@/lib/auth/server";
 import { pageContainer } from "@/lib/page-container";
@@ -7,18 +8,30 @@ export const metadata: Metadata = {
   title: "Accesso",
 };
 
-const outcomes = {
+// Where AniList lists the apps an account authorised, each with "Revoke App" (checked on 2026-11-20).
+const ANILIST_APPS_SETTINGS = "https://anilist.co/settings/apps";
+
+const revokeLink = (
+  <a href={ANILIST_APPS_SETTINGS} className="text-cyan underline underline-offset-2">
+    Impostazioni → Apps
+  </a>
+);
+
+const outcomes: Record<string, ReactNode> = {
   annullato: "Accesso annullato: non hai autorizzato Anime Tracker su AniList.",
   errore: "Non è stato possibile completare l'accesso. Riprova tra qualche minuto.",
   "non-disponibile": "L'accesso con AniList non è attivo in questa versione del sito, ma solo sul sito principale.",
-  uscito:
-    "Sei uscito da Anime Tracker. Per revocare del tutto l'accesso, usa le impostazioni del tuo account AniList.",
-} as const;
+  uscito: (
+    <>
+      Sei uscito da Anime Tracker. Per revocare del tutto l&apos;accesso, usa {revokeLink} del tuo account AniList.
+    </>
+  ),
+};
 
 /** Login page: the ADR-0004 statement next to the button, and the outcome of a login or logout. */
 export default async function LoginPage({ searchParams }: PageProps<"/accesso">) {
   const { esito, da } = await searchParams;
-  const outcome = typeof esito === "string" && esito in outcomes ? outcomes[esito as keyof typeof outcomes] : null;
+  const outcome = typeof esito === "string" && Object.hasOwn(outcomes, esito) ? outcomes[esito] : null;
   const available = oauthConfig() !== null;
   const loginHref = `/api/auth/login?da=${encodeURIComponent(safeReturnPath(typeof da === "string" ? da : null))}`;
 
@@ -39,7 +52,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/accesso">)
         </li>
         <li>
           La chiave d&apos;accesso resta per 30 giorni in un cookie del tuo browser, che il JavaScript della pagina non
-          può leggere. Uscendo si cancella; per revocare del tutto l&apos;accesso, usa le impostazioni del tuo account
+          può leggere. Uscendo si cancella; per revocare del tutto l&apos;accesso, usa {revokeLink} del tuo account
           AniList.
         </li>
       </ul>
