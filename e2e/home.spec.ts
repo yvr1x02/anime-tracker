@@ -9,9 +9,14 @@ test("the Home shows the current season, most popular first", async ({ page }) =
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(`${seasonLabel[season]}${year}`);
   await expect(page.getByText("Stagione in corso")).toBeVisible();
-  const cards = page.getByRole("region", { name: "Gli anime della stagione" }).getByRole("article");
-  await expect(cards).toHaveCount(3);
-  await expect(cards.nth(0).getByRole("link", { name: "Hoshi no Kioku", exact: true })).toHaveAttribute("href", "/anime/1");
+  // The most popular is featured in the header, with its next episode; the others are in the grid.
+  const featured = page.getByRole("article", { name: "Hoshi no Kioku" });
+  await expect(featured).toContainText("N. 1 della stagione");
+  await expect(featured.getByRole("link", { name: "Hoshi no Kioku", exact: true })).toHaveAttribute("href", "/anime/1");
+  await expect(featured).toContainText("Prossimo episodio: Ep. 13");
+  const cards = page.getByRole("region", { name: "Gli altri anime della stagione" }).getByRole("article");
+  await expect(cards).toHaveCount(2);
+  await expect(cards.nth(0)).toContainText("Senza palinsesto");
 });
 
 test("logged out, a season card's + leads to the login", async ({ page }) => {

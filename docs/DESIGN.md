@@ -82,7 +82,7 @@ AniList fornisce `Media.coverImage.color` (`String`, facoltativo, "Average #hex 
   | Intestazione del Dettaglio | L 0,27, croma `min(c, 0.12)`, piena nel primo 30% e poi sfuma verso `bg` | Sì: verificato sotto |
   | Chip dei generi nel Dettaglio | L 0,32, croma `min(c × 0.8, 0.1)`, sopra `raised` | Sì: verificato sotto |
   | Kanji di sfondo nel Dettaglio | L 0,7, croma `min(c, 0.12)`, opacità 14% | Testo sopra: verificato sotto |
-  | Alone dell'anime in evidenza (Home) | L 0,6, croma `min(c, 0.2)`, opacità fino al 65% | No: è un'ombra esterna (`box-shadow`), dipinta solo fuori dal pannello |
+  | Alone dell'anime in evidenza (Home) | L 0,6, croma `min(c, 0.2)`, opacità `min(c × 13, 0,65)`, cioè fino al 65% | No: è un'ombra esterna (`box-shadow`), dipinta solo fuori dal pannello |
   | Alone della copertina nel Dettaglio | L 0,5, croma `min(c, 0.18)`, opacità fino al 55% | No: resta nei 32px tra copertina e titolo |
 
   Anche qui l'opacità cresce con il croma della copertina, così le copertine grigie non producono aloni grigi.
@@ -186,7 +186,7 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
   - Sotto i 1024px le due colonne si impilano: prima il titolo, poi l'anime in evidenza.
 - **"Continua a guardare"** (solo per chi è collegato), tra l'intestazione e la griglia: titolo `h2` e una fila di card (al massimo 6) con la riga "Sei indietro di 2 episodi" o "Ti mancano 2 episodi", l'etichetta "Rewatch" per le voci in rewatch e il "+1".
   - La pagina è uguale per tutti e la sezione si disegna nel browser. Lo spazio d'attesa (titolo e una fila di skeleton) compare solo se il cookie con il nome dice che l'utente è collegato, così chi non è collegato non vede spostamenti. Se non ci sono arretrati, la sezione non compare e lo spazio si chiude.
-- Sotto l'intestazione (o sotto "Continua a guardare"), la griglia degli altri anime della stagione in ordine di popolarità, 16px più in basso, con il titolo `h2` "Gli altri anime della stagione".
+- Sotto l'intestazione (o sotto "Continua a guardare"), la griglia degli altri anime della stagione in ordine di popolarità, 16px più in basso. Il suo titolo `h2` "Gli altri anime della stagione" è solo per i lettori di schermo: visibile, sposterebbe la prima fila oltre gli 800px.
 - **La prima fila di card è visibile senza scorrere con un viewport di 1280×800.** Altezze misurate nell'anteprima: header 65px, striscia 45px, intestazione 283px, spazio 16px, card 390px: la prima fila finisce a circa 799px. Il margine è di un solo pixel: va riverificato in M3 sull'app vera. Se non basta, si riduce l'intestazione (dimensione massima di `display-xl` o padding), non le card.
 - Su un portatile 1280×800 vero il browser occupa parte dello schermo: lì la fila resta tagliata nella parte bassa.
 

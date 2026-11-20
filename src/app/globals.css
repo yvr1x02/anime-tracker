@@ -115,6 +115,7 @@
     --tint-chip: oklch(from var(--cover) 0.32 min(calc(c * 0.8), 0.1) h / min(calc(c * 20), 1));
     --tint-kanji: oklch(from var(--cover) 0.7 min(c, 0.12) h / 0.14);
     --tint-cover-glow: oklch(from var(--cover) 0.5 min(c, 0.18) h / min(calc(c * 11), 0.55));
+    --tint-featured-glow: oklch(from var(--cover) 0.6 min(c, 0.2) h / min(calc(c * 13), 0.65));
   }
 
   /* Detail header: strong tint for the first 30%, then fading to the page background. */
@@ -175,6 +176,12 @@
   .anime-card[data-tilting] {
     transition-duration: 120ms;
     transition-timing-function: var(--ease-out);
+  }
+
+  /* The Home's featured anime: rounder panel, and its strong glow always on (docs/DESIGN.md, "Home"). */
+  .featured-anime {
+    border-radius: 1rem;
+    box-shadow: 0 0 72px 12px var(--tint-featured-glow);
   }
 
   /* Glow behind the card: only its opacity animates. Invalid, so absent, without a cover colour. */

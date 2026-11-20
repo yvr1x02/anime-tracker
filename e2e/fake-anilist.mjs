@@ -228,7 +228,8 @@ http
       // The Home's season, whatever season is asked: the same invented anime, most popular first.
       if (query.includes("query SeasonAnime")) {
         const season = [1, 4, 8].map(listMedia);
-        season[0].nextAiringEpisode = schedule.find((node) => node.airingAt > Date.now() / 1000) ?? null;
+        const upcoming = schedule.filter((node) => node.airingAt > Date.now() / 1000).sort((a, b) => a.airingAt - b.airingAt);
+        season[0].nextAiringEpisode = upcoming[0] ?? null;
         response.writeHead(200, { "Content-Type": "application/json" });
         response.end(JSON.stringify({ data: { Page: { media: season } } }));
         return;

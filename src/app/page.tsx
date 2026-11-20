@@ -1,4 +1,5 @@
 import { AnimeCard } from "@/components/anime-card";
+import { FeaturedAnime } from "@/components/featured-anime";
 import { ListToggle } from "@/components/list-actions";
 import { SeasonAnimeQuery } from "@/lib/anilist/queries";
 import { requestAniListCached } from "@/lib/anilist/server";
@@ -19,29 +20,38 @@ export default async function Home() {
     { season, seasonYear: year, perPage: SEASON_SIZE },
     REVALIDATE_SECONDS,
   );
-  const anime = (data.Page?.media ?? []).filter((item) => item !== null);
+  const [featured, ...others] = (data.Page?.media ?? []).filter((item) => item !== null);
 
   return (
     <div className={`${pageContainer} pt-5 pb-12`}>
-      <header className="pb-3">
-        <p className="text-label uppercase text-cyan">Stagione in corso</p>
-        <h1 className="mt-2 text-display-xl">
-          {seasonLabel[season]}
-          <br />
-          {year}
-        </h1>
-        <p className="mt-4 max-w-md text-ink-muted">Gli anime di questa stagione su AniList, dal più popolare.</p>
+      {/* docs/DESIGN.md, "Home": two columns from 1024px, stacked below. */}
+      <header className="grid items-end gap-8 pb-3 lg:grid-cols-[1fr_auto]">
+        <div>
+          <p className="text-label uppercase text-cyan">Stagione in corso</p>
+          <h1 className="mt-2 text-display-xl">
+            {seasonLabel[season]}
+            <br />
+            {year}
+          </h1>
+          <p className="mt-4 max-w-md text-ink-muted">Gli anime di questa stagione su AniList, dal più popolare.</p>
+        </div>
+        {featured && (
+          <div className="lg:max-w-xl">
+            <FeaturedAnime anime={featured} />
+          </div>
+        )}
       </header>
 
       <section aria-labelledby="stagione" className="mt-4">
+        {/* For screen readers: a visible heading would push the first row below 800px (docs/DESIGN.md). */}
         <h2 id="stagione" className="sr-only">
-          Gli anime della stagione
+          Gli altri anime della stagione
         </h2>
-        {anime.length === 0 ? (
+        {!featured ? (
           <p className="text-ink-muted">AniList non ha ancora anime per questa stagione.</p>
         ) : (
           <ul className={cardGrid}>
-            {anime.map((item) => (
+            {others.map((item) => (
               <li key={item.id}>
                 {/* The query asks for isAdult: false. */}
                 <AnimeCard anime={item} action={<ListToggle media={{ ...item, isAdult: false }} />} />
