@@ -54,7 +54,7 @@ Ogni pagina del Dettaglio si genera alla prima visita (`generateStaticParams` vu
 
 - **Id non validi** (non interi positivi, oppure oltre il massimo di `Int` in GraphQL): 404 subito, senza richieste ad AniList.
 - **Id validi ma inesistenti, o di anime per adulti:** prova locale con la build di produzione e un finto AniList che risponde sempre "Not Found" e conta le richieste. Tre visite a `/anime/2` hanno fatto **una sola** richiesta; un altro id ne ha fatta una in più, poi nessuna. Anche la 404 resta in cache, come pagina generata: la cache di `fetch` era vuota.
-- **Rischio che resta:** un id nuovo costa sempre una richiesta. Non ho verificato quanto dura in cache una 404, né il comportamento su Vercel. Le contromisure verso i bot (per esempio `robots.txt`) si valutano in M6.
+- **Rischio che resta:** un id nuovo costa sempre una richiesta. Non ho verificato quanto dura in cache una 404, né il comportamento su Vercel. Le contromisure verso i bot (per esempio `robots.txt`) si valutano in M7, la Rifinitura.
 
 ### Ricerca
 

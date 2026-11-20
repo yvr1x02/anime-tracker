@@ -27,7 +27,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Elenco dei prossimi episodi nel Dettaglio, dal palinsesto di AniList (`airingSchedule`, `docs/DESIGN.md`).
 - Pagina d'errore (`error.tsx`) in italiano, con i messaggi di ADR-0003.
 - Verifiche: richieste dirette dal browser ad AniList (CORS); ricerca dei titoli italiani tra i sinonimi.
-- **Misura con CPU rallentata 4×** (Chrome DevTools, a macchina scarica) della transizione card → Dettaglio vera. Se perde frame diventa una dissolvenza, secondo il budget di prestazioni di `docs/DESIGN.md`.
+- La transizione card → Dettaglio e la misura con CPU rallentata 4×, previste qui, passano a M6 (decisione del 2026-11-20: prima tutte le funzionalità, poi lo stile).
 
 ## M2 — Login e La mia lista
 
@@ -53,7 +53,13 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Calcoli sulla lista letta da AniList, testati con Vitest; modalità demo senza login.
 - Grafici Recharts con alternativa testuale dei dati.
 
-## M6 — Rifinitura
+## M6 — Passata di stile
+
+- Transizione card → Dettaglio con le View Transitions (`docs/DESIGN.md`, "Card → Dettaglio"): la copertina passa dalla card al Dettaglio, l'header resta fermo, il focus va sul titolo e al ritorno sulla card; con movimento ridotto solo dissolvenza.
+- **Misura con CPU rallentata 4×** (Chrome DevTools, a macchina scarica) della transizione vera. Se perde frame diventa una dissolvenza, secondo il budget di prestazioni di `docs/DESIGN.md`.
+- Revisione dell'aspetto delle pagine fatte fino a qui. Appunti dell'utente: _da completare_.
+
+## M7 — Rifinitura
 
 - Accessibilità, versione mobile, stati vuoti e di errore.
 - README con screenshot.
