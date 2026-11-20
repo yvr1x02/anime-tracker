@@ -104,6 +104,58 @@ export const SeasonAnimeQuery = graphql(`
   }
 `);
 
+// The calendar (ADR-0003, "Calendario"): a week's pages all in one request, so it arrives and is cached whole.
+// airingSchedules has no isAdult filter: isAdult comes back and src/lib/schedule.ts drops those.
+export const WeekSchedulePage = graphql(`
+  fragment WeekSchedulePage on Page {
+    pageInfo {
+      hasNextPage
+    }
+    airingSchedules(airingAt_greater: $from, airingAt_lesser: $to, sort: [TIME]) {
+      id
+      episode
+      airingAt
+      media {
+        id
+        isAdult
+        title {
+          romaji
+          english
+          native
+        }
+        coverImage {
+          medium
+          color
+        }
+        format
+      }
+    }
+  }
+`);
+
+export const WeekScheduleQuery = graphql(`
+  query WeekSchedule($from: Int!, $to: Int!) {
+    p1: Page(page: 1, perPage: 50) {
+      ...WeekSchedulePage
+    }
+    p2: Page(page: 2, perPage: 50) {
+      ...WeekSchedulePage
+    }
+    p3: Page(page: 3, perPage: 50) {
+      ...WeekSchedulePage
+    }
+    p4: Page(page: 4, perPage: 50) {
+      ...WeekSchedulePage
+    }
+    p5: Page(page: 5, perPage: 50) {
+      ...WeekSchedulePage
+    }
+    p6: Page(page: 6, perPage: 50) {
+      ...WeekSchedulePage
+    }
+  }
+`);
+
 // Sent once at login, with the new token, to show the user's name (ADR-0004).
 export const ViewerQuery = graphql(`
   query Viewer {
