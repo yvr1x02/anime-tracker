@@ -4,7 +4,7 @@ import Link from "next/link";
 import { type PointerEvent, useEffect, useRef } from "react";
 import { CoverImage } from "@/components/cover-image";
 import type { MediaFormat, MediaSeason } from "@/gql/graphql";
-import { type AiringEpisode, formatNextAiring, toISO, upcomingEpisodes } from "@/lib/airing";
+import { type AiringEpisode, formatCardAiring, toISO, upcomingEpisodes } from "@/lib/airing";
 import { animeTitle, episodesLabel, formatSeasonLine } from "@/lib/anime-labels";
 import { cardTilt } from "@/lib/card-tilt";
 import { coverTintProps } from "@/lib/cover-tint";
@@ -87,7 +87,7 @@ export function AnimeCard({ anime }: { anime: AnimeCardData }) {
   );
 }
 
-/** "Ep. 7 · mer 16:30" on the cover, in the viewer's time zone; nothing once that episode has aired. */
+/** "Ep. 7 · mer 16:30" or "Ep. 7 · 3 gen" on the cover, in the viewer's time zone; nothing once that episode has aired. */
 function AiringBadge({ next }: { next: AiringEpisode | null }) {
   const now = useNow();
   const episode = now === null ? undefined : upcomingEpisodes([next], now)[0];
@@ -96,7 +96,7 @@ function AiringBadge({ next }: { next: AiringEpisode | null }) {
   return (
     <p className="pointer-events-none absolute bottom-2 left-2 rounded-control bg-bg px-2 py-1 text-small text-cyan tabular-nums">
       <span className="sr-only">Prossimo episodio: </span>
-      Ep. {episode.episode} · <time dateTime={toISO(episode.airingAt)}>{formatNextAiring(episode.airingAt, now!)}</time>
+      Ep. {episode.episode} · <time dateTime={toISO(episode.airingAt)}>{formatCardAiring(episode.airingAt, now!)}</time>
     </p>
   );
 }

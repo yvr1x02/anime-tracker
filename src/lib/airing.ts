@@ -35,10 +35,18 @@ export function formatAiringShort(airingAt: number, timeZone?: string): string {
   );
 }
 
-/** Weekday and time only within 6 days, so the weekday can't be mistaken for a nearer one; then the date too. */
+// Within 6 days a bare weekday can't be mistaken for a nearer one.
+const withinSixDays = (airingAt: number, nowMs: number) => airingAt * 1000 - nowMs < 6 * 24 * 3600 * 1000;
+
+/** Weekday and time only within 6 days, then the date too: "dom 3 gen, 15:16". For the detail header. */
 export function formatNextAiring(airingAt: number, nowMs: number, timeZone?: string): string {
-  const withinSixDays = airingAt * 1000 - nowMs < 6 * 24 * 3600 * 1000;
-  return withinSixDays ? formatAiringShort(airingAt, timeZone) : formatAiringDate(airingAt, timeZone);
+  return withinSixDays(airingAt, nowMs) ? formatAiringShort(airingAt, timeZone) : formatAiringDate(airingAt, timeZone);
+}
+
+/** Card badge: "mer 16:30" within 6 days, then only the date, "3 gen", so it stays on one line. */
+export function formatCardAiring(airingAt: number, nowMs: number, timeZone?: string): string {
+  if (withinSixDays(airingAt, nowMs)) return formatAiringShort(airingAt, timeZone);
+  return new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short", timeZone }).format(airingAt * 1000);
 }
 
 const relative = new Intl.RelativeTimeFormat("it", { numeric: "auto" });

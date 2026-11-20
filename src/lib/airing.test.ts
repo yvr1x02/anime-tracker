@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatAiringDate,
+  formatCardAiring,
   formatAiringDistance,
   formatAiringShort,
   formatNextAiring,
@@ -65,6 +66,23 @@ describe("formatNextAiring", () => {
 
   it("adds the date further ahead, where a bare weekday would mislead", () => {
     expect(formatNextAiring(at("2027-01-03T14:16:00Z"), now, "Europe/Rome")).toBe("dom 3 gen, 15:16");
+  });
+});
+
+describe("formatCardAiring", () => {
+  it("uses weekday and time within six days, like the header", () => {
+    expect(formatCardAiring(at("2026-11-24T15:30:00Z"), now, "Europe/Rome")).toBe("mar 16:30");
+  });
+
+  it("shows only the date from six days ahead, to stay on one line", () => {
+    expect(formatCardAiring(at("2026-11-26T11:00:00Z"), now, "Europe/Rome")).toBe("26 nov");
+    expect(formatCardAiring(at("2027-01-03T14:16:00Z"), now, "Europe/Rome")).toBe("3 gen");
+  });
+
+  it("takes the date in the given time zone", () => {
+    const lateEvening = at("2027-01-02T23:30:00Z");
+    expect(formatCardAiring(lateEvening, now, "Europe/Rome")).toBe("3 gen");
+    expect(formatCardAiring(lateEvening, now, "America/New_York")).toBe("2 gen");
   });
 });
 
