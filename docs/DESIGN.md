@@ -193,7 +193,7 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 - **La prima fila di card è visibile senza scorrere con un viewport di 1280×800.** Altezze misurate nell'anteprima: header 65px, striscia 45px, intestazione 283px, spazio 16px, card 390px: la prima fila finisce a circa 799px. Se non basta, si riduce l'intestazione (dimensione massima di `display-xl` o padding), non le card.
   - **Verificato in M3 sull'app vera (2026-11-20), senza la striscia:** header 64px, intestazione fino a 366px (pannello in evidenza alto 243px), prima fila fino a **775px**, con una card dal titolo su due righe. Un test di Playwright lo controlla (`e2e/home.spec.ts`).
   - **In M4, con "Cosa guardo stasera?" chiuso:** senza la riga di presentazione, con domanda e pulsanti su una riga e la copertina in evidenza a `10vw`, l'intestazione finisce a 320px, il blocco a 388px e la prima fila a **797px**: il margine è di 3px.
-  - **Con la striscia di M7** (circa 45px) la fila arriverebbe a circa 820px: quando si aggiunge, va ridotta l'intestazione.
+  - **Con la striscia di M7** (circa 45px) la fila andrebbe oltre gli 800px: in M7 la regola si rivaluta insieme alla striscia, invece di ridurre ancora l'intestazione.
 - Su un portatile 1280×800 vero il browser occupa parte dello schermo: lì la fila resta tagliata nella parte bassa.
 
 ## Ricerca
