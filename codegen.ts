@@ -4,7 +4,8 @@ const config: CodegenConfig = {
   schema: "schema/anilist.graphql",
   documents: ["src/**/*.{ts,tsx}", "!src/gql/**"],
   generates: {
-    "src/gql/": { preset: "client", config: { documentMode: "string" } },
+    // No fragment masking: a fragment's fields stay plain properties of the query types.
+    "src/gql/": { preset: "client", presetConfig: { fragmentMasking: false }, config: { documentMode: "string" } },
   },
 };
 

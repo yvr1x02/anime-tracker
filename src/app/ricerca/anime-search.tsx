@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { type CSSProperties, type FormEvent, useEffect, useState } from "react";
 import { AnimeCard, AnimeCardSkeleton } from "@/components/anime-card";
+import { ListToggle } from "@/components/list-actions";
 import { AniListRateLimitError, requestAniList } from "@/lib/anilist/client";
 import { SearchAnimeQuery } from "@/lib/anilist/queries";
 import { cardGrid } from "@/lib/card-grid";
@@ -137,7 +138,8 @@ export function AnimeSearch() {
                 className={search.isFetchedAfterMount ? "card-cascade" : undefined}
                 style={{ "--i": index } as CSSProperties}
               >
-                <AnimeCard anime={anime} />
+                {/* Search never returns adult anime (isAdult: false in the query). */}
+              <AnimeCard anime={anime} action={<ListToggle media={{ ...anime, isAdult: false }} />} />
               </li>
             ))}
           </ul>

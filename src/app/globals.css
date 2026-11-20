@@ -138,6 +138,13 @@
     transition: transform var(--duration-base) var(--spring-bouncy);
   }
 
+  /* Primary: one per view (docs/DESIGN.md, accents). */
+  .button-primary {
+    border-color: var(--color-pink);
+    background-color: var(--color-pink);
+    color: var(--color-on-accent);
+  }
+
   .button:active {
     transform: scale(0.97);
     transition: transform var(--duration-instant) var(--ease-out);
@@ -219,7 +226,8 @@
       --y: -6px;
     }
 
-    .anime-card:active {
+    /* Pressing the card itself, not one of its buttons. */
+    .anime-card:has(.anime-card-link:active) {
       --s: 0.97;
       transition-duration: var(--duration-instant);
     }
@@ -243,15 +251,129 @@
     }
   }
 
-  /* Header: bar under the current page, inset 12px, 6px above the item's bottom edge. */
+  /*
+   * Filters on one line (docs/DESIGN.md, "Pulsanti e filtri"): on phones the row scrolls sideways out to the
+   * screen edges, with a 32px fade on the right hinting at more.
+   */
+  .filter-row {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    margin-inline: -1rem;
+    padding-inline: 1rem;
+    scroll-padding-inline: 1rem;
+    mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+  }
+
+  @media (min-width: 640px) {
+    .filter-row {
+      flex-wrap: wrap;
+      overflow-x: visible;
+      margin-inline: 0;
+      padding-inline: 0;
+      mask-image: none;
+    }
+  }
+
+  .nav-scroll {
+    overflow-x: auto;
+    scrollbar-width: none;
+    mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
+  }
+
+  @media (min-width: 640px) {
+    .nav-scroll {
+      overflow-x: visible;
+      mask-image: none;
+    }
+  }
+
+  /* Header: bar under the current page, inset like the item's padding (12px, 8px on phones), 6px above its bottom. */
   .nav-link[aria-current="page"]::after {
     content: "";
     position: absolute;
-    inset-inline: 0.75rem;
+    inset-inline: 0.5rem;
     bottom: 0.375rem;
     height: 2px;
     border-radius: 2px;
     background-color: var(--color-ink);
+  }
+
+  @media (min-width: 640px) {
+    .nav-link[aria-current="page"]::after {
+      inset-inline: 0.75rem;
+    }
+  }
+
+  /*
+   * The card's "+" (docs/DESIGN.md, "Pulsante +"): dark see-through at rest, pink on hover or focus and when
+   * the anime is in the list, where the ✓ pops in with a small bounce.
+   */
+  .list-toggle {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid color-mix(in oklab, var(--color-ink) 24%, transparent);
+    border-radius: 999px;
+    background-color: color-mix(in oklab, var(--color-bg) 72%, transparent);
+    color: var(--color-ink);
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1;
+    transition:
+      background-color var(--duration-instant) var(--ease-out),
+      transform var(--duration-base) var(--spring-bouncy);
+  }
+
+  .list-toggle:hover,
+  .list-toggle:focus-visible,
+  .list-toggle[aria-pressed="true"] {
+    border-color: var(--color-pink);
+    background-color: var(--color-pink);
+    color: var(--color-on-accent);
+  }
+
+  .list-toggle:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--color-bg);
+  }
+
+  .list-toggle[aria-pressed="true"] > span {
+    animation: tick-in var(--duration-base) var(--spring-bouncy);
+  }
+
+  @keyframes tick-in {
+    from {
+      transform: scale(0.4);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .list-toggle:active {
+      transform: scale(0.9);
+      transition-duration: var(--duration-instant);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .list-toggle[aria-pressed="true"] > span {
+      animation: none;
+    }
+  }
+
+  /* Entry editor: a modal <dialog> on surface, the page dimmed behind it. */
+  .entry-editor {
+    width: min(28rem, calc(100% - 2rem));
+    margin: auto;
+    padding: 1.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-panel);
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+  }
+
+  .entry-editor::backdrop {
+    background-color: rgb(0 0 0 / 0.6);
   }
 
   /* Skeleton: shows up after 150ms so quick loads don't flash, with a sheen sweeping across. */

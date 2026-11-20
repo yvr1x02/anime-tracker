@@ -1,5 +1,6 @@
 import type { TypedDocumentString } from "@/gql/graphql";
-import { ANILIST_URL, requestAniList } from "./client";
+import { requestAniList } from "./client";
+import { aniListEndpoints } from "./endpoints";
 
 /**
  * Server-side AniList request through Next's fetch cache (ADR-0003): stale data keeps being served
@@ -14,6 +15,6 @@ export function requestAniListCached<TResult, TVariables>(
     document,
     variables,
     { cache: "force-cache", next: { revalidate: revalidateSeconds } },
-    process.env.ANILIST_API_URL || ANILIST_URL,
+    aniListEndpoints().api,
   );
 }

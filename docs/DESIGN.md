@@ -164,6 +164,8 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 - Fisso in alto (`position: sticky`), fondo `bg`, bordo inferiore `border`, altezza 64px. Contiene il nome dell'app e la navigazione.
 - Ha un `view-transition-name` proprio (`site-header`) ed è escluso dalle animazioni delle View Transitions: è il punto di riferimento fisso.
 - Voci di navigazione: `small`, peso 500, `ink-muted`, altezza minima 44px, padding orizzontale 12px. La voce attiva ha `aria-current="page"`, testo `ink` e un **indicatore**: barretta di 2px in `ink`, raggio 2px, rientrata di 12px ai lati, 6px sopra il bordo inferiore della voce. L'indicatore ha un `view-transition-name` proprio (`nav-indicator`), così scorre verso la nuova voce.
+- A destra della navigazione, l'account: "Accedi" in ciano, che porta a `/accesso`; da collegati, il nome in `small` `ink-muted` e il pulsante "Esci" (un `<form method="post">`). Compare solo nel browser, perché il nome viene da un cookie (ADR-0004).
+- **Sotto i 640px (provvisorio, fino al menu per il telefono di M6):** voci e "Accedi"/"Esci" con padding orizzontale di 8px; la navigazione scorre in orizzontale dentro l'header, con una sfumatura di 24px a destra; il nome dell'utente non compare. L'header resta su una riga, alto 64px, anche a 360px.
 - Sotto l'header, solo nella Home, c'è la striscia "in onda ora" (vedi la sezione dedicata).
 
 ## Pulsanti e filtri
@@ -228,10 +230,22 @@ Usata in Home, Ricerca e Lista.
 └──────────────────────┘  padding testo 12px, spazio interno 4px
 ```
 
+Nella lista, sotto il numero di episodi, una riga in `small` `ink-muted` con stato (solo nel filtro "Tutti"), episodi visti e voto, sempre con un decimale: "Sto guardando · 5 visti · voto 8,5". Nella lista dell'utente collegato, sotto quella riga, i pulsanti "+1" (solo per "Sto guardando" e "In rewatch", finché ci sono episodi) e "Modifica", sopra il link esteso della card.
+
+### Modifica di una voce
+
+- `<dialog>` modale nativo (focus intrappolato, Esc chiude, al chiudersi il focus torna al pulsante che l'ha aperto): fondo `surface`, bordo `border`, raggio 12px, padding 24px, largo al massimo 28rem; dietro, la pagina scurita al 60%.
+- Campi con etichetta visibile: Stato, Episodi visti (con il totale), Voto (campo di testo con la virgola o il punto, da 1,0 a 10,0 con un decimale, vuoto per nessun voto; un valore non valido blocca il salvataggio con un messaggio collegato al campo), Note. Pulsanti "Salva" (primario), "Annulla" e, per una voce esistente, "Elimina dalla lista" in `danger`.
+- **Eliminazione:** "Elimina dalla lista" sostituisce i pulsanti con la domanda "Eliminare «Titolo» dalla lista su AniList? Non si può annullare." e i pulsanti "Elimina" e "Non eliminare"; il focus va sulla domanda.
+- **Errore di salvataggio:** la voce torna com'era e in basso a sinistra compare un riquadro `role="alert"` con bordo `danger`, il messaggio e "Chiudi". Resta finché non si chiude o non si fa un'altra modifica.
+
 ### Semantica e accessibilità
 
 - `<article>` con il titolo come `<h3>` che contiene il link al Dettaglio. Il link si estende a tutta la card con un pseudo-elemento, così l'intera card è cliccabile senza annidare elementi interattivi.
-- Il pulsante "+" è un `<button>` separato, sopra il link, con `aria-pressed` che indica se l'anime è nella lista e nome accessibile completo ("*Titolo*: nella mia lista"). Il comportamento esatto si definisce in M2.
+- Il pulsante "+" è un `<button>` separato, sopra il link, con `aria-pressed` che indica se l'anime è nella lista e nome accessibile completo ("*Titolo*: nella mia lista").
+  - **Comportamento (M2):** premuto aggiunge l'anime a "Da vedere"; premuto di nuovo apre la conferma "Eliminare «Titolo» dalla lista su AniList? Non si può annullare." con "Elimina" e "Non eliminare" (ADR-0004: eliminazione solo dopo una conferma). Per cambiare stato, episodi o voto c'è il Dettaglio.
+  - **Senza login** è un link a `/accesso`, con nome "Accedi con AniList per aggiungere «Titolo» alla tua lista" (ADR-0004).
+  - Nel Dettaglio il pulsante primario "Aggiungi alla lista" apre la modifica della voce, per scegliere subito lo stato; da voce esistente diventa "✓ Nella mia lista", con accanto stato, episodi visti e voto. Senza login porta all'accesso, con la nota "Serve l'accesso con AniList.".
 - La copertina ha `alt=""`: il titolo è già accanto.
 - Il badge "in onda" ha un prefisso per lettori di schermo ("Prossimo episodio:") e non intercetta i clic.
 - La copertina ha proporzioni fisse anche prima del caricamento: nessuno spostamento del layout.

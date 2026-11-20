@@ -4,7 +4,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 **Regola per ogni milestone:** ogni nuova pagina entra nel controllo di accessibilità di `e2e/accessibility.spec.ts` (axe, WCAG 2.2 AA) nello stesso commit che la aggiunge.
 
-**Milestone attiva:** M2
+**Milestone attiva:** M3
 
 ## M0 — Fondamenta (completata il 2026-11-19)
 
@@ -30,7 +30,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - La transizione card → Dettaglio e la misura con CPU rallentata 4×, previste qui, passano a M6 (decisione del 2026-11-20: prima tutte le funzionalità, poi lo stile).
 - La verifica della cache di `fetch` su Vercel (ADR-0003) passa a M2: l'anteprima chiede l'accesso a Vercel e non si è potuta fare da qui.
 
-## M2 — Login e La mia lista
+## M2 — Login e La mia lista (completata il 2026-11-20)
 
 - Login OAuth con AniList (ADR-0004): avvio, ritorno con verifica di `state`, cookie di sessione `__Host-`, logout che svuota anche la cache di TanStack Query. Due applicazioni AniList (sviluppo e produzione) e variabili d'ambiente su Vercel.
 - Pagina "La mia lista" con filtro per stato, letta da AniList con una sola richiesta.
@@ -43,6 +43,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 ## M3 — Home
 
 - Anime della stagione in corso, ordinati per popolarità.
+- "← Torna indietro" nel Dettaglio: quando il Dettaglio è stato aperto direttamente, porta alla Home invece che a `/ricerca`.
 
 ## M4 — Calendario
 
@@ -54,11 +55,13 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 - Calcoli sulla lista letta da AniList, testati con Vitest; modalità demo senza login.
 - Grafici Recharts con alternativa testuale dei dati.
+- **Distribuzione dei voti in "La mia lista"** (SPEC, "La mia lista"): grafico a barre per voto intero; un clic su una barra filtra la lista su quel voto, un secondo clic toglie il filtro. Barre usabili da tastiera (pulsanti con `aria-pressed`), alternativa testuale in tabella. Lo stesso componente serve alla pagina Statistiche. Prima di scriverlo, verificare nella documentazione di Recharts se le barre si possono rendere pulsanti accessibili; altrimenti barre disegnate con HTML e CSS.
 
 ## M6 — Passata di stile
 
 - Transizione card → Dettaglio con le View Transitions (`docs/DESIGN.md`, "Card → Dettaglio"): la copertina passa dalla card al Dettaglio, l'header resta fermo, il focus va sul titolo e al ritorno sulla card; con movimento ridotto solo dissolvenza.
 - **Misura con CPU rallentata 4×** (Chrome DevTools, a macchina scarica) della transizione vera. Se perde frame diventa una dissolvenza, secondo il budget di prestazioni di `docs/DESIGN.md`.
+- Menu dell'header per il telefono: da M2 la navigazione scorre in orizzontale sotto i 640px, una soluzione provvisoria che non regge altre voci (Calendario, Statistiche).
 - Revisione dell'aspetto delle pagine fatte fino a qui. Appunti dell'utente: _da completare_.
 
 ## M7 — Rifinitura

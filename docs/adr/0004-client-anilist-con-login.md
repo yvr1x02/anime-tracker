@@ -26,7 +26,7 @@ Verificato nello schema (`schema/anilist.graphql`):
 - utente collegato: `Viewer: User`;
 - modifica di una voce: `SaveMediaListEntry(id, mediaId, status, score, scoreRaw, progress, private, notes, startedAt, completedAt, …)`, dove `scoreRaw` è il voto su 100 punti indipendente dal sistema di voto scelto dall'utente;
 - eliminazione di una voce: `DeleteMediaListEntry(id)`;
-- lettura del voto in un formato fisso: `MediaList.score(format: ScoreFormat)`, con `POINT_10` = intero da 0 a 10.
+- lettura del voto in un formato fisso: `MediaList.score(format: ScoreFormat)`, con `POINT_10` = intero da 0 a 10 e `POINT_10_DECIMAL` = numero da 0 a 10 con un decimale.
 
 ## Decisione
 
@@ -72,7 +72,7 @@ Ogni pagina lo dichiara nel footer: "Anime Tracker è un client non ufficiale pe
 ### 5. La lista
 
 - Gli stati restano quelli di AniList (`CURRENT`, `PLANNING`, `COMPLETED`, `PAUSED`, `DROPPED`, `REPEATING`) con le etichette italiane della SPEC.
-- **Lettura:** `status`, `progress`, voto con `score(format: POINT_10)`, `notes`, `startedAt`, `completedAt`, più i dati dell'anime che servono a lista e statistiche (titoli, copertina, numero e durata degli episodi, generi, studi), letti ogni volta da AniList.
+- **Lettura:** `status`, `progress`, voto con `score(format: POINT_10_DECIMAL)` (modifica del 2026-11-20, prima `POINT_10`), `notes`, `startedAt`, `completedAt`, più i dati dell'anime che servono a lista e statistiche (titoli, copertina, numero e durata degli episodi, generi, studi), letti ogni volta da AniList.
 - **Scrittura:** `SaveMediaListEntry`. Le regole automatiche della SPEC (data di inizio, data di fine, episodi al completamento) le applica l'app nella stessa richiesta.
 - **Eliminazione:** `DeleteMediaListEntry(id)`, dopo una conferma.
 - Le voci private dell'utente le vede solo lui; nella modalità demo AniList non le restituisce.
@@ -80,6 +80,32 @@ Ogni pagina lo dichiara nel footer: "Anime Tracker è un client non ufficiale pe
 ### 6. Dati personali
 
 Non c'è un database. Il server non salva niente: il token sta solo nel cookie dell'utente; né il token né il contenuto delle liste finiscono nei log. Il cookie è tecnico e serve solo al login.
+
+### 7. Decisioni dell'implementazione (M2, 2026-11-20)
+
+- **Applicazioni AniList:** sviluppo con `http://localhost:3000/api/auth/callback`, produzione con `https://anime-tracker-three.vercel.app/api/auth/callback`. Le applicazioni AniList non si possono cancellare.
+- **Indirizzi di AniList configurabili, solo per i test:** `ANILIST_OAUTH_URL` (predefinito `https://anilist.co/api/v2/oauth`) si aggiunge ad `ANILIST_API_URL` (predefinito `https://graphql.anilist.co`), così i test e2e usano un finto AniList anche per il login. **Su Vercel, anteprime comprese, sono ammessi solo gli indirizzi veri:** con un altro valore la build si ferma e il server non parte. In locale restano liberi, perché i test usano la build di produzione con il finto AniList.
+- **Nome nell'header:** al login il server legge una volta `Viewer` (id e nome) e lo salva in un secondo cookie, leggibile dal JavaScript, solo per mostrare il nome. Le pagine condivise non leggono i cookie, così restano in cache. Tre condizioni:
+  1. non si usa mai per decidere l'accesso: ogni richiesta personale passa dal server, che guarda solo il cookie del token;
+  2. ha la stessa durata del cookie di sessione (30 giorni) e si cancella insieme a lui al logout;
+  3. si cancella insieme al cookie di sessione quando AniList risponde 401 (token scaduto o revocato).
+- **Id dell'utente per leggere la lista:** `MediaListCollection` vuole `userId` o `userName`. Il server lo prende da un terzo cookie, `__Host-session-user` (`HttpOnly`, solo l'id), scritto al login insieme al token e cancellato con lui, con la stessa durata. Il cookie del token resta il token così come lo rilascia AniList, e il cookie del nome non decide niente. Un id modificato a mano non apre niente: AniList applica comunque i permessi del token.
+- **Token non più valido:** AniList risponde **400 "Invalid token"**, non 401 (verificato il 2026-11-20 con un token inventato). Il server tratta come sessione finita sia questa risposta sia un 401: risponde 401 al browser e cancella tutti i cookie di sessione, e La mia lista chiede di accedere di nuovo.
+- **Prove manuali con l'account demo `yvr1x0202`.** Regole: si usano solo anime che non sono già nella lista e alla fine si cancellano; le voci esistenti non si modificano mai. Prima delle prove si elencano le voci attuali, dopo si verifica che siano identiche.
+- **Controllo del secret:** `scripts/check-secret.mjs` cerca il client secret di `.env.local` nei file tracciati da git e nella cronologia, e stampa solo se lo ha trovato, mai il valore.
+
+### 8. Verifiche dell'implementazione (M2, 2026-11-20)
+
+Prove reali con l'applicazione di sviluppo e l'account demo `yvr1x0202`, sull'anime di prova Frieren, assente dalla lista e cancellato alla fine. Le 84 voci della lista sono risultate identiche prima e dopo, compreso `updatedAt`.
+
+- **`state`:** AniList lo rimanda al `redirect_uri` insieme a `code`. Il controllo di `state` funziona e il rischio di login forzato non resta aperto.
+- **Date automatiche:** al passaggio a "Sto guardando" AniList **non** compila la data di inizio, quindi la regola della SPEC serve. Al passaggio a "Completato" AniList compila da sé la data di fine e porta gli episodi al totale: la nostra regola invia gli stessi valori, quindi applicarla due volte non cambia niente (la data è quella del fuso del browser).
+- **Completamento automatico:** quando gli episodi visti arrivano al totale, AniList porta da sé lo stato a "Completato". L'interfaccia lo mostra, perché sostituisce la voce con la risposta di AniList.
+- **`score(format: POINT_10)` tronca, non arrotonda:** 85/100 e 89/100 diventano 8, 95/100 diventa 9. **Decisione del 2026-11-20:** il voto si legge con `POINT_10_DECIMAL` (89/100 → 8,9), si mostra con un decimale e si modifica da 1,0 a 10,0 con un decimale, scrivendo `scoreRaw` = voto × 10 (arrotondato all'intero, per gli errori di virgola mobile). Si invia solo se l'utente lo cambia.
+- **Limite di richieste per IP:** con un token e senza, dallo stesso indirizzo, `X-RateLimit-Remaining` scende dello stesso contatore (29 → 27 e 26 → 24 con una richiesta autenticata e una di controllo in mezzo). Tutte le richieste del nostro server, anche di utenti diversi, condividono quindi un solo limite: l'ipotesi prudente del punto 3 è confermata.
+- **Revoca:** su AniList, Impostazioni → Apps (`https://anilist.co/settings/apps`) elenca le applicazioni autorizzate, ciascuna con "Revoke App". La documentazione non descrive una revoca via API. La pagina di accesso e quella di uscita linkano le impostazioni.
+- **Modifica inviata alla chiusura della pagina:** `fetch` con `keepalive` porta il cookie di sessione e un `Origin` valido. Provato con Playwright: una modifica lasciata in attesa arriva al server anche se si cambia pagina subito.
+- **`Origin`:** le modifiche sono Route Handler in `POST`, non Server Actions; il controllo dell'`Origin` è nel nostro codice (`isSameOrigin`), provato con Playwright con un `Origin` estraneo e senza sessione.
 
 ## Alternative considerate
 

@@ -36,4 +36,5 @@ Node 22 (`engines` in `package.json`).
 | `npm run build` | Build di produzione; prima rigenera i tipi GraphQL |
 | `npm run start` | Avvia la build di produzione su `http://localhost:3000` |
 | `npm run codegen` | Rigenera i tipi in `src/gql/` dallo schema salvato |
+| `npm run check:secret` | Cerca il client secret di `.env.local` nei file del repository e nella cronologia; stampa solo dove lo trova, mai il valore |
 | `npm run codegen:schema` | Riscarica lo schema da AniList: solo quando serve aggiornarlo, perché consuma il limite di richieste |

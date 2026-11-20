@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk } from "next/font/google";
 import Link from "next/link";
+import { Suspense } from "react";
+import { AccountMenu } from "@/components/account-menu";
 import { NavigationTracker } from "@/components/back-link";
+import { ListEditingProvider } from "@/components/list-editing";
 import { QueryProvider } from "@/components/query-provider";
 import { SiteNav } from "@/components/site-nav";
 import { pageContainer } from "@/lib/page-container";
@@ -40,15 +43,23 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <div className={`${pageContainer} flex h-full items-center justify-between gap-4`}>
             <Link
               href="/"
-              className="flex min-h-11 items-center rounded-control text-h3"
+              className="flex min-h-11 items-center rounded-control text-h3 whitespace-nowrap"
             >
               Anime Tracker
             </Link>
-            <SiteNav />
+            <div className="flex min-w-0 items-center sm:gap-2">
+              <SiteNav />
+              {/* Suspense: AccountMenu reads the address, which static pages only know in the browser. */}
+              <Suspense fallback={null}>
+                <AccountMenu />
+              </Suspense>
+            </div>
           </div>
         </header>
         <main id="contenuto" className="flex-1">
-          <QueryProvider>{children}</QueryProvider>
+          <QueryProvider>
+            <ListEditingProvider>{children}</ListEditingProvider>
+          </QueryProvider>
           <NavigationTracker />
         </main>
         <footer className="border-t border-border">

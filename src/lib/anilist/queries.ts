@@ -69,3 +69,106 @@ export const SearchAnimeQuery = graphql(`
     }
   }
 `);
+
+// Sent once at login, with the new token, to show the user's name (ADR-0004).
+export const ViewerQuery = graphql(`
+  query Viewer {
+    Viewer {
+      id
+      name
+    }
+  }
+`);
+
+// The fields of a list entry, shared by the list and by the answer to a change. MediaListCollection has no
+// isAdult filter, so isAdult comes back and src/lib/list.ts drops those. POINT_10_DECIMAL keeps one decimal
+// whatever scoring system the user picked on AniList (POINT_10 would truncate 8.9 to 8).
+export const ListEntryFields = graphql(`
+  fragment ListEntryFields on MediaList {
+    id
+    status
+    progress
+    score(format: POINT_10_DECIMAL)
+    notes
+    updatedAt
+    startedAt {
+      year
+      month
+      day
+    }
+    completedAt {
+      year
+      month
+      day
+    }
+    media {
+      id
+      isAdult
+      title {
+        romaji
+        english
+        native
+      }
+      coverImage {
+        medium
+        large
+        extraLarge
+        color
+      }
+      format
+      season
+      seasonYear
+      episodes
+      nextAiringEpisode {
+        episode
+        airingAt
+      }
+    }
+  }
+`);
+
+// One request for a whole list (ADR-0004): the demo profile by name, the logged-in user by id.
+export const UserAnimeListQuery = graphql(`
+  query UserAnimeList($userId: Int, $userName: String) {
+    MediaListCollection(userId: $userId, userName: $userName, type: ANIME, forceSingleCompletedList: true) {
+      lists {
+        entries {
+          ...ListEntryFields
+        }
+      }
+    }
+  }
+`);
+
+// One change per request (ADR-0004); only the fields the user changed are sent. scoreRaw is the score out of 100.
+export const SaveListEntryMutation = graphql(`
+  mutation SaveListEntry(
+    $mediaId: Int!
+    $status: MediaListStatus
+    $progress: Int
+    $scoreRaw: Int
+    $notes: String
+    $startedAt: FuzzyDateInput
+    $completedAt: FuzzyDateInput
+  ) {
+    SaveMediaListEntry(
+      mediaId: $mediaId
+      status: $status
+      progress: $progress
+      scoreRaw: $scoreRaw
+      notes: $notes
+      startedAt: $startedAt
+      completedAt: $completedAt
+    ) {
+      ...ListEntryFields
+    }
+  }
+`);
+
+export const DeleteListEntryMutation = graphql(`
+  mutation DeleteListEntry($id: Int!) {
+    DeleteMediaListEntry(id: $id) {
+      deleted
+    }
+  }
+`);

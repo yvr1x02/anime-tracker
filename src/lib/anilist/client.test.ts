@@ -37,6 +37,19 @@ describe("requestAniList", () => {
     );
   });
 
+  it("sends extra headers such as Authorization, keeping JSON", async () => {
+    const spy = mockFetch(json({ data: { Media: { id: 1 } } }));
+
+    await requestAniList(query, { id: 1 }, { headers: { Authorization: "Bearer token", "Content-Type": "text/plain" } });
+
+    const headers = (spy.mock.calls[0] as unknown as [string, RequestInit])[1].headers as Headers;
+    expect(Object.fromEntries(headers)).toEqual({
+      authorization: "Bearer token",
+      "content-type": "application/json",
+      accept: "application/json",
+    });
+  });
+
   it("reads Retry-After on a 429", async () => {
     mockFetch(new Response(null, { status: 429, headers: { "Retry-After": "30" } }));
 

@@ -1,6 +1,5 @@
 import type { TypedDocumentString } from "@/gql/graphql";
-
-export const ANILIST_URL = "https://graphql.anilist.co";
+import { ANILIST_API_URL } from "./endpoints";
 
 export type AniListResult<T> = {
   data: T;
@@ -39,14 +38,19 @@ export async function requestAniList<TResult, TVariables>(
   document: TypedDocumentString<TResult, TVariables>,
   variables: TVariables,
   init: RequestInit = {},
-  url: string = ANILIST_URL,
+  url: string = ANILIST_API_URL,
 ): Promise<AniListResult<TResult>> {
+  // A caller can add headers such as Authorization, but the body stays JSON.
+  const headers = new Headers(init.headers);
+  headers.set("Content-Type", "application/json");
+  headers.set("Accept", "application/json");
+
   let response: Response;
   try {
     response = await fetch(url, {
       ...init,
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      headers,
       body: JSON.stringify({ query: document.toString(), variables }),
     });
   } catch (cause) {

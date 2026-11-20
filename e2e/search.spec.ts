@@ -19,7 +19,7 @@ test("searches once, 400ms after typing stops and from 3 characters", async ({ p
 
   const cards = page.getByRole("article");
   await expect(cards).toHaveCount(2);
-  await expect(cards.first().getByRole("link", { name: "Hoshi no Kioku" })).toHaveAttribute("href", "/anime/1");
+  await expect(cards.first().getByRole("link", { name: "Hoshi no Kioku", exact: true })).toHaveAttribute("href", "/anime/1");
 });
 
 test("an address with ?q= fills the field and searches", async ({ page }) => {
@@ -35,7 +35,7 @@ test("coming back from a detail page keeps the search, without a new request", a
   const searches = await mockAniList(page, [ok]);
   await page.goto("/ricerca");
   await page.getByRole("searchbox", { name: "Titolo dell'anime" }).fill("hoshi");
-  await page.getByRole("link", { name: "Hoshi no Kioku" }).click();
+  await page.getByRole("link", { name: "Hoshi no Kioku", exact: true }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Hoshi no Kioku" })).toBeVisible();
 
   await page.goBack();
@@ -48,7 +48,7 @@ test("coming back from a detail page keeps the search, without a new request", a
 test("the back button works after opening a search address directly", async ({ page }) => {
   await mockAniList(page, [ok]);
   await page.goto("/ricerca?q=hoshi");
-  await page.getByRole("link", { name: "Hoshi no Kioku" }).click();
+  await page.getByRole("link", { name: "Hoshi no Kioku", exact: true }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Hoshi no Kioku" })).toBeVisible();
 
   await page.goBack();
@@ -115,7 +115,7 @@ test("on a 390px phone the results are in two columns", async ({ page }) => {
 test("a card opens its detail page from the keyboard", async ({ page }) => {
   await mockAniList(page, [ok]);
   await page.goto("/ricerca?q=hoshi");
-  const link = page.getByRole("link", { name: "Hoshi no Kioku" });
+  const link = page.getByRole("link", { name: "Hoshi no Kioku", exact: true });
   await expect(link).toBeVisible();
 
   await link.focus();
@@ -129,7 +129,7 @@ test("a card opens its detail page from the keyboard", async ({ page }) => {
 test("Torna indietro goes back to the search and its results", async ({ page }) => {
   const searches = await mockAniList(page, [ok]);
   await page.goto("/ricerca?q=hoshi");
-  await page.getByRole("link", { name: "Hoshi no Kioku" }).click();
+  await page.getByRole("link", { name: "Hoshi no Kioku", exact: true }).click();
 
   await page.getByRole("link", { name: "Torna indietro" }).click();
 

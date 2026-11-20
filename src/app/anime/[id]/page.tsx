@@ -5,6 +5,7 @@ import { BackLink } from "@/components/back-link";
 import { CoverImage } from "@/components/cover-image";
 import { DataFreshness } from "@/components/data-freshness";
 import { KanjiBackdrop } from "@/components/kanji-backdrop";
+import { DetailListAction } from "@/components/list-actions";
 import { NextEpisode, UpcomingEpisodes } from "@/components/upcoming-episodes";
 import { AniListError } from "@/lib/anilist/client";
 import { AnimeDetailQuery } from "@/lib/anilist/queries";
@@ -99,6 +100,20 @@ export default async function AnimeDetailPage({ params }: PageProps<"/anime/[id]
                 <p className="mt-4 text-small text-ink-muted tabular-nums">{facts.join(" · ")}</p>
               )}
               <NextEpisode schedule={anime.airingSchedule?.nodes} />
+              {/* The personal part comes from the browser, so the page itself stays cached (ADR-0004). */}
+              <DetailListAction
+                media={{
+                  id: anime.id,
+                  isAdult: false,
+                  title: anime.title,
+                  coverImage: anime.coverImage,
+                  format: anime.format,
+                  season: anime.season,
+                  seasonYear: anime.seasonYear,
+                  episodes: anime.episodes,
+                  nextAiringEpisode: null,
+                }}
+              />
             </div>
           </div>
         </div>
