@@ -29,3 +29,11 @@ export function entrySummary(entry: Pick<ListEntry, "progress" | "score"> & { me
     : `${progress} ${progress === 1 ? "episodio visto" : "episodi visti"}`;
   return entry.score ? `${seen} · voto ${formatScore(entry.score)}` : seen;
 }
+
+/** SPEC, "Calendario": the statuses that make an anime part of "la mia lista" for the calendar's filter. */
+const CALENDAR_STATUSES = new Set(["CURRENT", "REPEATING", "PLANNING", "PAUSED"]);
+
+/** Ids of the anime the calendar's "Solo la mia lista" keeps: watching, rewatching, to watch or paused. */
+export function calendarListIds(entries: readonly ListEntry[]): Set<number> {
+  return new Set(entries.filter((entry) => entry.status && CALENDAR_STATUSES.has(entry.status)).map((entry) => entry.media.id));
+}

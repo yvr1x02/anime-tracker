@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { entrySummary, listEntries } from "./list";
+import { calendarListIds, entrySummary, listEntries } from "./list";
 
 const media = (id: number, isAdult = false) => ({
   id,
@@ -56,5 +56,13 @@ describe("entrySummary", () => {
     [{ progress: null, score: null, media: { episodes: null } }, "0 episodi visti"],
   ])("%j → %s", (value, expected) => {
     expect(entrySummary(value)).toBe(expected);
+  });
+});
+
+describe("calendarListIds", () => {
+  it("keeps watching, rewatching, to watch and paused; not completed or dropped", () => {
+    const statuses = ["CURRENT", "REPEATING", "PLANNING", "PAUSED", "COMPLETED", "DROPPED"] as const;
+    const entries = statuses.map((status, index) => ({ ...entry(index + 1, 0), status }));
+    expect([...calendarListIds(entries)]).toEqual([1, 2, 3, 4]);
   });
 });

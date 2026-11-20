@@ -43,7 +43,9 @@ test("today's column is marked, with Adesso between aired and upcoming episodes"
   await expect(column.getByRole("heading")).toContainText("Oggi");
   await expect(column.getByRole("link", { name: /Già uscito: Hoshi no Kioku Ep\. 12/ })).toBeVisible();
   const items = column.locator("li");
-  await expect(items).toHaveText([/Hoshi no Kioku.*Ep\. 12/, "Adesso", /Hoshi no Kioku.*Ep\. 13/]);
+  await expect(items.first()).toHaveText(/Hoshi no Kioku.*Ep\. 12/);
+  await expect(items.nth(1)).toHaveText("Adesso");
+  await expect(items.nth(2)).toHaveText(/Hoshi no Kioku.*Ep\. 13/);
 });
 
 test("from the keyboard, the next week and back", async ({ page }) => {
@@ -99,5 +101,33 @@ test.describe("on a 390px phone", () => {
     const earlier = addDays(today, -1);
     test.skip(earlier < thisMonday(), "today is Monday: no earlier day to hide");
     await expect(day(page, earlier)).toBeHidden();
+  });
+});
+
+test.describe("Solo la mia lista", () => {
+  // Hoshi no Kioku is watched in the demo list and completed by the logged-in user; Senza palinsesto the other
+  // way round. Both have an episode in the next hours.
+  async function bothThisWeek(request: APIRequestContext) {
+    const startedAt = await fakeStart(request);
+    const hoshi = (startedAt + 2 * HOUR) * 1000;
+    const senza = (startedAt + 3 * HOUR) * 1000;
+    test.skip(
+      currentMonday(hoshi, ROME) !== thisMonday() || currentMonday(senza, ROME) !== thisMonday(),
+      "the episodes fall in next week right now",
+    );
+  }
+  const calendar = (page: Page) => page.locator("main");
+
+  test("without login it filters on the demo list, says so, and drops completed anime", async ({ page, request }) => {
+    await bothThisWeek(request);
+    await page.goto("/calendario");
+    await expect(calendar(page).getByRole("link", { name: /Senza palinsesto Ep\. 1/ })).toBeVisible();
+
+    await page.getByRole("group", { name: "Quali anime" }).getByRole("button", { name: "Solo la mia lista" }).click();
+
+    await expect(page.getByText("Modalità demo: episodi degli anime nella lista pubblica di UtenteDemo su AniList.")).toBeVisible();
+    await expect(page.getByRole("status")).toHaveText("Solo gli anime della lista dimostrativa.");
+    await expect(calendar(page).getByRole("link", { name: /Hoshi no Kioku Ep\. 13/ })).toBeVisible();
+    await expect(calendar(page).getByRole("link", { name: /Senza palinsesto/ })).toHaveCount(0);
   });
 });

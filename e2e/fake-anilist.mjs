@@ -171,6 +171,8 @@ const scheduleMedia = (id) => {
 const calendar = [
   ...schedule.map(({ episode, airingAt }) => ({ id: 1000 + episode, episode, airingAt, media: scheduleMedia(1) })),
   { id: 1106, episode: 6, airingAt: startedAt + 3 * 24 * HOUR, media: scheduleMedia(11) },
+  // Completed in the demo list, watched by the logged-in user: the my-list filter tells them apart.
+  { id: 1401, episode: 1, airingAt: startedAt + 3 * HOUR, media: scheduleMedia(4) },
   { id: 1301, episode: 2, airingAt: startedAt + 24 * HOUR, media: scheduleMedia(3) },
 ];
 

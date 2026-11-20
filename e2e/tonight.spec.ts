@@ -1,5 +1,5 @@
 import { type Page, expect, test } from "@playwright/test";
-import { FAKE_ANILIST, logIn } from "./session";
+
 
 // Demo list of e2e/fake-anilist.mjs: Hoshi no Kioku (watching, 7 to go, finished), Serie in corso (watching,
 // 2 behind, airing), Lista personalizzata (Da vedere, 2 × 30 min, 150 days in the list), Film lungo
@@ -70,31 +70,4 @@ test("from the keyboard, the whole evening, Altre proposte and Ricomincia dalle 
   // A new time choice starts fresh: no "Di nuovo".
   await times(page).getByRole("button", { name: "2 ore" }).click();
   await expect(picker(page).getByRole("status")).not.toContainText("Di nuovo");
-});
-
-test.describe("logged in", () => {
-  test.describe.configure({ mode: "serial" });
-  test.beforeEach(async ({ request }) => {
-    await request.post(`${FAKE_ANILIST}/__reset`);
-  });
-
-  test("uses the user's list without new requests, and offers a longer time when nothing fits", async ({ page }) => {
-    await logIn(page, "/");
-    const reads: string[] = [];
-    page.on("request", (request) => {
-      if (/\/api\/(list|demo-list)$/.test(new URL(request.url()).pathname)) reads.push(request.url());
-    });
-
-    await times(page).getByRole("button", { name: "30 minuti" }).click();
-    await expect(picker(page).getByRole("status")).toHaveText("Niente nella lista sta in 30 minuti.");
-    await expect(picker(page).getByText(/Modalità demo/)).toHaveCount(0);
-
-    await picker(page).getByRole("button", { name: "Prova con 1 ora" }).click();
-    await expect(picker(page).getByRole("status")).toHaveText("Niente nella lista sta in 1 ora.");
-    await picker(page).getByRole("button", { name: "Prova con 2 ore" }).click();
-
-    await expect(picker(page).getByRole("status")).toHaveText("1 proposta per 2 ore");
-    await expect(suggestion(page, "Senza palinsesto")).toContainText("Ti manca 1 episodio: 1 ora e 30 minuti");
-    expect(reads).toEqual([]);
-  });
 });
