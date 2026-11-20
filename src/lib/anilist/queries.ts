@@ -70,6 +70,36 @@ export const SearchAnimeQuery = graphql(`
   }
 `);
 
+// The Home (ADR-0003: server, cached 6 hours). The fields are those of AnimeCardData.
+export const SeasonAnimeQuery = graphql(`
+  query SeasonAnime($season: MediaSeason!, $seasonYear: Int!, $perPage: Int!) {
+    Page(page: 1, perPage: $perPage) {
+      media(season: $season, seasonYear: $seasonYear, type: ANIME, isAdult: false, sort: [POPULARITY_DESC]) {
+        id
+        title {
+          romaji
+          english
+          native
+        }
+        coverImage {
+          medium
+          large
+          extraLarge
+          color
+        }
+        format
+        season
+        seasonYear
+        episodes
+        nextAiringEpisode {
+          episode
+          airingAt
+        }
+      }
+    }
+  }
+`);
+
 // Sent once at login, with the new token, to show the user's name (ADR-0004).
 export const ViewerQuery = graphql(`
   query Viewer {
