@@ -11,6 +11,7 @@ const media = (id: number, isAdult = false) => ({
   season: null,
   seasonYear: null,
   episodes: 12,
+  duration: 24,
   nextAiringEpisode: null,
 });
 const entry = (id: number, updatedAt: number, mediaId = id, isAdult = false) => ({
@@ -20,6 +21,7 @@ const entry = (id: number, updatedAt: number, mediaId = id, isAdult = false) => 
   score: 0,
   notes: null,
   updatedAt,
+  createdAt: updatedAt,
   startedAt: null,
   completedAt: null,
   media: media(mediaId, isAdult),

@@ -73,11 +73,12 @@ describe("continueWatching", () => {
       status,
       progress,
       updatedAt,
+      createdAt: updatedAt,
       score: 0,
       notes: null,
       startedAt: null,
       completedAt: null,
-      media: { id, isAdult: false, title: null, coverImage: null, format: null, season: null, seasonYear: null, ...media("FINISHED", total) },
+      media: { id, isAdult: false, title: null, coverImage: null, format: null, season: null, seasonYear: null, duration: 24, ...media("FINISHED", total) },
     }) as ListEntry;
 
   it("keeps watching and rewatching with arrears, newest change first", () => {

@@ -17,6 +17,7 @@ export const searchResults = [
     season: "FALL",
     seasonYear: 2026,
     episodes: 12,
+    duration: 24,
     nextAiringEpisode: null,
   },
   {
@@ -28,6 +29,7 @@ export const searchResults = [
     season: null,
     seasonYear: 2025,
     episodes: 1,
+    duration: 90,
     nextAiringEpisode: null,
   },
 ];

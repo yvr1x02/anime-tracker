@@ -33,6 +33,7 @@ function withChange(target: EditTarget, change: EntryChange): ListEntry {
     score: 0,
     notes: null,
     updatedAt: null,
+    createdAt: Math.floor(Date.now() / 1000),
     startedAt: null,
     completedAt: null,
     media: target.media,
