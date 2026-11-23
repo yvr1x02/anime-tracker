@@ -111,10 +111,10 @@ const listEntry = (id, mediaId, status, progress, score, updatedAt, createdAt = 
   media: listMedia(mediaId),
 });
 // For Cosa guardo stasera?: Hoshi no Kioku with 7 to go (finished), Serie in corso 2 behind (airing),
-// and two in Da vedere added 150 and 40 days ago.
+// and two in Da vedere added 150 and 40 days ago. Scores 8, 8,5 and 6 for the score chart.
 const demoLists = [
-  { entries: [listEntry(101, 1, "CURRENT", 5, 8, 300), listEntry(105, 11, "CURRENT", 3, 0, 400)] },
-  { entries: [listEntry(102, 4, "COMPLETED", 1, 0, 200)] },
+  { entries: [listEntry(101, 1, "CURRENT", 5, 8, 300), listEntry(105, 11, "CURRENT", 3, 6, 400)] },
+  { entries: [listEntry(102, 4, "COMPLETED", 1, 8.5, 200)] },
   { entries: [listEntry(103, 3, "PLANNING", 0, 0, 500), listEntry(106, 13, "PLANNING", 0, 0, 450, startedAt - 40 * DAY)] },
   {
     isCustomList: true,

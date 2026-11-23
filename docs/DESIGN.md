@@ -211,7 +211,7 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 
 Disegnati in HTML e CSS, senza librerie (ADR-0001, nota del 2026-11-23). Nessuna animazione delle barre.
 
-- **Distribuzione dei voti** (La mia lista e Statistiche, lo stesso componente): 10 colonne verticali da 1 a 10, in una riga che occupa tutta la larghezza. Sopra ogni barra il numero di anime (`small`, `tabular-nums`), sotto il voto. La barra è alta in proporzione al voto più frequente, con un minimo di 2px se non è zero; il fondo della colonna è `raised`, la barra `ink-muted`.
+- **Distribuzione dei voti** (La mia lista e Statistiche, lo stesso componente): 10 colonne verticali da 1 a 10, in una riga larga al massimo 42rem (come l'avviso demo): più larghe, le colonne diventano blocchi pesanti. Sopra ogni barra il numero di anime (`small`, `tabular-nums`), sotto il voto. La barra è alta in proporzione al voto più frequente, con un minimo di 2px se non è zero; il fondo della colonna è `raised`, la barra `ink-muted`.
   - In La mia lista ogni colonna è un pulsante con `aria-pressed`, nome "Voto 8: 12 anime", dentro un `role="group"` "Filtra per voto". La colonna attiva ha la barra in `ink` e il bordo `ink` di 2px intorno alla colonna; numero e voto in grassetto, così si distingue senza colore.
   - Nelle Statistiche ogni colonna è un link a La mia lista filtrata ("Voto 8: 12 anime, apri La mia lista").
   - Larghezza minima di una colonna 24px (WCAG 2.5.8): a 390px le 10 colonne stanno in 358px con 8px di spazio fra l'una e l'altra.

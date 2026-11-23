@@ -187,6 +187,20 @@ test.describe("editing", () => {
     await expect(card(page, "Hoshi no Kioku")).toContainText("12 visti · voto 8,5");
   });
 
+  test("a new score moves the anime to its bar, and out of a score filter", async ({ page }) => {
+    await logIn(page, "/lista?voto=9");
+    const bars = page.getByRole("group", { name: "Filtra per voto" });
+    await expect(page.getByRole("article")).toHaveCount(1);
+
+    await card(page, "Hoshi no Kioku").getByRole("button", { name: "Modifica: Hoshi no Kioku" }).click();
+    await page.getByRole("dialog").getByLabel("Voto").fill("7,5");
+    await page.getByRole("dialog").getByRole("button", { name: "Salva" }).click();
+
+    await expect(bars.getByRole("button", { name: "Voto 7: 1 anime" })).toBeVisible();
+    await expect(bars.getByRole("button", { name: "Voto 9: 0 anime" })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByText("Nessun anime con voto 9.")).toBeVisible();
+  });
+
   test("an empty score clears it", async ({ page }) => {
     await logIn(page, "/lista");
     const bodies = entryRequests(page);
