@@ -509,6 +509,69 @@
     background-color: rgb(0 0 0 / 0.6);
   }
 
+  /* Quick search (docs/DESIGN.md, "Ricerca rapida"): near the top on wide screens, the whole screen on phones. */
+  .quick-search {
+    width: min(40rem, calc(100% - 2rem));
+    max-height: 76dvh;
+    margin: 12dvh auto auto;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-panel);
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    box-shadow: 0 24px 64px -16px rgb(0 0 0 / 0.6);
+  }
+
+  .quick-search[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .quick-search::backdrop {
+    background-color: rgb(0 0 0 / 0.6);
+  }
+
+  @media (max-width: 639px) {
+    .quick-search {
+      width: 100%;
+      max-width: 100%;
+      height: 100dvh;
+      max-height: 100dvh;
+      margin: 0;
+      border: 0;
+      border-radius: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .quick-search[open] {
+      animation: quick-search-in 150ms var(--ease-out);
+    }
+  }
+
+  @keyframes quick-search-in {
+    from {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+  }
+
+  /* The highlighted result: raised, with an ink bar so it shows without colour too. */
+  .quick-search-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    border-left: 3px solid transparent;
+    border-radius: var(--radius-control);
+    cursor: pointer;
+  }
+
+  .quick-search-option[aria-selected="true"] {
+    border-left-color: var(--color-ink);
+    background-color: var(--color-raised);
+  }
+
   /* Skeleton: shows up after 150ms so quick loads don't flash, with a sheen sweeping across. */
   .card-skeleton {
     position: relative;

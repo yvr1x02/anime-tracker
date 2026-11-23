@@ -121,7 +121,7 @@ test("on a 360px phone the header stays on one line, logged out and in", async (
   // Since M7 the items sit behind Menu: the row holds the name, the lens, Accedi or Esci, and Menu.
   const fits = async () => {
     await expect(header(page).getByRole("button", { name: "Menu" })).toBeVisible();
-    await expect(header(page).getByRole("link", { name: "Cerca", exact: true })).toBeVisible();
+    await expect(header(page).getByRole("button", { name: "Cerca", exact: true })).toBeVisible();
     const { scroll, width, headerHeight, menuHeight } = await page.evaluate(() => ({
       scroll: document.documentElement.scrollWidth,
       width: window.innerWidth,

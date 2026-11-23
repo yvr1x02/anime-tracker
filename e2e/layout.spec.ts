@@ -64,7 +64,7 @@ test("the header has La mia lista, Calendario and Statistiche, then Cerca with i
   const nav = page.getByRole("navigation", { name: "Principale" });
 
   await expect(nav.getByRole("link")).toHaveText(["La mia lista", "Calendario", "Statistiche"]);
-  const search = page.getByRole("banner").getByRole("link", { name: "Cerca", exact: true });
+  const search = page.getByRole("banner").getByRole("button", { name: "Cerca", exact: true });
   await expect(search).toHaveAttribute("aria-keyshortcuts", "Meta+K Control+K");
   await expect(search.locator("kbd")).toHaveText(/^(⌘K|Ctrl K)$/);
   await expect(page.getByRole("button", { name: "Menu" })).toBeHidden();
@@ -77,8 +77,8 @@ test.describe("header on a 360px phone", () => {
     await page.goto("/");
     const header = page.getByRole("banner");
 
-    await expect(header.getByRole("link", { name: "Cerca", exact: true })).toBeVisible();
-    await expect(header.getByRole("link", { name: "Cerca", exact: true }).locator("kbd")).toBeHidden();
+    await expect(header.getByRole("button", { name: "Cerca", exact: true })).toBeVisible();
+    await expect(header.getByRole("button", { name: "Cerca", exact: true }).locator("kbd")).toBeHidden();
     await expect(header.getByRole("link", { name: "Accedi" })).toBeVisible();
     expect((await header.boundingBox())!.height).toBe(64);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(360);
