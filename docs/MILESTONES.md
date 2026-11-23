@@ -77,6 +77,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 ## M8 — Rifinitura
 
+- **Test con il login che possono fallire a caso.** I test di accessibilità con il login (`e2e/accessibility.spec.ts`) leggono la lista dell'utente di prova, che `e2e/my-list.spec.ts` modifica e ripristina mentre gira in parallelo: visto fallire una volta in M6, su un'esecuzione parziale. Soluzione proposta: una lista di prova separata nel finto AniList per ogni test o per ogni worker (per esempio un utente di prova per worker, scelto con `testInfo.workerIndex`), invece di spostare i test in sequenza come in M5.
 - Accessibilità, versione mobile, stati vuoti e di errore.
 - README con screenshot.
 - Calendario, risposta di AniList con stato 200 e un errore su una pagina (ADR-0003): da rivedere se si presenta in produzione.
