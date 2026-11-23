@@ -86,9 +86,9 @@ Calcolate a partire dalla lista personale letta da AniList, con una sola richies
   - Il voto medio conta solo gli anime con un voto, con un decimale.
 - **Generi più visti:** i primi 10, grafico a barre orizzontali con il numero di anime per genere.
 - **Distribuzione dei voti:** da 1 a 10, con lo stesso grafico di "La mia lista" (barre da tastiera, alternativa testuale). Qui un clic su una barra porta a "La mia lista" filtrata su quel voto (`/lista?voto=8`).
-- **Studi più presenti:** i primi 5, contando solo lo studio principale di ogni anime (`isMain`).
+- **Studi più presenti:** i primi 5, contando solo gli studi d'animazione (`Studio.isAnimationStudio`). Il piano prevedeva lo studio principale (`isMain`), ma dentro la lista AniList non applica `isMain` e restituisce anche editori, emittenti e distributori (Black Clover: Studio Pierrot, Funimation, TV Tokyo, Crunchyroll, Shueisha; con la query del singolo anime solo Studio Pierrot), verificato il 2026-11-23. Gli studi d'animazione si ottengono senza richieste in più; un anime fatto da due studi d'animazione conta per entrambi.
 - **Cosa conta per "più visti"** (generi e studi): tutte le voci tranne "Da vedere", perché un anime mai iniziato non è stato visto (decisione del 2026-11-23). A parità di numero, ordine alfabetico.
-- Si calcolano dalla lista già letta: generi (`Media.genres`) e studio principale (`Media.studios(isMain: true)`) si aggiungono ai suoi campi, senza richieste in più ad AniList.
+- Si calcolano dalla lista già letta: generi (`Media.genres`) e studi (`Media.studios`, con `isAnimationStudio`) si aggiungono ai suoi campi, senza richieste in più ad AniList.
 
 ### 7. Cosa guardo stasera?
 
