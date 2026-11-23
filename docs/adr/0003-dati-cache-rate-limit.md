@@ -21,7 +21,8 @@ Con Next.js (ADR-0001) le richieste possono partire dal server o dal browser:
 | Home (stagione) | Server | 6 ore | Uguale per tutti e cambia poco |
 | Dettaglio | Server | 1 ora | Uguale per tutti e indicizzabile; prossimo episodio e numero di episodi cambiano durante la stagione |
 | Calendario | Server, per settimana, **una richiesta** (vedi "Calendario") | 1 ora | Uguale per tutti; gli orari possono essere spostati. Il filtro "solo la mia lista" si applica nel browser |
-| Ricerca | Browser, direttamente ad AniList | — | Ogni ricerca è diversa; ogni visitatore usa il proprio limite |
+| Ricerca (pagina e ricerca rapida di M7) | Browser, direttamente ad AniList | — | Ogni ricerca è diversa; ogni visitatore usa il proprio limite |
+| Striscia "in onda ora" della Home (M7) | Server, dalle settimane del Calendario: la corrente e, se le prossime 24 ore la superano, la successiva | 1 ora | Nessuna query nuova: le stesse voci della cache del Calendario. Al massimo una richiesta all'ora in più, per la settimana successiva, se nessuno la apre dal Calendario |
 | Lista demo (La mia lista, Statistiche, "Cosa guardo stasera?" e il filtro del Calendario senza login, da M4) | Server; per "Cosa guardo stasera?" e il Calendario il browser la chiede a `/api/demo-list` quando serve | 1 ora | Uguale per tutti: tutte le pagine fanno la stessa richiesta e condividono la stessa voce della cache |
 
 ### Meccanismo di cache (scelto in M0, 2026-11-19)
@@ -75,6 +76,7 @@ Ogni pagina del Dettaglio si genera alla prima visita (`generateStaticParams` vu
   Finora AniList ha sempre dato i suoi errori con lo stato HTTP corrispondente (400, 404, 429), quindi il terzo caso non è stato visto con AniList vero. Coprirlo richiederebbe di mettere in cache la settimana già validata (per esempio con `unstable_cache`), con una nuova prova: decisione aperta alla chiusura di M5.
 - **Finestra:** il server non conosce il fuso di chi guarda, quindi per la settimana che inizia lunedì D scarica dal lunedì D alle 00:00 UTC meno 14 ore al lunedì successivo più 12 ore: copre quella settimana in ogni fuso, da UTC−12 a UTC+14. Il browser tiene solo gli episodi della settimana nel suo fuso.
 - **Settimane future:** al massimo 12 dopo quella corrente; il parametro della settimana è validato (una data di lunedì, non nel passato, entro il tetto) prima di chiamare AniList.
+- **Da M7 il parametro è il giorno** (`?giorno=`): il server ne ricava il lunedì e lo valida con le stesse regole; cambiare giorno nella stessa settimana avviene nel browser, senza richieste.
 - **Costo:** 1 richiesta all'ora per la settimana corrente, condivisa da tutti, più 1 all'ora per ogni settimana futura aperta da qualcuno.
 - **Prova sui dati veri (2026-11-20, nel fuso di Roma, senza login):** settimana del 16–22 novembre con 120 episodi (da 8 a 31 al giorno), quella successiva con 132; nessun anime per adulti; "Solo la mia lista" sulla lista demo lascia l'unico anime della lista in onda quella settimana. Una richiesta per settimana, come previsto.
 
@@ -87,6 +89,7 @@ Ogni pagina del Dettaglio si genera alla prima visita (`generateStaticParams` vu
 
 - La richiesta parte dopo **400 ms** senza digitazione e solo con almeno **3 caratteri**.
 - TanStack Query tiene in memoria i risultati delle ricerche già fatte.
+- **Ricerca rapida (M7):** stesse regole, stessa query e stessa chiave della pagina (stesso numero di risultati per pagina, ne mostra i primi 8): "Tutti i risultati" apre la pagina senza una nuova richiesta.
 
 ### Errore 429 (troppe richieste)
 

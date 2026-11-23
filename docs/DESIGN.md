@@ -164,8 +164,10 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 - Fisso in alto (`position: sticky`), fondo `bg`, bordo inferiore `border`, altezza 64px. Contiene il nome dell'app e la navigazione.
 - Ha un `view-transition-name` proprio (`site-header`) ed è escluso dalle animazioni delle View Transitions: è il punto di riferimento fisso.
 - Voci di navigazione: `small`, peso 500, `ink-muted`, altezza minima 44px, padding orizzontale 12px. La voce attiva ha `aria-current="page"`, testo `ink` e un **indicatore**: barretta di 2px in `ink`, raggio 2px, rientrata di 12px ai lati, 6px sopra il bordo inferiore della voce. L'indicatore ha un `view-transition-name` proprio (`nav-indicator`), così scorre verso la nuova voce.
+- **Voci (da M7):** La mia lista, Calendario, Statistiche. "Ricerca" non è più una voce: c'è il pulsante "Cerca".
+- **Pulsante "Cerca"** (M7), tra la navigazione e l'account. Da 640px: testo "Cerca" con accanto la scorciatoia in un `<kbd>` (`label`, bordo `border-strong`, raggio 4px): "⌘K" su Mac, "Ctrl K" altrove, scritta solo nel browser che sa su che sistema gira. Sotto i 640px: solo l'icona della lente, 44×44px, con nome accessibile "Cerca". Apre la ricerca rapida; ha `aria-haspopup="dialog"` e `aria-keyshortcuts="Meta+K Control+K"`. Senza JavaScript è un link a `/ricerca`.
 - A destra della navigazione, l'account: "Accedi" in ciano, che porta a `/accesso`; da collegati, il nome in `small` `ink-muted` e il pulsante "Esci" (un `<form method="post">`). Compare solo nel browser, perché il nome viene da un cookie (ADR-0004).
-- **Sotto i 640px (provvisorio, fino al menu per il telefono di M7):** voci e "Accedi"/"Esci" con padding orizzontale di 8px; la navigazione scorre in orizzontale dentro l'header, con una sfumatura di 24px a destra; il nome dell'utente non compare. L'header resta su una riga, alto 64px, anche a 360px.
+- **Sotto i 640px: menu a scomparsa** (M7; fino a M6 la navigazione scorreva in orizzontale). Una riga: nome dell'app, lente, "Accedi"/"Esci" e il pulsante "Menu" (icona e testo, 44px di altezza). Segue il pattern APG "disclosure navigation", **non** `role="menu"`: il pulsante ha `aria-expanded` e `aria-controls`; il pannello si apre sotto l'header, a tutta larghezza, fondo `surface` e bordo inferiore `border`, con le voci una per riga (altezza 48px) e la voce attiva segnata con `aria-current="page"` e una barretta `ink` a sinistra. Esc chiude il menu e riporta il focus sul pulsante; anche portare il focus fuori dal menu o scegliere una voce lo chiude. Il nome dell'utente non compare. L'header resta su una riga, alto 64px, anche a 360px.
 - Sotto l'header, solo nella Home, c'è la striscia "in onda ora" (vedi la sezione dedicata).
 
 ## Pulsanti e filtri
@@ -173,6 +175,7 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 - **Pulsante:** altezza minima 44px, padding orizzontale 16px, raggio 6px, `small` peso 600, fondo `raised`, bordo `border-strong`, testo `ink`. Premuto: scala 0,97 in 100ms, ritorno con `--spring-bouncy`.
 - **Pulsante primario:** fondo e bordo `pink`, testo `on-accent`. Uno solo per vista (vedi le regole per gli accenti).
 - **Filtri** (La mia lista: Tutti + i 6 stati; Calendario: Tutti / Solo la mia lista): pulsanti con `aria-pressed`, dentro un `role="group"` con `aria-label`. Il filtro attivo ha fondo `ink`, bordo `ink` e testo `on-accent` (17,34:1), non rosa.
+- **Etichetta di un filtro attivo** (La mia lista, `?voto=`, M7): pulsante sopra la riga dei filtri per stato, con fondo `ink`, testo `on-accent` e la ×: "Voto 8 ×". Nome accessibile "Voto 8, togli il filtro". Premuto toglie il filtro; il focus passa al filtro per stato attivo.
 - **Filtri su mobile: una sola riga, mai a capo.** La riga scorre in orizzontale (`flex-wrap: nowrap; overflow-x: auto`), arriva fino ai bordi dello schermo (margine negativo pari al margine laterale della pagina, con lo stesso valore come padding interno e come `scroll-padding-inline`) e ha una sfumatura di 32px sul bordo destro (`mask-image`), che segnala altri filtri. Con la tastiera, il filtro che riceve il focus entra da solo nell'area visibile; all'apertura della pagina il filtro attivo viene portato nell'area visibile.
 - Al cambio di filtro le card si riposizionano con le View Transitions (vedi Effetti).
 
@@ -190,30 +193,31 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
   - **Focus quando una card sparisce:** un "+1" che mette in pari sposta subito il focus sul titolo della card successiva, o sul titolo `h2` della sezione (`tabindex="-1"`) dopo l'ultima, e una regione `role="status"` della sezione annuncia "Sei in pari con {titolo}". Dopo l'ultima card la sezione resta, con "Sei in pari: nessun episodio arretrato." in `ink-muted`, finché non si ricarica la pagina.
   - Dalla modifica della voce vale lo stesso, alla chiusura del dialogo (il focus non può uscire prima da un dialogo modale), invece di tornare al pulsante "Modifica" che sta per sparire. In pari vuol dire episodi fino agli arretrati o "Completato". Se la card sparisce per un altro stato o perché la voce è eliminata, l'annuncio è "{titolo} non è più in Continua a guardare" e, dopo l'ultima, "Nessun altro anime da continuare."
 - Sotto l'intestazione (o sotto "Continua a guardare"), la griglia degli altri anime della stagione in ordine di popolarità, 16px più in basso. Il suo titolo `h2` "Gli altri anime della stagione" è solo per i lettori di schermo, perché visibile sposterebbe la prima fila oltre gli 800px; diventa visibile (32px sopra, 16px sotto) quando sopra c'è un'altra griglia, cioè "Continua a guardare" o le proposte di "Cosa guardo stasera?" (`:has()`).
-- **La prima fila di card è visibile senza scorrere con un viewport di 1280×800.** Altezze misurate nell'anteprima: header 65px, striscia 45px, intestazione 283px, spazio 16px, card 390px: la prima fila finisce a circa 799px. Se non basta, si riduce l'intestazione (dimensione massima di `display-xl` o padding), non le card.
-  - **Verificato in M3 sull'app vera (2026-11-20), senza la striscia:** header 64px, intestazione fino a 366px (pannello in evidenza alto 243px), prima fila fino a **775px**, con una card dal titolo su due righe. Un test di Playwright lo controlla (`e2e/home.spec.ts`).
-  - **In M4, con "Cosa guardo stasera?" chiuso:** senza la riga di presentazione, con domanda e pulsanti su una riga e la copertina in evidenza a `10vw`, l'intestazione finisce a 320px, il blocco a 388px e la prima fila a **797px**: il margine è di 3px.
-  - **Con la striscia di M7** (circa 45px) la fila andrebbe oltre gli 800px: in M7 la regola si rivaluta insieme alla striscia, invece di ridurre ancora l'intestazione.
+- **A 1280×800 la prima fila di card comincia sopra gli 800px e se ne vedono almeno 100px di copertine** (regola del 2026-11-23, con la striscia di M7). Prima la regola chiedeva l'intera prima fila entro 800px: in M4 finiva a 797px e la striscia, circa 45px, l'avrebbe portata oltre. Cominciare a vedere le copertine basta a far capire che sotto c'è altro; ridurre ancora l'intestazione l'avrebbe svuotata. Un test di Playwright lo controlla (`e2e/home.spec.ts`).
 - Su un portatile 1280×800 vero il browser occupa parte dello schermo: lì la fila resta tagliata nella parte bassa.
 
 ## Calendario
 
+Un giorno alla volta (M7, decisione del 2026-11-23); fino a M6 erano 7 colonne su desktop e un elenco di giorni su telefono. Lo stesso layout su telefono e desktop, adattato.
+
 - Titolo "Calendario" in `h1`, sotto l'intervallo della settimana ("23–29 novembre") e la nota "Messa in onda in Giappone, nel fuso del tuo browser ({fuso})". Poi i filtri "Tutti" / "Solo la mia lista" (`role="group"`, `aria-pressed`) e, in modalità demo dopo la scelta del filtro, l'avviso demo.
-- **Da 1024px, 7 colonne** da lunedì a domenica, ognuna una `section` con il giorno in `h2` (`small`, peso 600: "lun 23"). Le righe sono compatte: copertina piccola (32px, 2/3) a sinistra e, accanto, orario (`tabular-nums`), titolo su due righe al massimo e "Ep. 7"; tutta la riga porta al Dettaglio. Sotto i 1024px la riga è orario · copertina · titolo.
-  - **Oggi:** colonna su `surface` con bordo `cyan` in alto e "Oggi" nel titolo.
-  - **Episodi già usciti:** in `ink-muted`, con "già uscito" per i lettori di schermo.
-  - **Segno "Adesso"** nella colonna di oggi, tra l'ultimo episodio uscito e il primo in arrivo: una linea `cyan` di 1px con l'etichetta "Adesso" in `label`. Nessuna animazione; si sposta quando l'orologio della pagina (una volta al minuto) fa uscire un episodio. È solo visivo: per i lettori di schermo basta "già uscito".
-- **Sotto i 1024px, un elenco giorno per giorno** che per la settimana corrente parte da oggi; i titoli dei giorni sono "Oggi", "Domani" e poi "sab 22 nov".
-- In fondo, "Settimana successiva →" (fino a 12 settimane dopo quella corrente) e, nelle settimane future, "Torna a questa settimana".
-- Finché il browser non ha calcolato giorni e orari, le colonne mostrano righe d'attesa della stessa altezza, come nel Dettaglio.
+- **Striscia dei giorni:** i 7 giorni in una griglia di 7 colonne a tutta larghezza (a 390px circa 46px l'una). Pattern APG "tab" con attivazione automatica (la settimana è già tutta nella pagina): `role="tablist"` "Giorni della settimana", frecce sinistra/destra, Home e Fine; un solo elemento nella tabulazione. Ogni tab, alta almeno 64px, ha tre righe: giorno abbreviato in `label` ("lun"), numero del giorno in `h3` e numero di episodi in `small` `ink-muted` ("12 ep."). Nome accessibile completo: "lunedì 23 novembre, oggi, 12 episodi".
+  - **Giorno scelto:** fondo `ink`, testo `on-accent`, come un filtro attivo.
+  - **Oggi:** bordo superiore `cyan` di 2px; "oggi" nel nome accessibile.
+  - I numeri di episodi seguono il filtro "Solo la mia lista".
+- **Il giorno scelto** (`tabpanel`, etichettato dalla tab): titolo `h2` con il giorno per esteso ("martedì 24 novembre"), poi gli episodi in ordine di orario. Ogni riga porta al Dettaglio: copertina grande (96px di larghezza su telefono, 120px da 1024px, proporzioni 2/3, raggio 8px), accanto l'orario in `h3` (`tabular-nums`), il titolo su due righe al massimo e "Ep. 7". Righe su `surface`, raggio `panel`, padding 12px; una colonna sul telefono, due da 768px, tre da 1280px.
+  - **Oggi:** gli episodi già usciti in `ink-muted`, con "già uscito" per i lettori di schermo, e il **segno "Adesso"** tra l'ultimo uscito e il primo in arrivo: una linea `cyan` di 1px a tutta larghezza con l'etichetta "Adesso" in `label`. Nessuna animazione; si sposta quando l'orologio della pagina (una volta al minuto) fa uscire un episodio. È solo visivo.
+  - Giorno senza episodi: "Nessun episodio in questo giorno." (con il filtro: "… degli anime della tua lista").
+- **Indirizzo:** cambiare giorno aggiorna `?giorno=` senza aggiungere voci alla cronologia.
+- In fondo, "Settimana successiva →" (si apre sul lunedì; fino a 12 settimane dopo quella corrente) e, nelle settimane future, "Torna a questa settimana" (si apre su oggi).
+- Finché il browser non ha calcolato giorni e orari: striscia e righe d'attesa della stessa altezza.
 
 ## Grafici
 
 Disegnati in HTML e CSS, senza librerie (ADR-0001, nota del 2026-11-23). Nessuna animazione delle barre.
 
-- **Distribuzione dei voti** (La mia lista e Statistiche, lo stesso componente): 10 colonne verticali da 1 a 10, in una riga larga al massimo 42rem (come l'avviso demo): più larghe, le colonne diventano blocchi pesanti. Sopra ogni barra il numero di anime (`small`, `tabular-nums`), sotto il voto. La barra è alta in proporzione al voto più frequente, con un minimo di 2px se non è zero; il fondo della colonna è `raised`, la barra `ink-muted`.
-  - In La mia lista ogni colonna è un pulsante con `aria-pressed`, nome "Voto 8: 12 anime", dentro un `role="group"` "Filtra per voto". La colonna attiva ha la barra in `ink` e il bordo `ink` di 2px intorno alla colonna; numero e voto in grassetto, così si distingue senza colore.
-  - Nelle Statistiche ogni colonna è un link a La mia lista filtrata ("Voto 8: 12 anime, apri La mia lista").
+- **Distribuzione dei voti** (Statistiche; in La mia lista fino a M6, decisione del 2026-11-23): 10 colonne verticali da 1 a 10, in una riga larga al massimo 42rem (come l'avviso demo): più larghe, le colonne diventano blocchi pesanti. Sopra ogni barra il numero di anime (`small`, `tabular-nums`), sotto il voto. La barra è alta in proporzione al voto più frequente, con un minimo di 2px se non è zero; il fondo della colonna è `raised`, la barra `ink-muted`.
+  - Ogni colonna è un link a La mia lista filtrata ("Voto 8: 12 anime, apri La mia lista").
   - Larghezza minima di una colonna 24px (WCAG 2.5.8): a 390px le 10 colonne stanno in 358px con 8px di spazio fra l'una e l'altra.
   - Sotto, un `<details>` "Dati del grafico in tabella" con la tabella Voto / Anime.
 - **Generi più visti:** una tabella di tre colonne (genere, barra, numero). La barra orizzontale, `ink-muted` su `raised`, è decorativa (`aria-hidden`): il dato è già nel numero, quindi la tabella è anche l'alternativa testuale.
@@ -231,6 +235,15 @@ Disegnati in HTML e CSS, senza librerie (ADR-0001, nota del 2026-11-23). Nessuna
 - La ricerca parte da sola (ADR-0003); "Cerca" e Invio la fanno partire subito. L'indirizzo segue la ricerca (`?q=`) senza aggiungere voci alla cronologia.
 - Sotto il modulo, un'area `role="status"` annuncia numero di risultati, attesa per il limite di AniList, errori e "nessun risultato". Poi la griglia delle card, con la cascata solo quando i risultati arrivano dalla rete.
 - Durante il caricamento: 12 skeleton nella griglia, contenitore con `aria-busy`, "Caricamento…" per i lettori di schermo.
+
+### Ricerca rapida (M7)
+
+- **Dialogo modale** (`<dialog>` nativo con `showModal()`, pattern APG "dialog modal"): largo `min(40rem, 100% - 32px)`, a 12vh dall'alto, fondo `surface`, raggio `panel`, ombra; dietro, la pagina oscurata (`::backdrop` `bg` al 70%). Sotto i 640px occupa tutto lo schermo. In alto il titolo "Cerca un anime" (`h3`) e il pulsante "Chiudi".
+- **Campo** con la lente, altezza 48px, focus iniziale. Pattern APG "combobox" con `aria-autocomplete="list"`: `role="combobox"` sul campo, etichettato dal titolo, con `aria-expanded`, `aria-controls` e `aria-activedescendant`; il focus resta nel campo.
+- **Risultati:** `role="listbox"` con al massimo 8 `option`: copertina di 40px, titolo su una riga (puntini se non ci sta) e "TV · 2026" in `small` `ink-muted`. L'opzione evidenziata ha fondo `raised` e una barretta `ink` di 3px a sinistra (`aria-selected="true"`), così si vede anche senza colore; il passaggio del mouse evidenzia allo stesso modo.
+- **Tasti:** frecce giù/su scelgono l'opzione successiva/precedente e dall'ultima ripartono dalla prima; Home e Fine restano al testo; Invio apre il Dettaglio dell'opzione evidenziata; **un solo Esc chiude la finestra** (decisione del 2026-11-23: la lista fa parte della finestra, non è un menu sopra di lei) e il focus torna dove era.
+- Sotto la lista, una riga `role="status"` (numero di risultati, attesa per il 429, errori, il suggerimento romaji/inglese) e il link "Tutti i risultati per «…»".
+- **Movimento:** apertura in 150ms, da opacità 0 e scala 0,98, con `--ease-out`; con movimento ridotto, nessuna animazione.
 
 ## Dettaglio
 
@@ -375,7 +388,7 @@ I valori vengono da un piccolo script che simula una molla smorzata e semplifica
 
 ### Striscia "in onda ora"
 
-Spostata in M7 (Passata di stile): in M3 la Home non la ha.
+**Contenuto (decisione del 2026-11-23):** gli episodi delle prossime 24 ore, al massimo 12, in ordine di orario, presi dalle settimane in cache del Calendario. Se non ce ne sono, la striscia non compare.
 
 - **Posizione: una riga propria sotto l'header, a tutta la larghezza del contenuto, sia su mobile sia su desktop.** Contiene l'etichetta "In onda ora" (ciano, con un punto), la zona che scorre e il pulsante "Pausa / Riprendi". Altezza minima 44px, testo `small`.
 - **Su desktop (da 1024px) mostra sempre almeno due voci intere contemporaneamente.** Ogni voce è "**Titolo** · Ep. 15 · sab 23:00" (orario formattato nel browser, nel suo fuso), su una riga, con 32px tra una voce e l'altra. A 1024px la zona pienamente visibile (tolte etichetta, pulsante e sfumature) è di circa 620px, quindi ogni voce è larga al massimo **18rem** (288px). Se il titolo non ci sta, si accorcia con i puntini (`text-overflow: ellipsis`) mentre numero dell'episodio e orario restano interi. I lettori di schermo leggono comunque il titolo completo, che resta nel testo della pagina.
