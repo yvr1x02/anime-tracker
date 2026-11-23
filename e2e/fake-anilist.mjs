@@ -132,6 +132,10 @@ let tokensIssued = 0;
 const revokedTokens = new Set();
 // POST /__fail-saves with {"count"}: the next saves answer 500, to test going back to the previous value.
 let failingSaves = 0;
+// POST /__fail-schedule with {"from", "status"}: the next calendar answer for that window fails on its third
+// page (HTTP status, 500 by default, with the first two pages in the body), as when AniList breaks halfway
+// through a week. One week only, so tests running alongside are not hit.
+let failingSchedule = null;
 let nextEntryId = 300;
 
 // Like AniList: one entry per anime; only the variables sent change; scoreRaw is out of 100 and the list
@@ -158,6 +162,20 @@ function deleteEntry({ id }) {
   return { DeleteMediaListEntry: { deleted: true } };
 }
 
+// The calendar's invented episodes, relative to when the fake started: Hoshi no Kioku's schedule, Serie in
+// corso in three days, and an adult anime the app must hide.
+const scheduleMedia = (id) => {
+  const { title, coverImage = null, format = null, isAdult = false } = anime[id];
+  return { id, isAdult, title, coverImage, format };
+};
+const calendar = [
+  ...schedule.map(({ episode, airingAt }) => ({ id: 1000 + episode, episode, airingAt, media: scheduleMedia(1) })),
+  { id: 1106, episode: 6, airingAt: startedAt + 3 * 24 * HOUR, media: scheduleMedia(11) },
+  // Completed in the demo list, watched by the logged-in user: the my-list filter tells them apart.
+  { id: 1401, episode: 1, airingAt: startedAt + 3 * HOUR, media: scheduleMedia(4) },
+  { id: 1301, episode: 2, airingAt: startedAt + 24 * HOUR, media: scheduleMedia(3) },
+];
+
 const notFound = { data: { Media: null }, errors: [{ message: "Not Found.", status: 404 }] };
 // Anime 4 comes with a Date two hours old, as if served from a cache that has not been refreshed.
 const staleDates = { 4: new Date((startedAt - 2 * HOUR) * 1000).toUTCString() };
@@ -177,6 +195,12 @@ http
       response.end();
       return;
     }
+    // When the fake started: tests work out where its invented episodes fall.
+    if (request.method === "GET" && url.pathname === "/__started") {
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end(JSON.stringify({ startedAt }));
+      return;
+    }
     if (request.method !== "POST") {
       response.end("fake AniList");
       return;
@@ -191,6 +215,13 @@ http
     let body = "";
     request.on("data", (chunk) => (body += chunk));
     request.on("end", () => {
+      if (url.pathname === "/__fail-schedule") {
+        const { from, status = 500 } = JSON.parse(body);
+        failingSchedule = { from, status };
+        response.writeHead(204);
+        response.end();
+        return;
+      }
       if (url.pathname === "/__fail-saves") {
         failingSaves = JSON.parse(body).count;
         response.writeHead(204);
@@ -254,6 +285,22 @@ http
               : { data: { MediaListCollection: null }, errors: [{ message: "User not found", status: 404 }] },
           ),
         );
+        return;
+      }
+      // The calendar: the invented episodes inside the asked window, all on the first page.
+      if (query.includes("query WeekSchedule")) {
+        const inWindow = calendar.filter(({ airingAt }) => airingAt > variables.from && airingAt < variables.to);
+        const page = (episodes) => ({ pageInfo: { hasNextPage: false }, airingSchedules: episodes });
+        const pages = { p1: page(inWindow), p2: page([]), p3: page([]), p4: page([]), p5: page([]), p6: page([]) };
+        if (failingSchedule?.from === variables.from) {
+          const { status } = failingSchedule;
+          failingSchedule = null;
+          response.writeHead(status, { "Content-Type": "application/json" });
+          response.end(JSON.stringify({ data: { ...pages, p3: null }, errors: [{ message: "Internal error", status: 500 }] }));
+          return;
+        }
+        response.writeHead(200, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ data: pages }));
         return;
       }
       // The Home's season, whatever season is asked: the same invented anime, most popular first.

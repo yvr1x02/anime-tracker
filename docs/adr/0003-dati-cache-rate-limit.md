@@ -20,7 +20,7 @@ Con Next.js (ADR-0001) le richieste possono partire dal server o dal browser:
 |---|---|---|---|
 | Home (stagione) | Server | 6 ore | Uguale per tutti e cambia poco |
 | Dettaglio | Server | 1 ora | Uguale per tutti e indicizzabile; prossimo episodio e numero di episodi cambiano durante la stagione |
-| Calendario | Server, per settimana | 1 ora | Uguale per tutti; gli orari possono essere spostati. Il filtro "solo la mia lista" si applica nel browser |
+| Calendario | Server, per settimana, **una richiesta** (vedi "Calendario") | 1 ora | Uguale per tutti; gli orari possono essere spostati. Il filtro "solo la mia lista" si applica nel browser |
 | Ricerca | Browser, direttamente ad AniList | — | Ogni ricerca è diversa; ogni visitatore usa il proprio limite |
 | Lista demo (La mia lista e "Cosa guardo stasera?" senza login, da M4) | Server; per "Cosa guardo stasera?" il browser la chiede a `/api/demo-list` alla prima scelta di una durata | 1 ora | Uguale per tutti: le due pagine fanno la stessa richiesta e condividono la stessa voce della cache |
 
@@ -56,6 +56,27 @@ Ogni pagina del Dettaglio si genera alla prima visita (`generateStaticParams` vu
 - **Id non validi** (non interi positivi, oppure oltre il massimo di `Int` in GraphQL): 404 subito, senza richieste ad AniList.
 - **Id validi ma inesistenti, o di anime per adulti:** prova locale con la build di produzione e un finto AniList che risponde sempre "Not Found" e conta le richieste. Tre visite a `/anime/2` hanno fatto **una sola** richiesta; un altro id ne ha fatta una in più, poi nessuna. Anche la 404 resta in cache, come pagina generata: la cache di `fetch` era vuota.
 - **Rischio che resta:** un id nuovo costa sempre una richiesta. Non ho verificato quanto dura in cache una 404, né il comportamento su Vercel. Le contromisure verso i bot (per esempio `robots.txt`) si valutano in M8, la Rifinitura.
+
+### Calendario (M5, 2026-11-20)
+
+- **Una settimana, una richiesta.** `Page.airingSchedules` dà al massimo 50 episodi per pagina e una settimana ne ha circa 170 (misurato il 2026-11-20, con i margini dei fusi). Le pagine si chiedono **tutte nella stessa richiesta GraphQL**, con degli alias (`p1: Page(page: 1)` … `p6: Page(page: 6)`): 300 episodi di capienza, verificati su AniList in 0,45 secondi.
+- **Mai una settimana a metà.** Una settimana si mostra e si mette in cache solo se è completa:
+  - la risposta contiene tutte le pagine e nessun errore; un errore anche solo su una pagina (per esempio la terza) fa rifiutare tutta la risposta;
+  - l'ultima pagina non dice che ce ne sono altre: se lo dicesse, la settimana sarebbe incompleta e conta come errore;
+  - poiché la settimana è una sola voce della cache di `fetch`, una risposta rifiutata non si salva: si serve l'ultima versione completa in cache (stale-while-revalidate, vedi la prova di M0) oppure, se non c'è, la pagina d'errore. Con pagine in richieste separate, la cache avrebbe potuto mescolare pagine di momenti diversi.
+- **Prova locale del 2026-11-20** (build di produzione, finto AniList, cache del calendario portata per la prova a 10 secondi): una settimana completa in cache, poi, scaduta la cache, una risposta che fallisce sulla terza pagina.
+
+  | Guasto | Visite successive |
+  |---|---|
+  | Stato 500, con le prime due pagine nel corpo | Ultima versione completa (stessa ora dei dati); al primo aggiornamento riuscito, i dati nuovi |
+  | Stato 429 | Uguale |
+  | Stato 200 con un errore sulla terza pagina | La cache di `fetch` conserva ogni risposta 200 (codice di Next 16.4.6, `patch-fetch.js`): la risposta difettosa sostituisce quella completa e la settimana mostra la pagina d'errore fino alla scadenza successiva. Mai una settimana a metà, ma nemmeno l'ultima completa |
+
+  Finora AniList ha sempre dato i suoi errori con lo stato HTTP corrispondente (400, 404, 429), quindi il terzo caso non è stato visto con AniList vero. Coprirlo richiederebbe di mettere in cache la settimana già validata (per esempio con `unstable_cache`), con una nuova prova: decisione aperta alla chiusura di M5.
+- **Finestra:** il server non conosce il fuso di chi guarda, quindi per la settimana che inizia lunedì D scarica dal lunedì D alle 00:00 UTC meno 14 ore al lunedì successivo più 12 ore: copre quella settimana in ogni fuso, da UTC−12 a UTC+14. Il browser tiene solo gli episodi della settimana nel suo fuso.
+- **Settimane future:** al massimo 12 dopo quella corrente; il parametro della settimana è validato (una data di lunedì, non nel passato, entro il tetto) prima di chiamare AniList.
+- **Costo:** 1 richiesta all'ora per la settimana corrente, condivisa da tutti, più 1 all'ora per ogni settimana futura aperta da qualcuno.
+- **Prova sui dati veri (2026-11-20, nel fuso di Roma, senza login):** settimana del 16–22 novembre con 120 episodi (da 8 a 31 al giorno), quella successiva con 132; nessun anime per adulti; "Solo la mia lista" sulla lista demo lascia l'unico anime della lista in onda quella settimana. Una richiesta per settimana, come previsto.
 
 ### Ricerca
 

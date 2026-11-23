@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// Pages join the list as they arrive (Calendario in M5, Statistiche in M6…).
+// Pages join the list as they arrive (Statistiche in M6…).
 const items = [
   { href: "/ricerca", label: "Ricerca" },
   { href: "/lista", label: "La mia lista" },
+  { href: "/calendario", label: "Calendario" },
 ] as const;
 
 /** Header navigation (docs/DESIGN.md, "Header e navigazione"): the current page has aria-current and the bar. */

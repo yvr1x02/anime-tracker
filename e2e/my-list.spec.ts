@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test";
+import { type Page, expect, test } from "@playwright/test";
+import { currentMonday } from "../src/lib/week";
 import { mockAniList, searchResults } from "./anilist-browser";
 import { FAKE_ANILIST, logIn } from "./session";
 
@@ -438,5 +439,56 @@ test.describe("Continua a guardare", () => {
     await expect(section.getByRole("heading", { name: "Continua a guardare" })).toBeFocused();
     await expect(section.getByRole("status")).toHaveText("Senza palinsesto non è più in Continua a guardare");
     await expect(section.getByText("Nessun altro anime da continuare.")).toBeVisible();
+  });
+});
+
+// Moved here from tonight.spec.ts and calendar.spec.ts: they read the logged-in user's list, which the tests in
+// this file change, so they run one at a time with them, after the reset in beforeEach.
+test.describe("Cosa guardo stasera?, logged in", () => {
+  const picker = (page: Page) => page.getByRole("region", { name: "Cosa guardo stasera?" });
+  const times = (page: Page) => picker(page).getByRole("group", { name: "Quanto tempo hai?" });
+  const suggestion = (page: Page, title: string) =>
+    picker(page).getByRole("article").filter({ has: page.getByRole("heading", { name: title }) });
+
+  test("uses the user's list without new requests, and offers a longer time when nothing fits", async ({ page }) => {
+    await logIn(page, "/");
+    const reads: string[] = [];
+    page.on("request", (request) => {
+      if (/\/api\/(list|demo-list)$/.test(new URL(request.url()).pathname)) reads.push(request.url());
+    });
+
+    await times(page).getByRole("button", { name: "30 minuti" }).click();
+    await expect(picker(page).getByRole("status")).toHaveText("Niente nella lista sta in 30 minuti.");
+    await expect(picker(page).getByText(/Modalità demo/)).toHaveCount(0);
+
+    await picker(page).getByRole("button", { name: "Prova con 1 ora" }).click();
+    await expect(picker(page).getByRole("status")).toHaveText("Niente nella lista sta in 1 ora.");
+    await picker(page).getByRole("button", { name: "Prova con 2 ore" }).click();
+
+    await expect(picker(page).getByRole("status")).toHaveText("1 proposta per 2 ore");
+    await expect(suggestion(page, "Senza palinsesto")).toContainText("Ti manca 1 episodio: 1 ora e 30 minuti");
+    expect(reads).toEqual([]);
+  });
+});
+
+test.describe("Calendario, logged in", () => {
+  test.use({ timezoneId: "Europe/Rome" });
+  const calendar = (page: Page) => page.locator("main");
+
+  test("logged in it filters on the user's own list", async ({ page, request }) => {
+    // Senza palinsesto airs three hours after the fake started: it must fall in this week here.
+    const { startedAt } = await (await request.get(`${FAKE_ANILIST}/__started`)).json();
+    test.skip(
+      currentMonday((startedAt + 3 * 3600) * 1000, "Europe/Rome") !== currentMonday(Date.now(), "Europe/Rome"),
+      "the episode falls in next week right now",
+    );
+    await logIn(page, "/calendario");
+
+    await page.getByRole("group", { name: "Quali anime" }).getByRole("button", { name: "Solo la mia lista" }).click();
+
+    await expect(page.getByRole("status")).toHaveText("Solo gli anime della tua lista.");
+    await expect(calendar(page).getByRole("link", { name: /Senza palinsesto Ep\. 1/ })).toBeVisible();
+    await expect(calendar(page).getByRole("link", { name: /Hoshi no Kioku/ })).toHaveCount(0);
+    await expect(page.getByText(/Modalità demo/)).toHaveCount(0);
   });
 });

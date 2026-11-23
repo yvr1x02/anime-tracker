@@ -16,7 +16,7 @@ Un client non ufficiale e complementare di AniList per seguire i propri anime, b
 
 - **Senza login** Home, Ricerca, Dettaglio e Calendario funzionano per intero, tranne la sezione personale "Continua a guardare" della Home, che non compare.
   - Il pulsante "+" delle card spiega che serve l'accesso e porta al login.
-  - Il filtro "solo la mia lista" del Calendario è disattivato, con la spiegazione "Accedi con AniList per filtrare la tua lista".
+  - Il filtro "solo la mia lista" del Calendario funziona in modalità demo, sulla lista pubblica del profilo demo, con l'avviso (decisione del 2026-11-20, prima era disattivato).
   - La mia lista, Statistiche e "Cosa guardo stasera?" sono in **modalità demo**: mostrano in sola lettura la lista pubblica di un profilo AniList dimostrativo, con l'avviso "Modalità demo: lista pubblica di {nome} su AniList, in sola lettura. Accedi con AniList per vedere e modificare la tua." I controlli di modifica non compaiono. Se il profilo demo non è disponibile, al posto della lista compare un messaggio.
 - **Con login** si aggiungono, modificano e rimuovono le voci della propria lista AniList.
 - **Uscita:** il logout chiude la sessione nell'app; la pagina spiega che l'accesso si può revocare anche dalle impostazioni dell'account AniList.
@@ -68,10 +68,12 @@ Gli anime della lista AniList dell'utente, filtrabili per stato. Per ogni voce s
 ### 5. Calendario della settimana
 
 - Mostra gli episodi in uscita nella settimana, con copertina, titolo, numero dell'episodio e orario.
-- Di base mostra **tutti gli anime in onda**; un filtro mostra **solo quelli della mia lista**, disponibile solo con il login.
-- Si apre sulla **settimana corrente** e permette di andare **avanti** alle settimane successive, senza limite. Non si torna indietro.
+- Di base mostra **tutti gli anime in onda** (tranne quelli per adulti); un filtro mostra **solo quelli della mia lista**: le voci in "Sto guardando", "In rewatch", "Da vedere" e "In pausa". Senza login il filtro usa la lista pubblica del profilo demo, con l'avviso della modalità demo.
+- Si apre sulla **settimana corrente** e permette di andare **avanti** alle settimane successive, fino a **12 settimane** dopo quella corrente (oltre, AniList ha raramente orari). Non si va nelle settimane passate; dalle settimane future si torna a quella corrente.
+- La settimana va dal lunedì alla domenica **nel fuso del browser**: un episodio sta nel giorno in cui esce per chi guarda.
 - **Orari:** AniList fornisce l'orario di messa in onda in Giappone. L'app lo converte nel fuso del browser e lo indica come "messa in onda in Giappone", perché le piattaforme di streaming possono pubblicare l'episodio più tardi.
-- **Layout:** su desktop 7 colonne, una per giorno; su mobile un elenco giorno per giorno che parte da oggi.
+- **Layout:** su desktop 7 colonne, una per giorno, da lunedì a domenica: la colonna di oggi è evidenziata, gli episodi già usciti sono attenuati e un segno "Adesso", senza animazioni, separa quelli usciti da quelli in arrivo. Su mobile un elenco giorno per giorno che parte da oggi.
+- **Settimane complete o niente:** una settimana si mostra solo se AniList l'ha data tutta. Se una parte manca (errore, limite di richieste, rete), si mostra l'ultima versione completa o il messaggio d'errore, mai una settimana a metà (ADR-0003).
 
 ### 6. Statistiche
 
