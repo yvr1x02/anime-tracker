@@ -80,7 +80,7 @@ const invalidToken = { data: null, errors: [{ message: "Invalid token", status: 
 // an entry repeated in a custom list, one only in a custom list, and an adult anime the app must hide.
 const listMedia = (id) => {
   const { title, coverImage = null, format = null, season = null, seasonYear = null, episodes = null, status = null } = anime[id];
-  const { duration = null, nextAiringEpisode = null } = anime[id];
+  const { duration = null, nextAiringEpisode = null, genres = [], studios = { nodes: [] } } = anime[id];
   return {
     id,
     isAdult: Boolean(anime[id].isAdult),
@@ -93,6 +93,8 @@ const listMedia = (id) => {
     episodes,
     duration,
     nextAiringEpisode,
+    genres,
+    studios,
   };
 };
 const DAY = 24 * HOUR;

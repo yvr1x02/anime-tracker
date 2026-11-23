@@ -212,6 +212,13 @@ export const ListEntryFields = graphql(`
         episode
         airingAt
       }
+      genres
+      studios(isMain: true) {
+        nodes {
+          id
+          name
+        }
+      }
     }
   }
 `);

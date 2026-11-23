@@ -13,6 +13,8 @@ const media = (id: number, isAdult = false) => ({
   episodes: 12,
   duration: 24,
   nextAiringEpisode: null,
+  genres: [],
+  studios: null,
 });
 const entry = (id: number, updatedAt: number, mediaId = id, isAdult = false) => ({
   id,

@@ -42,6 +42,8 @@ function entry(title: string, { status, progress = 0, updatedAt = 0, createdAt =
       duration: media.duration,
       // The next episode airs tomorrow: the ones before are out.
       nextAiringEpisode: media.next ? { episode: media.next, airingAt: nowSeconds + DAY } : null,
+      genres: [],
+      studios: null,
     },
   };
 }
