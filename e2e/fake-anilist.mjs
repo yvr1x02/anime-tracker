@@ -188,12 +188,24 @@ const scheduleMedia = (id) => {
   const { title, coverImage = null, format = null, isAdult = false } = anime[id];
   return { id, isAdult, title, coverImage, format };
 };
+// Calendar episodes hang on noon in Rome of the day the fake started, not on the start itself: calendar tests
+// fix the browser's clock there with page.clock, so "today", aired and upcoming never depend on when they run.
+const romeDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome", year: "numeric", month: "2-digit", day: "2-digit" })
+  .format(startedAt * 1000);
+const utcNoon = Date.parse(`${romeDate}T12:00:00Z`) / 1000;
+const romeHourAtUtcNoon = Number(
+  new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", hourCycle: "h23" }).format(utcNoon * 1000),
+);
+const noon = utcNoon - (romeHourAtUtcNoon - 12) * HOUR;
 const calendar = [
-  ...schedule.map(({ episode, airingAt }) => ({ id: 1000 + episode, episode, airingAt, media: scheduleMedia(1) })),
-  { id: 1106, episode: 6, airingAt: startedAt + 3 * 24 * HOUR, media: scheduleMedia(11) },
+  // Hoshi no Kioku: Ep. 12 an hour before noon (aired), Ep. 13 two hours after, Ep. 14 a week after.
+  { id: 1012, episode: 12, airingAt: noon - HOUR, media: scheduleMedia(1) },
+  { id: 1013, episode: 13, airingAt: noon + 2 * HOUR, media: scheduleMedia(1) },
+  { id: 1014, episode: 14, airingAt: noon + 7 * 24 * HOUR, media: scheduleMedia(1) },
+  { id: 1106, episode: 6, airingAt: noon + 3 * 24 * HOUR, media: scheduleMedia(11) },
   // Completed in the demo list, watched by the logged-in user: the my-list filter tells them apart.
-  { id: 1401, episode: 1, airingAt: startedAt + 3 * HOUR, media: scheduleMedia(4) },
-  { id: 1301, episode: 2, airingAt: startedAt + 24 * HOUR, media: scheduleMedia(3) },
+  { id: 1401, episode: 1, airingAt: noon + 3 * HOUR, media: scheduleMedia(4) },
+  { id: 1301, episode: 2, airingAt: noon + 24 * HOUR, media: scheduleMedia(3) },
 ];
 
 const notFound = { data: { Media: null }, errors: [{ message: "Not Found.", status: 404 }] };
@@ -218,7 +230,7 @@ http
     // When the fake started: tests work out where its invented episodes fall.
     if (request.method === "GET" && url.pathname === "/__started") {
       response.writeHead(200, { "Content-Type": "application/json" });
-      response.end(JSON.stringify({ startedAt }));
+      response.end(JSON.stringify({ startedAt, noon }));
       return;
     }
     if (request.method !== "POST") {

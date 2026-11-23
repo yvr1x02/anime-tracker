@@ -1,5 +1,4 @@
 import { type Page, expect, test } from "@playwright/test";
-import { currentMonday } from "../src/lib/week";
 import { mockAniList, searchResults } from "./anilist-browser";
 import { FAKE_ANILIST, logIn } from "./session";
 
@@ -574,12 +573,9 @@ test.describe("Calendario, logged in", () => {
   const calendar = (page: Page) => page.locator("main");
 
   test("logged in it filters on the user's own list", async ({ page, request }) => {
-    // Senza palinsesto airs three hours after the fake started: it must fall in this week here.
-    const { startedAt } = await (await request.get(`${FAKE_ANILIST}/__started`)).json();
-    test.skip(
-      currentMonday((startedAt + 3 * 3600) * 1000, "Europe/Rome") !== currentMonday(Date.now(), "Europe/Rome"),
-      "the episode falls in next week right now",
-    );
+    // Senza palinsesto airs at 15:00 on the fake's day (e2e/calendar.spec.ts): the browser's clock is fixed at noon.
+    const { noon } = await (await request.get(`${FAKE_ANILIST}/__started`)).json();
+    await page.clock.setFixedTime(noon * 1000);
     await logIn(page, "/calendario");
 
     await page.getByRole("group", { name: "Quali anime" }).getByRole("button", { name: "Solo la mia lista" }).click();
