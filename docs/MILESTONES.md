@@ -4,7 +4,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 **Regola per ogni milestone:** ogni nuova pagina entra nel controllo di accessibilità di `e2e/accessibility.spec.ts` (axe, WCAG 2.2 AA) nello stesso commit che la aggiunge.
 
-**Milestone attiva:** M6
+**Milestone attiva:** M7
 
 ## M0 — Fondamenta (completata il 2026-11-19)
 
@@ -60,7 +60,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Orari nel fuso del browser, con test su fusi espliciti.
 - Filtro "solo la mia lista"; senza login usa la lista pubblica del profilo demo, con l'avviso (decisione del 2026-11-20, SPEC e ADR-0004).
 
-## M6 — Statistiche
+## M6 — Statistiche (completata il 2026-11-23)
 
 - Calcoli sulla lista letta da AniList, testati con Vitest; modalità demo senza login.
 - Grafici in HTML e CSS con alternativa testuale dei dati (decisione del 2026-11-23: niente Recharts, nota in ADR-0001).
