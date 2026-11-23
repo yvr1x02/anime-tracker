@@ -17,17 +17,18 @@ export function ScoreChart(props: Props) {
   const columns = counts.map((count, index) => {
     const score = index + 1;
     const pressed = "onSelect" in props && props.selected === score;
+    // Score, then count, as words in the name "Voto 8: 12 anime" (WCAG 2.5.3); .score-column shows them reversed.
     const content = (
       <>
-        <span className="tabular-nums">{count}</span>
+        <span className="tabular-nums">{score}</span>{" "}
         <span aria-hidden="true" className="flex w-full flex-1 items-end rounded-sm bg-raised">
           <span
             className={`w-full rounded-sm ${pressed ? "bg-ink" : "bg-ink-muted"}`}
             // Bars scale to the most frequent score; one with any anime stays visible.
             style={{ height: count ? `max(2px, ${(count / highest) * 100}%)` : 0 }}
           />
-        </span>
-        <span className="tabular-nums">{score}</span>
+        </span>{" "}
+        <span className="tabular-nums">{count}</span>
       </>
     );
     const className = `score-column ${pressed ? "border-ink font-bold" : "border-transparent"}`;

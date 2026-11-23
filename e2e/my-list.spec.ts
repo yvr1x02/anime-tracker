@@ -485,6 +485,23 @@ test.describe("Cosa guardo stasera?, logged in", () => {
   });
 });
 
+test("logged in, Statistiche counts the user's own list, without new requests", async ({ page }) => {
+  await logIn(page, "/lista");
+  await expect(page.getByRole("article")).toHaveCount(2);
+  const reads: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().endsWith("/api/list")) reads.push(request.url());
+  });
+
+  await page.getByRole("link", { name: "Statistiche" }).click();
+
+  const number = (label: string) => page.locator("dl > div").filter({ hasText: label }).locator("dd");
+  await expect(number("Episodi visti")).toHaveText("12");
+  await expect(number("Voto medio")).toHaveText("9,0");
+  await expect(page.getByText(/Modalità demo/)).toHaveCount(0);
+  expect(reads).toEqual([]);
+});
+
 test.describe("Calendario, logged in", () => {
   test.use({ timezoneId: "Europe/Rome" });
   const calendar = (page: Page) => page.locator("main");

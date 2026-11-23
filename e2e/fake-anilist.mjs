@@ -59,8 +59,20 @@ const anime = {
     episodes: 24,
     duration: 24,
     nextAiringEpisode: { episode: 6, airingAt: startedAt + 3 * 24 * HOUR },
+    genres: ["Action", "Sci-Fi"],
+    studios: { nodes: [{ id: 11, name: "Studio Notte" }] },
   },
-  13: { id: 13, title: { romaji: "Film lungo" }, format: "MOVIE", status: "FINISHED", episodes: 1, duration: 150 },
+  // In Da vedere of the demo list: its genre and studio must not count as watched (Statistiche).
+  13: {
+    id: 13,
+    title: { romaji: "Film lungo" },
+    format: "MOVIE",
+    status: "FINISHED",
+    episodes: 1,
+    duration: 150,
+    genres: ["Romance"],
+    studios: { nodes: [{ id: 11, name: "Studio Notte" }] },
+  },
   // Adult anime: the app must never show it, so queries ask for isAdult: false.
   3: { id: 3, isAdult: true, title: { romaji: "Solo per adulti" } },
 };
