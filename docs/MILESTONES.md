@@ -81,6 +81,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Accessibilità, versione mobile, stati vuoti e di errore.
 - README con screenshot.
 - Calendario, risposta di AniList con stato 200 e un errore su una pagina (ADR-0003): da rivedere se si presenta in produzione.
+- Focus quando una card esce da La mia lista (M6): valutare di decidere dove va il focus dalla risposta di `SaveMediaListEntry` invece che dalla previsione di `savedStatusAndScore` (`src/lib/list-rules.ts`), così non si dipende dal completamento automatico di AniList.
 - Test del calendario che dipendono da giorno e ora (`e2e/calendar.spec.ts`, oggi con `test.skip`): renderli deterministici con `page.clock` di Playwright, così non si saltano mai.
 
 ## Dopo la v1
