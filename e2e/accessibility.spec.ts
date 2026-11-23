@@ -70,3 +70,15 @@ test("no WCAG A/AA violations on the Home with Cosa guardo stasera? suggestions"
   const { violations } = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
   expect(violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
 });
+
+test.describe("on a 360px phone", () => {
+  test.use({ viewport: { width: 360, height: 780 } });
+
+  test("no WCAG A/AA violations with the header menu open", async ({ page }) => {
+    await page.goto("/calendario");
+    await page.getByRole("button", { name: "Menu" }).click();
+    await expect(page.getByRole("navigation", { name: "Principale" }).getByRole("link").first()).toBeVisible();
+    const { violations } = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
+    expect(violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
+  });
+});

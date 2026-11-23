@@ -58,3 +58,66 @@ test.describe("on a 390px phone", () => {
     expect(overflows).toBe(false);
   });
 });
+
+test("the header has La mia lista, Calendario and Statistiche, then Cerca with its shortcut", async ({ page }) => {
+  await page.goto("/");
+  const nav = page.getByRole("navigation", { name: "Principale" });
+
+  await expect(nav.getByRole("link")).toHaveText(["La mia lista", "Calendario", "Statistiche"]);
+  const search = page.getByRole("banner").getByRole("link", { name: "Cerca", exact: true });
+  await expect(search).toHaveAttribute("aria-keyshortcuts", "Meta+K Control+K");
+  await expect(search.locator("kbd")).toHaveText(/^(⌘K|Ctrl K)$/);
+  await expect(page.getByRole("button", { name: "Menu" })).toBeHidden();
+});
+
+test.describe("header on a 360px phone", () => {
+  test.use({ viewport: { width: 360, height: 780 } });
+
+  test("one row: the lens named Cerca, Accedi and Menu, with no sideways scroll", async ({ page }) => {
+    await page.goto("/");
+    const header = page.getByRole("banner");
+
+    await expect(header.getByRole("link", { name: "Cerca", exact: true })).toBeVisible();
+    await expect(header.getByRole("link", { name: "Cerca", exact: true }).locator("kbd")).toBeHidden();
+    await expect(header.getByRole("link", { name: "Accedi" })).toBeVisible();
+    expect((await header.boundingBox())!.height).toBe(64);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(360);
+  });
+
+  test("Menu opens the items from the keyboard; Esc closes it and focus goes back to the button", async ({ page }) => {
+    await page.goto("/calendario");
+    const menu = page.getByRole("button", { name: "Menu" });
+    const items = page.getByRole("navigation", { name: "Principale" }).getByRole("link");
+    await expect(menu).toHaveAttribute("aria-expanded", "false");
+    await expect(items.first()).toBeHidden();
+
+    await menu.focus();
+    await page.keyboard.press("Enter");
+    await expect(menu).toHaveAttribute("aria-expanded", "true");
+    await expect(items).toHaveText(["La mia lista", "Calendario", "Statistiche"]);
+    await expect(items.nth(1)).toHaveAttribute("aria-current", "page");
+
+    await page.keyboard.press("Tab");
+    await expect(items.first()).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(menu).toHaveAttribute("aria-expanded", "false");
+    await expect(menu).toBeFocused();
+  });
+
+  test("leaving the menu with the focus closes it; picking an item goes there and closes it", async ({ page }) => {
+    await page.goto("/");
+    const menu = page.getByRole("button", { name: "Menu" });
+    const items = page.getByRole("navigation", { name: "Principale" }).getByRole("link");
+
+    await menu.click();
+    await items.last().focus();
+    await page.keyboard.press("Tab");
+    await expect(menu).toHaveAttribute("aria-expanded", "false");
+
+    await menu.click();
+    await items.getByText("Statistiche").click();
+    await expect(page).toHaveURL(/\/statistiche$/);
+    await expect(menu).toHaveAttribute("aria-expanded", "false");
+    await expect(items.first()).toBeHidden();
+  });
+});

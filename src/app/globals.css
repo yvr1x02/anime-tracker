@@ -427,34 +427,15 @@
     }
   }
 
-  .nav-scroll {
-    overflow-x: auto;
-    scrollbar-width: none;
-    mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
-  }
-
-  @media (min-width: 640px) {
-    .nav-scroll {
-      overflow-x: visible;
-      mask-image: none;
-    }
-  }
-
-  /* Header: bar under the current page, inset like the item's padding (12px, 8px on phones), 6px above its bottom. */
+  /* Header: bar under the current page, inset like the item's padding (12px), 6px above its bottom. */
   .nav-link[aria-current="page"]::after {
     content: "";
     position: absolute;
-    inset-inline: 0.5rem;
+    inset-inline: 0.75rem;
     bottom: 0.375rem;
     height: 2px;
     border-radius: 2px;
     background-color: var(--color-ink);
-  }
-
-  @media (min-width: 640px) {
-    .nav-link[aria-current="page"]::after {
-      inset-inline: 0.75rem;
-    }
   }
 
   /*

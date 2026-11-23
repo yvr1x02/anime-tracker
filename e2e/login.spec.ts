@@ -118,17 +118,19 @@ test("logout from another site is refused", async ({ page, context }) => {
 
 test("on a 360px phone the header stays on one line, logged out and in", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 640 });
+  // Since M7 the items sit behind Menu: the row holds the name, the lens, Accedi or Esci, and Menu.
   const fits = async () => {
-    await expect(page.getByRole("link", { name: "La mia lista" })).toBeVisible();
-    const { scroll, width, headerHeight, linkHeight } = await page.evaluate(() => ({
+    await expect(header(page).getByRole("button", { name: "Menu" })).toBeVisible();
+    await expect(header(page).getByRole("link", { name: "Cerca", exact: true })).toBeVisible();
+    const { scroll, width, headerHeight, menuHeight } = await page.evaluate(() => ({
       scroll: document.documentElement.scrollWidth,
       width: window.innerWidth,
       headerHeight: document.querySelector("header")!.getBoundingClientRect().height,
-      linkHeight: document.querySelector('nav a[href="/lista"]')!.getBoundingClientRect().height,
+      menuHeight: document.querySelector("header button[aria-expanded]")!.getBoundingClientRect().height,
     }));
     expect(scroll).toBeLessThanOrEqual(width);
     expect(headerHeight).toBe(64);
-    expect(linkHeight).toBe(44);
+    expect(menuHeight).toBe(44);
   };
 
   await page.goto("/lista");
@@ -136,5 +138,6 @@ test("on a 360px phone the header stays on one line, logged out and in", async (
   await fits();
 
   await logIn(page, "/lista");
+  await expect(header(page).getByRole("button", { name: "Esci" })).toBeVisible();
   await fits();
 });

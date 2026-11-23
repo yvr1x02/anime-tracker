@@ -27,8 +27,8 @@ test("the list is read once per session, not on every visit", async ({ page }) =
     if (request.url().endsWith("/api/list")) reads.push(request.url());
   });
 
-  await page.getByRole("link", { name: "Ricerca" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Ricerca" })).toBeVisible();
+  await page.getByRole("link", { name: "Calendario" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Calendario" })).toBeVisible();
   await page.getByRole("link", { name: "La mia lista" }).click();
 
   await expect(page.getByRole("article")).toHaveCount(2);
