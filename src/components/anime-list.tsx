@@ -1,26 +1,24 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AnimeCard } from "@/components/anime-card";
 import { EditEntryButton, type EditOutcome } from "@/components/entry-editor";
 import { useListEditing } from "@/components/list-editing";
-import { type EntryChange, savedStatusAndScore } from "@/lib/list-rules";
-import { ScoreChart } from "@/components/score-chart";
 import type { MediaListStatus } from "@/gql/graphql";
 import { animeTitle, listStatusLabel } from "@/lib/anime-labels";
 import { cardGrid } from "@/lib/card-grid";
 import { type ListEntry, entrySummary } from "@/lib/list";
+import { type EntryChange, savedStatusAndScore } from "@/lib/list-rules";
 import { formatScore } from "@/lib/score";
-import { parseScoreFilter, scoreBar, scoreCounts } from "@/lib/stats";
+import { parseScoreFilter, scoreBar } from "@/lib/stats";
 
 const statuses = Object.keys(listStatusLabel) as MediaListStatus[];
 
-/** ?voto= changes in place: no history entry per click (SPEC, "La mia lista"); useSearchParams follows it. */
-function setScoreFilter(score: number | null) {
+/** Drops ?voto= in place, with no history entry (SPEC, "La mia lista"); useSearchParams follows it. */
+function clearScoreParam() {
   const url = new URL(window.location.href);
-  if (score) url.searchParams.set("voto", String(score));
-  else url.searchParams.delete("voto");
+  url.searchParams.delete("voto");
   window.history.replaceState(null, "", url);
 }
 
@@ -31,9 +29,9 @@ function emptyMessage(status: MediaListStatus | null, score: number | null) {
 }
 
 /**
- * A list's score chart and cards with the status filters (docs/DESIGN.md, "Pulsanti e filtri" and "Grafici"):
- * the two filters add up, and each counts on the whole list. `editable` adds the controls of the
- * logged-in user's own list; the demo stays read only.
+ * A list's cards with the status filters and, from Statistiche's score bars, the ?voto= filter with its label
+ * (docs/DESIGN.md, "Pulsanti e filtri"): the two filters add up, and the status counts are on the whole list.
+ * `editable` adds the controls of the logged-in user's own list; the demo stays read only.
  */
 export function AnimeList({ entries, editable = false }: { entries: ListEntry[]; editable?: boolean }) {
   const [filter, setFilter] = useState<MediaListStatus | null>(null);
@@ -45,6 +43,7 @@ export function AnimeList({ entries, editable = false }: { entries: ListEntry[];
     status ? entries.filter((entry) => entry.status === status).length : entries.length;
 
   const [announcement, setAnnouncement] = useState("");
+  const statusFilters = useRef<HTMLDivElement>(null);
 
   if (entries.length === 0) {
     // Focusable: where focus goes when the last entry is removed.
@@ -87,6 +86,13 @@ export function AnimeList({ entries, editable = false }: { entries: ListEntry[];
     return message ? () => moveFocusPast(index, message) : undefined;
   }
 
+  /** The label goes away with the filter: focus moves to the status filter in use. */
+  function clearScoreFilter() {
+    clearScoreParam();
+    statusFilters.current?.querySelector<HTMLElement>("[aria-pressed=true]")?.focus();
+    setAnnouncement("Filtro per voto tolto");
+  }
+
   function afterAddEpisode(index: number, entry: ListEntry) {
     const message = leaveMessage(entry, { progress: (entry.progress ?? 0) + 1 });
     if (message) moveFocusPast(index, message);
@@ -94,10 +100,6 @@ export function AnimeList({ entries, editable = false }: { entries: ListEntry[];
 
   return (
     <>
-      <div className="mt-8">
-        <ScoreChart counts={scoreCounts(entries)} selected={score} onSelect={setScoreFilter} />
-      </div>
-
       {/* Only for screen readers, until focus lands on it after the last card shown leaves. */}
       <h2 id="anime-della-lista" tabIndex={-1} className="sr-only text-h2 focus:not-sr-only focus:mt-8 focus:block">
         Anime della lista
@@ -105,7 +107,17 @@ export function AnimeList({ entries, editable = false }: { entries: ListEntry[];
       <p role="status" className="sr-only">
         {announcement}
       </p>
-      <div role="group" aria-label="Filtra per stato" className="filter-row mt-8">
+      {score && (
+        <button
+          type="button"
+          aria-label={`Voto ${score}, togli il filtro`}
+          onClick={clearScoreFilter}
+          className="button mt-8 border-ink bg-ink text-on-accent"
+        >
+          Voto {score} <span aria-hidden="true">×</span>
+        </button>
+      )}
+      <div ref={statusFilters} role="group" aria-label="Filtra per stato" className={`filter-row ${score ? "mt-3" : "mt-8"}`}>
         {[null, ...statuses].map((status) => (
           <button
             key={status ?? "all"}
