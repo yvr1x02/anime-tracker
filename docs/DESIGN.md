@@ -207,6 +207,24 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 - In fondo, "Settimana successiva →" (fino a 12 settimane dopo quella corrente) e, nelle settimane future, "Torna a questa settimana".
 - Finché il browser non ha calcolato giorni e orari, le colonne mostrano righe d'attesa della stessa altezza, come nel Dettaglio.
 
+## Grafici
+
+Disegnati in HTML e CSS, senza librerie (ADR-0001, nota del 2026-11-23). Nessuna animazione delle barre.
+
+- **Distribuzione dei voti** (La mia lista e Statistiche, lo stesso componente): 10 colonne verticali da 1 a 10, in una riga che occupa tutta la larghezza. Sopra ogni barra il numero di anime (`small`, `tabular-nums`), sotto il voto. La barra è alta in proporzione al voto più frequente, con un minimo di 2px se non è zero; il fondo della colonna è `raised`, la barra `ink-muted`.
+  - In La mia lista ogni colonna è un pulsante con `aria-pressed`, nome "Voto 8: 12 anime", dentro un `role="group"` "Filtra per voto". La colonna attiva ha la barra in `ink` e il bordo `ink` di 2px intorno alla colonna; numero e voto in grassetto, così si distingue senza colore.
+  - Nelle Statistiche ogni colonna è un link a La mia lista filtrata ("Voto 8: 12 anime, apri La mia lista").
+  - Larghezza minima di una colonna 24px (WCAG 2.5.8): a 390px le 10 colonne stanno in 358px con 8px di spazio fra l'una e l'altra.
+  - Sotto, un `<details>` "Dati del grafico in tabella" con la tabella Voto / Anime.
+- **Generi più visti:** una tabella di tre colonne (genere, barra, numero). La barra orizzontale, `ink-muted` su `raised`, è decorativa (`aria-hidden`): il dato è già nel numero, quindi la tabella è anche l'alternativa testuale.
+
+## Statistiche
+
+- Titolo "Statistiche" in `h1`; in modalità demo l'avviso demo sotto il titolo, come in La mia lista; in fondo l'ora dei dati.
+- **Numeri chiave:** pannelli `surface` con il valore in `h2` (`tabular-nums`) e l'etichetta in `ink-muted`: episodi visti, ore guardate, voto medio. Due colonne sul telefono, una riga da 1024px. Sotto, gli anime per stato in un elenco compatto.
+- **Grafici:** voti e generi uno sotto l'altro, affiancati in due colonne da 1024px. Poi gli studi più presenti, in un elenco numerato.
+- Nessun rosa (vedi le regole per gli accenti).
+
 ## Ricerca
 
 - Titolo "Ricerca" in `h1`; sotto, un `<form role="search">` largo al massimo 36rem: etichetta visibile "Titolo dell'anime", campo `type="search"` (altezza minima 44px, fondo `surface`, bordo `border-strong`, raggio 6px), pulsante "Cerca" e un testo d'aiuto collegato con `aria-describedby`.
