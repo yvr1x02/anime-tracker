@@ -2,6 +2,8 @@ import type { ListEntryFieldsFragment, UserAnimeListQuery } from "@/gql/graphql"
 import { formatScore } from "./score";
 
 export type ListEntry = ListEntryFieldsFragment & { media: NonNullable<ListEntryFieldsFragment["media"]> };
+/** An anime as a card knows it: everything a list entry has but genres and studios, which only the list reads. */
+export type CardMedia = Omit<ListEntry["media"], "genres" | "studios">;
 
 /**
  * All entries of a list, once each, newest change first. An entry can sit both in its status list and in

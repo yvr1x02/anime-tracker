@@ -22,7 +22,7 @@ const anime = {
     description:
       'Una storia inventata per i test &amp; nient&#39;altro.<br><br>\nSecondo paragrafo<script>alert("x")</script> con <i>corsivo</i><img src=x onerror="alert(1)">.',
     genres: ["Adventure", "Sci-Fi", "Isekai"],
-    studios: { nodes: [{ id: 10, name: "Studio di Prova" }] },
+    studios: { nodes: [{ id: 10, name: "Studio di Prova", isAnimationStudio: true }] },
     format: "TV",
     status: "FINISHED",
     episodes: 12,
@@ -59,8 +59,26 @@ const anime = {
     episodes: 24,
     duration: 24,
     nextAiringEpisode: { episode: 6, airingAt: startedAt + 3 * 24 * HOUR },
+    genres: ["Action", "Sci-Fi"],
+    // As the real AniList does inside a list, isMain lets a broadcaster through: Statistiche leaves it out.
+    studios: {
+      nodes: [
+        { id: 11, name: "Studio Notte", isAnimationStudio: true },
+        { id: 12, name: "Emittente di Prova", isAnimationStudio: false },
+      ],
+    },
   },
-  13: { id: 13, title: { romaji: "Film lungo" }, format: "MOVIE", status: "FINISHED", episodes: 1, duration: 150 },
+  // In Da vedere of the demo list: its genre and studio must not count as watched (Statistiche).
+  13: {
+    id: 13,
+    title: { romaji: "Film lungo" },
+    format: "MOVIE",
+    status: "FINISHED",
+    episodes: 1,
+    duration: 150,
+    genres: ["Romance"],
+    studios: { nodes: [{ id: 11, name: "Studio Notte", isAnimationStudio: true }] },
+  },
   // Adult anime: the app must never show it, so queries ask for isAdult: false.
   3: { id: 3, isAdult: true, title: { romaji: "Solo per adulti" } },
 };
@@ -80,7 +98,7 @@ const invalidToken = { data: null, errors: [{ message: "Invalid token", status: 
 // an entry repeated in a custom list, one only in a custom list, and an adult anime the app must hide.
 const listMedia = (id) => {
   const { title, coverImage = null, format = null, season = null, seasonYear = null, episodes = null, status = null } = anime[id];
-  const { duration = null, nextAiringEpisode = null } = anime[id];
+  const { duration = null, nextAiringEpisode = null, genres = [], studios = { nodes: [] } } = anime[id];
   return {
     id,
     isAdult: Boolean(anime[id].isAdult),
@@ -93,6 +111,8 @@ const listMedia = (id) => {
     episodes,
     duration,
     nextAiringEpisode,
+    genres,
+    studios,
   };
 };
 const DAY = 24 * HOUR;
@@ -109,10 +129,10 @@ const listEntry = (id, mediaId, status, progress, score, updatedAt, createdAt = 
   media: listMedia(mediaId),
 });
 // For Cosa guardo stasera?: Hoshi no Kioku with 7 to go (finished), Serie in corso 2 behind (airing),
-// and two in Da vedere added 150 and 40 days ago.
+// and two in Da vedere added 150 and 40 days ago. Scores 8, 8,5 and 6 for the score chart.
 const demoLists = [
-  { entries: [listEntry(101, 1, "CURRENT", 5, 8, 300), listEntry(105, 11, "CURRENT", 3, 0, 400)] },
-  { entries: [listEntry(102, 4, "COMPLETED", 1, 0, 200)] },
+  { entries: [listEntry(101, 1, "CURRENT", 5, 8, 300), listEntry(105, 11, "CURRENT", 3, 6, 400)] },
+  { entries: [listEntry(102, 4, "COMPLETED", 1, 8.5, 200)] },
   { entries: [listEntry(103, 3, "PLANNING", 0, 0, 500), listEntry(106, 13, "PLANNING", 0, 0, 450, startedAt - 40 * DAY)] },
   {
     isCustomList: true,

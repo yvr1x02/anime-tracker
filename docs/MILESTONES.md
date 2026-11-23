@@ -4,7 +4,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 **Regola per ogni milestone:** ogni nuova pagina entra nel controllo di accessibilità di `e2e/accessibility.spec.ts` (axe, WCAG 2.2 AA) nello stesso commit che la aggiunge.
 
-**Milestone attiva:** M6
+**Milestone attiva:** M7
 
 ## M0 — Fondamenta (completata il 2026-11-19)
 
@@ -60,11 +60,11 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Orari nel fuso del browser, con test su fusi espliciti.
 - Filtro "solo la mia lista"; senza login usa la lista pubblica del profilo demo, con l'avviso (decisione del 2026-11-20, SPEC e ADR-0004).
 
-## M6 — Statistiche
+## M6 — Statistiche (completata il 2026-11-23)
 
 - Calcoli sulla lista letta da AniList, testati con Vitest; modalità demo senza login.
-- Grafici Recharts con alternativa testuale dei dati.
-- **Distribuzione dei voti in "La mia lista"** (SPEC, "La mia lista"): grafico a barre per voto intero; un clic su una barra filtra la lista su quel voto, un secondo clic toglie il filtro. Barre usabili da tastiera (pulsanti con `aria-pressed`), alternativa testuale in tabella. Lo stesso componente serve alla pagina Statistiche. Prima di scriverlo, verificare nella documentazione di Recharts se le barre si possono rendere pulsanti accessibili; altrimenti barre disegnate con HTML e CSS.
+- Grafici in HTML e CSS con alternativa testuale dei dati (decisione del 2026-11-23: niente Recharts, nota in ADR-0001).
+- **Distribuzione dei voti in "La mia lista"** (SPEC, "La mia lista"): grafico a barre per voto intero; un clic su una barra filtra la lista su quel voto, un secondo clic toglie il filtro. Barre usabili da tastiera (pulsanti con `aria-pressed`), alternativa testuale in tabella. Lo stesso componente serve alla pagina Statistiche. Verificato il 2026-11-23: nella documentazione di Recharts le barre-pulsante non ci sono, quindi barre in HTML e CSS.
 
 ## M7 — Passata di stile
 
@@ -80,6 +80,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Accessibilità, versione mobile, stati vuoti e di errore.
 - README con screenshot.
 - Calendario, risposta di AniList con stato 200 e un errore su una pagina (ADR-0003): da rivedere se si presenta in produzione.
+- Test del calendario che dipendono da giorno e ora (`e2e/calendar.spec.ts`, oggi con `test.skip`): renderli deterministici con `page.clock` di Playwright, così non si saltano mai.
 
 ## Dopo la v1
 

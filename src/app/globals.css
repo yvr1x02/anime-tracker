@@ -151,6 +151,27 @@
     transition: transform var(--duration-instant) var(--ease-out);
   }
 
+  /* docs/DESIGN.md, "Grafici": 10 columns of at least 24px (WCAG 2.5.8), all fitting a 390px phone. */
+  .score-chart {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(1.5rem, 1fr));
+    gap: 0.5rem;
+    height: 11rem;
+    margin-top: 1rem;
+  }
+
+  .score-column {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+    padding: 0.125rem;
+    border-width: 2px;
+    border-radius: var(--radius-control);
+    @apply text-small;
+  }
+
   .genre-chip {
     background-color: var(--color-raised);
     background-image: linear-gradient(var(--tint-chip), var(--tint-chip));

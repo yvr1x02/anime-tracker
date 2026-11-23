@@ -7,11 +7,10 @@ import { EditEntryButton } from "@/components/entry-editor";
 import { useListEditing } from "@/components/list-editing";
 import { animeTitle, listStatusLabel } from "@/lib/anime-labels";
 import { useViewer } from "@/lib/auth/use-viewer";
-import type { ListEntry } from "@/lib/list";
-import { entrySummary } from "@/lib/list";
+import { type CardMedia, entrySummary } from "@/lib/list";
 import { useListEntry } from "@/lib/my-list";
 
-type Media = ListEntry["media"];
+type Media = CardMedia;
 
 /**
  * Link props to the login page, coming back here afterwards. The query (such as ?q= of a search) is read at

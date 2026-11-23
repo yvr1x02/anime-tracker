@@ -61,8 +61,10 @@ Gli anime della lista AniList dell'utente, filtrabili per stato. Per ogni voce s
 
 - **Distribuzione dei voti (M6):** sopra la lista, un grafico a barre con il numero di anime per voto, una barra per ogni voto intero da 1 a 10 (la barra 8 comprende i voti da 8,0 a 8,9); gli anime senza voto non contano.
   - Un clic su una barra filtra la lista su quel voto, insieme al filtro per stato; un secondo clic sulla stessa barra toglie il filtro. La barra attiva si distingue anche senza colore.
+  - Il filtro per voto sta nell'indirizzo (`/lista?voto=8`): così le Statistiche portano alla lista già filtrata e ricaricare la pagina lo conserva. Un valore non valido si ignora. Un clic su una barra aggiorna l'indirizzo senza aggiungere voci alla cronologia.
+  - Tutte e 10 le barre ci sono sempre, anche a zero: filtrano su una lista vuota, con il messaggio.
   - Le barre si usano da tastiera: ognuna è un pulsante con lo stato premuto (`aria-pressed`) e un nome completo, per esempio "Voto 8: 12 anime".
-  - Alternativa testuale: gli stessi numeri in una tabella, leggibile da lettori di schermo e da chi non vede il grafico.
+  - Alternativa testuale: gli stessi numeri in una tabella, leggibile da lettori di schermo e da chi non vede il grafico, dentro un `<details>` "Dati del grafico in tabella".
   - È lo stesso componente della "Distribuzione dei voti" delle Statistiche.
 
 ### 5. Calendario della settimana
@@ -80,9 +82,14 @@ Gli anime della lista AniList dell'utente, filtrabili per stato. Per ogni voce s
 Calcolate a partire dalla lista personale letta da AniList, con una sola richiesta (ADR-0004). Senza login: modalità demo.
 
 - **Numeri chiave:** anime per stato, episodi visti, ore guardate (episodi visti × durata di un episodio), voto medio.
-- **Generi più visti:** grafico a barre.
-- **Distribuzione dei voti:** da 1 a 10, con lo stesso grafico di "La mia lista" (barre da tastiera, alternativa testuale). Qui un clic su una barra porta a "La mia lista" filtrata su quel voto.
-- **Studi più presenti:** i primi 5.
+  - Gli anime senza durata su AniList non entrano nelle ore, e la pagina dice quanti sono.
+  - Il voto medio conta solo gli anime con un voto, con un decimale.
+- **Generi più visti:** i primi 10, grafico a barre orizzontali con il numero di anime per genere.
+- **Distribuzione dei voti:** da 1 a 10, con lo stesso grafico di "La mia lista" (barre da tastiera, alternativa testuale). Qui un clic su una barra porta a "La mia lista" filtrata su quel voto (`/lista?voto=8`).
+- **Studi più presenti:** i primi 5 studi d'animazione, cioè le società con `Studio.isAnimationStudio`. Un anime in coproduzione conta per tutti i suoi studi d'animazione (decisione del 2026-11-23).
+  - **Perché non lo studio principale (`isMain`):** dentro `MediaListCollection` AniList ignora `studios(isMain: true)` e restituisce tutte le società, compresi editori, emittenti e distributori. Verificato il 2026-11-23 su Black Clover: nella lista Studio Pierrot, Funimation, TV Tokyo, Crunchyroll e Shueisha; con la query del singolo anime solo Studio Pierrot. Filtrare per `isAnimationStudio` non costa richieste in più.
+- **Cosa conta per "più visti"** (generi e studi): tutte le voci tranne "Da vedere", perché un anime mai iniziato non è stato visto (decisione del 2026-11-23). A parità di numero, ordine alfabetico.
+- Si calcolano dalla lista già letta: generi (`Media.genres`) e studi (`Media.studios`, con `isAnimationStudio`) si aggiungono ai suoi campi, senza richieste in più ad AniList.
 
 ### 7. Cosa guardo stasera?
 

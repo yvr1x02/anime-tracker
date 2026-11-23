@@ -5,11 +5,11 @@ import Link from "next/link";
 import { type ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AniListRateLimitError } from "@/lib/anilist/client";
 import { NotLoggedInError } from "@/lib/auth/errors";
-import type { ListEntry } from "@/lib/list";
+import type { CardMedia, ListEntry } from "@/lib/list";
 import { type EntryChange, applyListRules, today } from "@/lib/list-rules";
 import { MY_LIST_KEY, postListChange } from "@/lib/my-list";
 
-export type EditTarget = { media: ListEntry["media"]; entry: ListEntry | null };
+export type EditTarget = { media: CardMedia; entry: ListEntry | null };
 
 type ListEditing = {
   save: (target: EditTarget, change: EntryChange) => Promise<void>;
@@ -36,7 +36,8 @@ function withChange(target: EditTarget, change: EntryChange): ListEntry {
     createdAt: Math.floor(Date.now() / 1000),
     startedAt: null,
     completedAt: null,
-    media: target.media,
+    // Filled in by AniList's answer; meanwhile the statistics leave the new entry out of genres and studios.
+    media: { genres: null, studios: null, ...target.media },
   };
   return { ...base, ...change, updatedAt: Math.floor(Date.now() / 1000) };
 }

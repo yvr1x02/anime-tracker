@@ -22,7 +22,7 @@ Con Next.js (ADR-0001) le richieste possono partire dal server o dal browser:
 | Dettaglio | Server | 1 ora | Uguale per tutti e indicizzabile; prossimo episodio e numero di episodi cambiano durante la stagione |
 | Calendario | Server, per settimana, **una richiesta** (vedi "Calendario") | 1 ora | Uguale per tutti; gli orari possono essere spostati. Il filtro "solo la mia lista" si applica nel browser |
 | Ricerca | Browser, direttamente ad AniList | — | Ogni ricerca è diversa; ogni visitatore usa il proprio limite |
-| Lista demo (La mia lista e "Cosa guardo stasera?" senza login, da M4) | Server; per "Cosa guardo stasera?" il browser la chiede a `/api/demo-list` alla prima scelta di una durata | 1 ora | Uguale per tutti: le due pagine fanno la stessa richiesta e condividono la stessa voce della cache |
+| Lista demo (La mia lista, Statistiche, "Cosa guardo stasera?" e il filtro del Calendario senza login, da M4) | Server; per "Cosa guardo stasera?" e il Calendario il browser la chiede a `/api/demo-list` quando serve | 1 ora | Uguale per tutti: tutte le pagine fanno la stessa richiesta e condividono la stessa voce della cache |
 
 ### Meccanismo di cache (scelto in M0, 2026-11-19)
 
@@ -77,6 +77,11 @@ Ogni pagina del Dettaglio si genera alla prima visita (`generateStaticParams` vu
 - **Settimane future:** al massimo 12 dopo quella corrente; il parametro della settimana è validato (una data di lunedì, non nel passato, entro il tetto) prima di chiamare AniList.
 - **Costo:** 1 richiesta all'ora per la settimana corrente, condivisa da tutti, più 1 all'ora per ogni settimana futura aperta da qualcuno.
 - **Prova sui dati veri (2026-11-20, nel fuso di Roma, senza login):** settimana del 16–22 novembre con 120 episodi (da 8 a 31 al giorno), quella successiva con 132; nessun anime per adulti; "Solo la mia lista" sulla lista demo lascia l'unico anime della lista in onda quella settimana. Una richiesta per settimana, come previsto.
+
+### Statistiche (M6, 2026-11-23)
+
+- **Nessuna richiesta in più.** Le statistiche si calcolano dalla lista già letta: con il login quella della sessione (ADR-0004), senza login la lista demo in cache. Alla query della lista si aggiungono generi e studi, quindi dopo il deploy la lista demo si scarica una volta con la query nuova, poi torna a una richiesta all'ora.
+- **Prova sui dati veri** (server di sviluppo, senza login, lista demo di 96 voci): 3830 episodi visti, 1527 ore, voto medio 8,8, 89 anime con un voto; primi generi Azione 76, Drammatico 46, Avventura 44; primi studi MAPPA 16, bones 13, Studio Pierrot 13. Una richiesta per la lista demo, più tre richieste a mano per capire gli studi (vedi SPEC, "Statistiche").
 
 ### Ricerca
 

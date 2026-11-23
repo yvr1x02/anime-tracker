@@ -42,3 +42,5 @@ Le versioni esatte delle librerie si verificano in M0, al momento dell'installaz
 ## Nota successiva
 
 **2026-11-19, [ADR-0004](0004-client-anilist-con-login.md):** Zustand, previsto da ADR-0002 per la lista nel browser, non fa parte dello stack. La lista vive su AniList ed è stato del server, gestito con TanStack Query già scelto qui, con la cache solo in memoria.
+
+**2026-11-23, M6:** Recharts non fa parte dello stack; i grafici sono disegnati in HTML e CSS. La SPEC vuole le barre della distribuzione dei voti come pulsanti con `aria-pressed` e un nome completo ("Voto 8: 12 anime"). La documentazione di Recharts 3.11.0, verificata il 2026-11-23, non lo prevede: con `accessibilityLayer` (attivo di default) il grafico è un solo elemento della tabulazione con `role="application"`, le frecce spostano il tooltip, e barre focalizzabili con ruolo e stato non sono documentate (sarebbero possibili solo forzando il prop `shape`). In più Recharts porta 11 dipendenze proprie (fra cui Redux Toolkit, react-redux e immer) per due grafici a barre. In HTML e CSS le barre sono `<button>` veri, senza dipendenze; l'alternativa testuale dei dati resta obbligatoria.
