@@ -58,7 +58,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 - Settimana corrente e settimane successive.
 - Orari nel fuso del browser, con test su fusi espliciti.
-- Filtro "solo la mia lista", disattivato senza login.
+- Filtro "solo la mia lista"; senza login usa la lista pubblica del profilo demo, con l'avviso (decisione del 2026-11-20, SPEC e ADR-0004).
 
 ## M6 — Statistiche
 
