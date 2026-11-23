@@ -4,7 +4,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 **Regola per ogni milestone:** ogni nuova pagina entra nel controllo di accessibilità di `e2e/accessibility.spec.ts` (axe, WCAG 2.2 AA) nello stesso commit che la aggiunge.
 
-**Milestone attiva:** M5
+**Milestone attiva:** M6
 
 ## M0 — Fondamenta (completata il 2026-11-19)
 
@@ -54,7 +54,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Durata degli episodi (`Media.duration`) aggiunta ai campi della lista: nessuna richiesta in più.
 - Prima di scrivere codice: piano con posizione nella pagina, regole di scelta e casi senza proposte.
 
-## M5 — Calendario
+## M5 — Calendario (completata il 2026-11-20)
 
 - Settimana corrente e settimane successive.
 - Orari nel fuso del browser, con test su fusi espliciti.
@@ -79,6 +79,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 - Accessibilità, versione mobile, stati vuoti e di errore.
 - README con screenshot.
+- Calendario, risposta di AniList con stato 200 e un errore su una pagina (ADR-0003): da rivedere se si presenta in produzione.
 
 ## Dopo la v1
 
