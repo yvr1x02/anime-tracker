@@ -45,3 +45,17 @@ export function applyListRules(
   }
   return ruled;
 }
+
+type Saved = { status: MediaListStatus | null; score: number | null; media: { episodes: number | null } };
+
+/**
+ * Status and score of an entry once AniList has saved `change`. AniList completes by itself an entry watched
+ * up to the last episode (ADR-0004, "Completamento automatico"), so a card can leave a filter it still matches.
+ */
+export function savedStatusAndScore(entry: Saved, change: EntryChange): { status: MediaListStatus | null; score: number } {
+  const status = change.status ?? entry.status;
+  // Only predicted when the episodes change: that is when AniList was seen completing an entry.
+  const completes =
+    status === "CURRENT" && change.progress !== undefined && Boolean(entry.media.episodes) && change.progress >= (entry.media.episodes ?? 0);
+  return { status: completes ? "COMPLETED" : status, score: change.score ?? entry.score ?? 0 };
+}

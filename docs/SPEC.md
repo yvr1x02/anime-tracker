@@ -66,6 +66,7 @@ Gli anime della lista AniList dell'utente, filtrabili per stato. Per ogni voce s
   - Le barre si usano da tastiera: ognuna è un pulsante con lo stato premuto (`aria-pressed`) e un nome completo, per esempio "Voto 8: 12 anime".
   - Alternativa testuale: gli stessi numeri in una tabella, leggibile da lettori di schermo e da chi non vede il grafico, dentro un `<details>` "Dati del grafico in tabella".
   - È lo stesso componente della "Distribuzione dei voti" delle Statistiche.
+- **Card che lascia la lista mostrata** (eliminata, o fuori dai filtri attivi dopo una modifica, compreso un "+1" sull'ultimo episodio che AniList fa diventare "Completato"): il focus passa alla card successiva o al titolo dell'elenco, con un annuncio per i lettori di schermo, come in "Continua a guardare" (decisione del 2026-11-23).
 
 ### 5. Calendario della settimana
 

@@ -286,6 +286,7 @@ Nella lista, sotto il numero di episodi, una riga in `small` `ink-muted` con sta
 - La copertina ha `alt=""`: il titolo è già accanto.
 - Il badge "in onda" ha un prefisso per lettori di schermo ("Prossimo episodio:") e non intercetta i clic.
 - La copertina ha proporzioni fisse anche prima del caricamento: nessuno spostamento del layout.
+- **Card che lascia La mia lista** (eliminata, o fuori dai filtri dopo una modifica o un "+1" che fa completare l'anime): come in "Continua a guardare", il focus va al titolo della card successiva o, dopo l'ultima, al titolo "Anime della lista", che è solo per i lettori di schermo e diventa visibile mentre ha il focus. Una regione `role="status"` dice perché: "{titolo}: eliminato dalla lista", "{titolo}: passato a «In pausa»", "{titolo}: voto 7,5".
 
 ### Pulsante "+"
 

@@ -55,6 +55,9 @@ test("/api/list without a session answers 401 and is never cached", async ({ req
   expect(response.headers()["cache-control"]).toContain("no-store");
 });
 
+// Next.js has its own live regions: pick ours by its text.
+const status = (page: Page, text: string) => page.getByRole("status").filter({ hasText: text });
+
 const card = (page: import("@playwright/test").Page, title: string) =>
   page.getByRole("article").filter({ has: page.getByRole("heading", { name: title }) });
 
@@ -199,6 +202,73 @@ test.describe("editing", () => {
     await expect(bars.getByRole("button", { name: "Voto 7: 1 anime" })).toBeVisible();
     await expect(bars.getByRole("button", { name: "Voto 9: 0 anime" })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByText("Nessun anime con voto 9.")).toBeVisible();
+    // The card left the filter: focus went to the list's heading, which shows while focused.
+    await expect(page.getByRole("heading", { name: "Anime della lista" })).toBeFocused();
+    await expect(page.getByRole("heading", { name: "Anime della lista" })).toBeVisible();
+    await expect(status(page, "Hoshi no Kioku: voto 7,5")).toHaveCount(1);
+  });
+
+  // User's list: Senza palinsesto (Sto guardando, 0 of 1 episode) first, then Hoshi no Kioku (Completato, voto 9).
+  test.describe("focus when a card leaves the list shown", () => {
+    test("removing a card moves focus to the next card's title, and says so", async ({ page }) => {
+      await logIn(page, "/lista");
+
+      await card(page, "Senza palinsesto").getByRole("button", { name: "Modifica: Senza palinsesto" }).focus();
+      await page.keyboard.press("Enter");
+      const dialog = page.getByRole("dialog");
+      await dialog.getByRole("button", { name: "Elimina dalla lista" }).focus();
+      await page.keyboard.press("Enter");
+      await dialog.getByRole("button", { name: "Elimina", exact: true }).focus();
+      await page.keyboard.press("Enter");
+
+      await expect(dialog).toBeHidden();
+      await expect(card(page, "Senza palinsesto")).toHaveCount(0);
+      await expect(card(page, "Hoshi no Kioku").getByRole("link", { name: "Hoshi no Kioku", exact: true })).toBeFocused();
+      await expect(status(page, "Senza palinsesto: eliminato dalla lista")).toHaveCount(1);
+    });
+
+    test("a new status out of the status filter moves focus to the list's heading after the last card", async ({ page }) => {
+      await logIn(page, "/lista");
+      await page.getByRole("group", { name: "Filtra per stato" }).getByRole("button", { name: "Sto guardando (1)" }).click();
+
+      await card(page, "Senza palinsesto").getByRole("button", { name: "Modifica: Senza palinsesto" }).focus();
+      await page.keyboard.press("Enter");
+      const dialog = page.getByRole("dialog");
+      await expect(dialog.getByLabel("Stato")).toBeFocused();
+      await page.keyboard.type("In pa");
+      await page.keyboard.press("Tab");
+      await page.keyboard.press("Enter");
+
+      await expect(dialog).toBeHidden();
+      await expect(page.getByRole("heading", { name: "Anime della lista" })).toBeFocused();
+      await expect(status(page, "Senza palinsesto: passato a «In pausa»")).toHaveCount(1);
+      await expect(page.getByText("Nessun anime in «Sto guardando».")).toBeVisible();
+    });
+
+    test("a +1 on the last episode under Sto guardando moves focus first, as AniList completes the entry", async ({ page }) => {
+      await logIn(page, "/lista");
+      await page.getByRole("group", { name: "Filtra per stato" }).getByRole("button", { name: "Sto guardando (1)" }).click();
+
+      await card(page, "Senza palinsesto").getByRole("button", { name: "+1 episodio visto: Senza palinsesto" }).focus();
+      await page.keyboard.press("Enter");
+
+      await expect(page.getByRole("heading", { name: "Anime della lista" })).toBeFocused();
+      await expect(status(page, "Senza palinsesto: passato a «Completato»")).toHaveCount(1);
+      await expect(card(page, "Senza palinsesto")).toHaveCount(0);
+    });
+
+    test("a change that keeps the card in the filters leaves focus alone", async ({ page }) => {
+      await logIn(page, "/lista");
+      const edit = card(page, "Hoshi no Kioku").getByRole("button", { name: "Modifica: Hoshi no Kioku" });
+
+      await edit.focus();
+      await page.keyboard.press("Enter");
+      await page.getByRole("dialog").getByLabel("Note").fill("Da rivedere");
+      await page.getByRole("dialog").getByRole("button", { name: "Salva" }).press("Enter");
+
+      await expect(page.getByRole("dialog")).toBeHidden();
+      await expect(edit).toBeFocused();
+    });
   });
 
   test("an empty score clears it", async ({ page }) => {
