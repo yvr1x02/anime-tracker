@@ -14,7 +14,14 @@ const entry = (status: MediaListStatus, { progress = 0, score = 0, duration = 24
   status,
   progress,
   score,
-  media: { duration, genres, studios: { nodes: studios.map((name, id) => ({ id, name })) } },
+  // A name ending in "*" is a company that is not an animation studio, such as a publisher.
+  media: {
+    duration,
+    genres,
+    studios: {
+      nodes: studios.map((name, id) => ({ id, name: name.replace("*", ""), isAnimationStudio: !name.endsWith("*") })),
+    },
+  },
 });
 
 describe("scoreBar", () => {
@@ -118,10 +125,10 @@ describe("listStats", () => {
     expect(listStats([entry("COMPLETED", { genres: many })]).genres).toHaveLength(10);
   });
 
-  it("ranks the first 5 main studios without Da vedere", () => {
+  it("ranks the first 5 animation studios without Da vedere", () => {
     const stats = listStats([
-      entry("COMPLETED", { studios: ["Madhouse"] }),
-      entry("COMPLETED", { studios: ["Madhouse", "MAPPA"] }),
+      entry("COMPLETED", { studios: ["Madhouse", "Shueisha*", "Dentsu*"] }),
+      entry("COMPLETED", { studios: ["Madhouse", "MAPPA", "Shueisha*"] }),
       entry("PLANNING", { studios: ["Bones", "Bones", "Bones"] }),
       ...["A-1", "Bones", "CloverWorks", "David Production", "Kyoto Animation"].map((name) => entry("CURRENT", { studios: [name] })),
     ]);

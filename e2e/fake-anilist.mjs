@@ -22,7 +22,7 @@ const anime = {
     description:
       'Una storia inventata per i test &amp; nient&#39;altro.<br><br>\nSecondo paragrafo<script>alert("x")</script> con <i>corsivo</i><img src=x onerror="alert(1)">.',
     genres: ["Adventure", "Sci-Fi", "Isekai"],
-    studios: { nodes: [{ id: 10, name: "Studio di Prova" }] },
+    studios: { nodes: [{ id: 10, name: "Studio di Prova", isAnimationStudio: true }] },
     format: "TV",
     status: "FINISHED",
     episodes: 12,
@@ -60,7 +60,13 @@ const anime = {
     duration: 24,
     nextAiringEpisode: { episode: 6, airingAt: startedAt + 3 * 24 * HOUR },
     genres: ["Action", "Sci-Fi"],
-    studios: { nodes: [{ id: 11, name: "Studio Notte" }] },
+    // As the real AniList does inside a list, isMain lets a broadcaster through: Statistiche leaves it out.
+    studios: {
+      nodes: [
+        { id: 11, name: "Studio Notte", isAnimationStudio: true },
+        { id: 12, name: "Emittente di Prova", isAnimationStudio: false },
+      ],
+    },
   },
   // In Da vedere of the demo list: its genre and studio must not count as watched (Statistiche).
   13: {
@@ -71,7 +77,7 @@ const anime = {
     episodes: 1,
     duration: 150,
     genres: ["Romance"],
-    studios: { nodes: [{ id: 11, name: "Studio Notte" }] },
+    studios: { nodes: [{ id: 11, name: "Studio Notte", isAnimationStudio: true }] },
   },
   // Adult anime: the app must never show it, so queries ask for isAdult: false.
   3: { id: 3, isAdult: true, title: { romaji: "Solo per adulti" } },

@@ -213,10 +213,13 @@ export const ListEntryFields = graphql(`
         airingAt
       }
       genres
+      # Inside MediaListCollection AniList ignores isMain and returns every company (checked on 2026-11-23):
+      # the statistics keep the animation studios.
       studios(isMain: true) {
         nodes {
           id
           name
+          isAnimationStudio
         }
       }
     }

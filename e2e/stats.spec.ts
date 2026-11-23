@@ -19,7 +19,7 @@ test("without login, Statistiche shows the demo list's numbers, with the notice"
   await expect(number(page, "Droppato")).toHaveText("0");
 });
 
-test("genres and studios leave out Da vedere, ties in alphabetical order", async ({ page }) => {
+test("genres and studios leave out Da vedere, studios only animation ones, ties in alphabetical order", async ({ page }) => {
   await page.goto("/statistiche");
 
   const genres = page.getByRole("table", { name: /generi per numero di anime/ }).getByRole("row");
@@ -27,7 +27,7 @@ test("genres and studios leave out Da vedere, ties in alphabetical order", async
   await expect(page.getByRole("rowheader", { name: "Isekai" })).toHaveAttribute("lang", "en");
   await expect(page.getByText("Sentimentale")).toHaveCount(0);
 
-  // Studio Notte would count 2 with Film lungo, which is in Da vedere.
+  // Studio Notte would count 2 with Film lungo, which is in Da vedere; Emittente di Prova is not an animation studio.
   const studios = page.getByRole("region", { name: "Studi più presenti" }).getByRole("listitem");
   await expect(studios).toHaveText(["Studio di Prova · 1 anime", "Studio Notte · 1 anime"]);
 });

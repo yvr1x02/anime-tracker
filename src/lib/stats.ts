@@ -84,8 +84,11 @@ export function listStats(entries: readonly StatsEntry[]): ListStats {
       10,
       genreLabel,
     ),
+    // Animation studios only: in a list AniList's isMain also lets publishers and broadcasters through.
     studios: top(
-      watched.flatMap((entry) => (entry.media.studios?.nodes ?? []).flatMap((studio) => (studio ? [studio.name] : []))),
+      watched.flatMap((entry) =>
+        (entry.media.studios?.nodes ?? []).flatMap((studio) => (studio?.isAnimationStudio ? [studio.name] : [])),
+      ),
       5,
     ),
   };
