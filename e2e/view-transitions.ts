@@ -33,14 +33,29 @@ export function viewTransitions(page: Page): Promise<string[][]> {
   return page.evaluate(() => (window as unknown as { __viewTransitions: string[][] }).__viewTransitions);
 }
 
-/** Counts the covers that fly back by hand from now on (cover-transition.tsx), in `window.__coverFlights`. */
-export async function recordCoverFlights(page: Page) {
+export type BackAnimations = { copies: number; mostAtOnce: number; pageFades: number };
+
+/**
+ * Records the way back drawn by hand (cover-transition.tsx) from now on: copies of the cover added to the page, the
+ * most of them on the page at once, and fades of the page's content. Read with `backAnimations`.
+ */
+export async function recordBackAnimations(page: Page) {
   await page.evaluate(() => {
-    const counter = { count: 0 };
-    Object.defineProperty(window, "__coverFlights", { get: () => counter.count, configurable: true });
+    const seen: BackAnimations = { copies: 0, mostAtOnce: 0, pageFades: 0 };
+    Object.assign(window, { __backAnimations: seen });
     new MutationObserver((records) => {
       for (const record of records)
-        for (const node of record.addedNodes) if (node instanceof HTMLElement && "coverFlight" in node.dataset) counter.count++;
+        for (const node of record.addedNodes) if (node instanceof HTMLElement && "coverFlight" in node.dataset) seen.copies++;
+      seen.mostAtOnce = Math.max(seen.mostAtOnce, document.querySelectorAll("[data-cover-flight]").length);
     }).observe(document.body, { childList: true });
+    const animate = Element.prototype.animate;
+    Element.prototype.animate = function (this: Element, ...args: Parameters<Element["animate"]>) {
+      if (this.id === "contenuto") seen.pageFades++;
+      return animate.apply(this, args);
+    };
   });
+}
+
+export function backAnimations(page: Page): Promise<BackAnimations> {
+  return page.evaluate(() => (window as unknown as { __backAnimations: BackAnimations }).__backAnimations);
 }

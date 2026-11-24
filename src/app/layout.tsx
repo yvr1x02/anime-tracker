@@ -62,7 +62,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               </div>
             </div>
           </header>
-          <main id="contenuto" className="flex-1">
+          {/* tabIndex: focus lands here after Back when no card takes it (cover-transition.tsx). */}
+          <main id="contenuto" tabIndex={-1} className="flex-1 focus:outline-none">
             <ListEditingProvider>{children}</ListEditingProvider>
             <NavigationTracker />
           </main>
