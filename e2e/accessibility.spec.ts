@@ -1,7 +1,12 @@
 import { AxeBuilder } from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockAniList, searchResults } from "./anilist-browser";
-import { FAKE_ANILIST, logIn } from "./session";
+import { FAKE_ANILIST, logIn, resetMyList } from "./session";
+
+// Logged-in pages read this worker's test list: from its starting state, whatever ran before in the worker.
+test.beforeEach(async ({ request }) => {
+  await resetMyList(request);
+});
 
 // WCAG 2.0, 2.1 and 2.2 at levels A and AA. Every new page gets an entry here.
 const wcagAA = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];

@@ -1,12 +1,12 @@
 import { type Page, expect, test } from "@playwright/test";
 import { mockAniList, searchResults } from "./anilist-browser";
-import { FAKE_ANILIST, logIn } from "./session";
+import { FAKE_ANILIST, failNextSaves, logIn, resetMyList } from "./session";
 import { backAnimations, recordBackAnimations, recordViewTransitions, viewTransitions } from "./view-transitions";
 
-// The logged-in user's list lives in the fake AniList and changes: these tests run one at a time, from a reset.
-test.describe.configure({ mode: "serial" });
+// The logged-in user's list lives in the fake AniList and changes: each test starts from a reset of its worker's
+// own copy, which no other worker reads.
 test.beforeEach(async ({ request }) => {
-  await request.post(`${FAKE_ANILIST}/__reset`);
+  await resetMyList(request);
 });
 
 test("logged in, La mia lista is the user's own list, without the demo notice", async ({ page }) => {
@@ -45,7 +45,7 @@ test("a token AniList refuses ends the session: message, and all session cookies
   await page.goto("/lista");
 
   await expect(page.getByRole("status")).toContainText("La sessione con AniList è scaduta o è stata revocata.");
-  await expect.poll(async () => (await context.cookies()).map((cookie) => cookie.name)).toEqual([]);
+  await expect.poll(async () => (await context.cookies(page.url())).map((cookie) => cookie.name)).toEqual([]);
 });
 
 test("/api/list without a session answers 401 and is never cached", async ({ request }) => {
@@ -282,7 +282,7 @@ test.describe("editing", () => {
   });
 
   test("a change AniList refuses goes back and says so", async ({ page, request }) => {
-    await request.post(`${FAKE_ANILIST}/__fail-saves`, { data: { count: 1 } });
+    await failNextSaves(request, 1);
     await logIn(page, "/lista");
 
     await card(page, "Senza palinsesto").getByRole("button", { name: /\+1/ }).click();

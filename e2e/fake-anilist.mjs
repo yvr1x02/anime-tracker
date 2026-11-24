@@ -161,18 +161,24 @@ const demoLists = [
   },
 ];
 
-// The logged-in test user's own list (Viewer id 7). Changes go here; POST /__reset restores it.
+// The logged-in test user's own list (Viewer id 7), one copy per Playwright worker: the e2e-user cookie, set
+// by e2e/session.ts, picks it at login, so a worker changing its list never shows in another's. Changes go there;
+// POST /__reset with {"user"} restores one. Each copy also counts its own failing saves: POST /__fail-saves with
+// {"user", "count"} makes the next saves answer 500, to test going back to the previous value.
 const initialMyLists = () => [
   { entries: [listEntry(201, 4, "CURRENT", 0, 0, 600)] },
   { entries: [listEntry(202, 1, "COMPLETED", 12, 9, 500)] },
 ];
-let myLists = initialMyLists();
-// Each login gets its own token, all starting with the fake one the tests look for in leaks.
+const testUsers = new Map();
+function testUser(user = "default") {
+  if (!testUsers.has(user)) testUsers.set(user, { lists: initialMyLists(), failingSaves: 0 });
+  return testUsers.get(user);
+}
+// Each login gets its own token, all starting with the fake one the tests look for in leaks, tied to its user.
 // POST /__revoke with {"token"} stops one, as when a user revokes the app: other tests' logins keep working.
 let tokensIssued = 0;
+const tokenUsers = new Map();
 const revokedTokens = new Set();
-// POST /__fail-saves with {"count"}: the next saves answer 500, to test going back to the previous value.
-let failingSaves = 0;
 // POST /__fail-schedule with {"from", "status"}: the next calendar answer for that window fails on its third
 // page (HTTP status, 500 by default, with the first two pages in the body), as when AniList breaks halfway
 // through a week. One week only, so tests running alongside are not hit.
@@ -181,7 +187,7 @@ let nextEntryId = 300;
 
 // Like AniList: one entry per anime; only the variables sent change; scoreRaw is out of 100 and the list
 // reads it back as POINT_10_DECIMAL.
-function saveEntry({ mediaId, scoreRaw, ...changes }) {
+function saveEntry(myLists, { mediaId, scoreRaw, ...changes }) {
   let entry = myLists.flatMap((list) => list.entries).find((item) => item.media.id === mediaId);
   if (!entry) {
     entry = listEntry(nextEntryId++, mediaId, "PLANNING", 0, 0, 0);
@@ -198,7 +204,7 @@ function saveEntry({ mediaId, scoreRaw, ...changes }) {
   return { SaveMediaListEntry: entry };
 }
 
-function deleteEntry({ id }) {
+function deleteEntry(myLists, { id }) {
   for (const list of myLists) list.entries = list.entries.filter((entry) => entry.id !== id);
   return { DeleteMediaListEntry: { deleted: true } };
 }
@@ -242,7 +248,8 @@ http
     if (request.method === "GET" && url.pathname === "/oauth/authorize") {
       const redirect = new URL(url.searchParams.get("redirect_uri"));
       const known = url.searchParams.get("client_id") === oauth.clientId;
-      redirect.searchParams.set(known ? "code" : "error", known ? oauth.code : "invalid_client");
+      const user = request.headers.cookie?.match(/(?:^|; )e2e-user=([^;]+)/)?.[1];
+      redirect.searchParams.set(known ? "code" : "error", known ? (user ? `${oauth.code}.${user}` : oauth.code) : "invalid_client");
       if (url.searchParams.has("state")) redirect.searchParams.set("state", url.searchParams.get("state"));
       response.writeHead(302, { Location: redirect.toString() });
       response.end();
@@ -258,16 +265,15 @@ http
       response.end("fake AniList");
       return;
     }
-    if (url.pathname === "/__reset") {
-      myLists = initialMyLists();
-      failingSaves = 0;
-      response.writeHead(204);
-      response.end();
-      return;
-    }
     let body = "";
     request.on("data", (chunk) => (body += chunk));
     request.on("end", () => {
+      if (url.pathname === "/__reset") {
+        testUsers.delete(JSON.parse(body || "{}").user);
+        response.writeHead(204);
+        response.end();
+        return;
+      }
       if (url.pathname === "/__fail-schedule") {
         const { from, status = 500 } = JSON.parse(body);
         failingSchedule = { from, status };
@@ -276,7 +282,8 @@ http
         return;
       }
       if (url.pathname === "/__fail-saves") {
-        failingSaves = JSON.parse(body).count;
+        const { user, count } = JSON.parse(body);
+        testUser(user).failingSaves = count;
         response.writeHead(204);
         response.end();
         return;
@@ -289,13 +296,15 @@ http
       }
       if (url.pathname === "/oauth/token") {
         const grant = JSON.parse(body);
+        const [code, user] = String(grant.code).split(".");
         const valid =
           grant.grant_type === "authorization_code" &&
           grant.client_id === oauth.clientId &&
           grant.client_secret === oauth.clientSecret &&
-          grant.code === oauth.code;
+          code === oauth.code;
         response.writeHead(valid ? 200 : 400, { "Content-Type": "application/json" });
         const token = `${oauth.accessToken}-${++tokensIssued}`;
+        if (valid) tokenUsers.set(token, user);
         response.end(JSON.stringify(valid ? { token_type: "Bearer", access_token: token } : { error: "invalid_grant" }));
         return;
       }
@@ -313,19 +322,20 @@ http
           response.end(JSON.stringify(invalidToken));
           return;
         }
-        if (failingSaves > 0) {
-          failingSaves--;
+        const user = testUser(tokenUsers.get(token));
+        if (user.failingSaves > 0) {
+          user.failingSaves--;
           response.writeHead(500, { "Content-Type": "application/json" });
           response.end(JSON.stringify({ data: null, errors: [{ message: "Internal error", status: 500 }] }));
           return;
         }
         response.writeHead(200, { "Content-Type": "application/json" });
-        response.end(JSON.stringify({ data: query.includes("mutation SaveListEntry") ? saveEntry(variables) : deleteEntry(variables) }));
+        response.end(JSON.stringify({ data: query.includes("mutation SaveListEntry") ? saveEntry(user.lists, variables) : deleteEntry(user.lists, variables) }));
         return;
       }
       if (query.includes("query UserAnimeList") && variables?.userId === viewer.id) {
         response.writeHead(authorized ? 200 : 404, { "Content-Type": "application/json" });
-        response.end(JSON.stringify(authorized ? { data: { MediaListCollection: { lists: myLists } } } : notFound));
+        response.end(JSON.stringify(authorized ? { data: { MediaListCollection: { lists: testUser(tokenUsers.get(token)).lists } } } : notFound));
         return;
       }
       if (query.includes("query UserAnimeList")) {
