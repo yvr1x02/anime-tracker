@@ -127,6 +127,53 @@
     box-shadow: 0 28px 64px -12px var(--tint-cover-glow);
   }
 
+  /*
+   * View Transitions (docs/DESIGN.md): card → Detail. The cover moves, the rest of the page fades, the header
+   * stays still above it. Clicks go through to the page underneath.
+   */
+  .site-header {
+    view-transition-name: site-header;
+  }
+
+  ::view-transition {
+    pointer-events: none;
+  }
+
+  ::view-transition-group(site-header) {
+    z-index: 100;
+    animation: none;
+  }
+
+  ::view-transition-old(site-header) {
+    display: none;
+  }
+
+  ::view-transition-new(site-header) {
+    animation: none;
+  }
+
+  ::view-transition-old(root) {
+    animation-duration: calc(var(--duration-base) * 0.7);
+    animation-timing-function: var(--ease-in);
+  }
+
+  ::view-transition-new(root) {
+    animation-duration: var(--duration-base);
+    animation-timing-function: var(--ease-out);
+  }
+
+  ::view-transition-group(.cover) {
+    animation-duration: 400ms;
+    animation-timing-function: var(--spring-gentle);
+  }
+
+  /* Reduced motion: no element has a name, so the whole page only fades (150ms at most). Not html: it is the page. */
+  @media (prefers-reduced-motion: reduce) {
+    body * {
+      view-transition-name: none !important;
+    }
+  }
+
   /* docs/DESIGN.md, "Pulsanti e filtri": pressed in 100ms, released with a spring. */
   .button {
     min-height: 2.75rem;

@@ -410,13 +410,14 @@ I valori vengono da un piccolo script che simula una molla smorzata e semplifica
 ### View Transitions
 
 - In Next.js 16.4 si usa il componente `<ViewTransition>` di React 19.3, che si appoggia alla View Transitions API del browser. Non serve nessun flag di configurazione (`experimental.viewTransition` è stato rimosso in Next 16.3). Fonte: `node_modules/next/dist/docs/01-app/02-guides/view-transitions.md`, versione installata.
-- **Card → Dettaglio:** stesso `name` sulla copertina nelle due pagine (`cover-{id}`), con `share` esplicito e `default="none"`.
+- **Card → Dettaglio:** stesso `name` sulla copertina nelle due pagine (`cover-{id}`), con `share` esplicito e `default="none"`. Due nomi uguali nella stessa pagina annullano la transizione, e nella Home lo stesso anime può stare in "Continua a guardare" o nelle proposte di "Cosa guardo stasera?" e anche nella griglia della stagione: le card di queste due sezioni aggiungono un ambito al nome (`cover-continua-{id}`, `cover-stasera-{id}`). Il Dettaglio prende il nome della card su cui si è fatto clic; aperto in altro modo (ricerca rapida, striscia "in onda ora", indirizzo diretto) usa `cover-{id}` (decisione del 2026-11-24, `src/components/cover-transition.tsx`).
+- Le miniature del Calendario e della ricerca rapida non sono card e non hanno nome: aprendo il Dettaglio da lì la pagina si dissolve e basta.
 - **Filtro** (La mia lista, Calendario): ogni card ha un `name` (`card-{id}`) solo durante la transizione del filtro, per non far partecipare tutte le card a transizioni estranee.
 - **Anime in evidenza della Home:** si comporta come una card anche per la transizione verso il Dettaglio e per il ritorno, compreso il focus.
 - **Header fermo:** il gruppo `site-header` non ha animazione e sta sopra il resto (`z-index: 100`); la sua istantanea vecchia è nascosta, per non vedere due header sovrapposti.
 - **Durate e curve:** uscita della pagina (`::view-transition-old(root)`) 0,7 × `--duration-base` con `--ease-in`; entrata (`::view-transition-new(root)`) `--duration-base` con `--ease-out`; gruppi con nome 400ms `--spring-snappy`, tranne la copertina (`--spring-gentle`). Elementi che entrano senza corrispondente (`::view-transition-new(*):only-child`): da scala 0,92 e opacità 0, 300ms `--spring-gentle`; elementi che escono senza corrispondente (`::view-transition-old(*):only-child`): verso scala 0,92 e opacità 0, 150ms `--ease-in`.
 - **Focus dopo la navigazione:** va al titolo della nuova pagina (`tabindex="-1"`, senza anello perché non è interattivo); tornando indietro, al link della card da cui si era partiti. Il focus si sposta dentro l'aggiornamento della transizione, non prima.
-- **Navigazione con il tasto Indietro del browser:** la trasformazione della copertina funziona se entrambe le pagine hanno lo stesso `name`.
+- **Navigazione con il tasto Indietro del browser:** verificato il 2026-11-24 con React 19.3.1 e Next 16.4.6, il ritorno con Indietro (e con "← Torna indietro", che usa la cronologia per conservare i risultati della ricerca) non avvia nessuna View Transition: React non anima l'aggiornamento di un `popstate`, anche con lo stesso `name` nelle due pagine. La pagina cambia di colpo; il focus torna comunque sul link della card. Un link normale verso la pagina di partenza (per esempio il logo) la trasformazione la fa.
 
 ### Supporto dei browser
 
@@ -454,6 +455,11 @@ Con `prefers-reduced-motion: reduce` si toglie lo **spostamento**, non il riscon
 - Niente `backdrop-filter`; il bagliore è un'ombra disegnata una volta di cui si anima solo l'opacità.
 - **Criterio:** ogni effetto si misura con **Chrome DevTools, CPU rallentata 4×** (Performance, riga "Frames"). Se perde frame si semplifica: il riposizionamento e la trasformazione card → Dettaglio diventano dissolvenze, l'inclinazione si toglie, le animazioni dello scroll si riducono alla sola opacità.
 - **Stato della misura:** l'anteprima ha una vista "Misure" che esegue ogni effetto e registra i frame. La misura non è ancora valida: durante la prova il computer era sotto carico (load average 40, `brew upgrade` stava compilando LLVM) e anche la pagina ferma perdeva frame. Non si ripete sull'anteprima: si misura sull'app vera, a partire dalla transizione card → Dettaglio in M1 (decisione del 2026-11-19).
+- **Misura della transizione card → Dettaglio (M7, 2026-11-24).** Build di produzione con i dati veri di AniList, Chrome 158 con finestra (non headless) a 1280×800, CPU rallentata 4× con lo stesso comando di DevTools (`Emulation.setCPUThrottlingRate` via CDP, da Playwright), load average 2–3. Frame contati due volte: con `requestAnimationFrame` sul thread principale e con gli eventi `Display::FrameDisplayed` / `DroppedFrame` della traccia di Chrome, gli stessi della riga "Frames" di DevTools. Prima di ogni clic, un secondo di pagina ferma: 61 frame, nessuno perso.
+  - **Trasformazione della copertina** (400ms): in 20 corse su 23 (anime in evidenza e card della griglia; a caldo, con contesto nuovo a ogni corsa e con Chrome appena avviato) 26–28 frame sul thread principale, buco massimo 18ms, nessun frame perso; nella traccia 0–1 `DroppedFrame`, il frame della cattura iniziale (un long animation frame di 60–90ms all'avvio della transizione).
+  - **Sola dissolvenza** (le copertine senza nome, per confronto): lo stesso frame della cattura, 1–2 `DroppedFrame` per corsa.
+  - In 3 corse su 23, tutte tra le prime dopo l'avvio del server o di Chrome, la trasformazione ha perso 7–17 frame (blocchi del thread principale di 80–250ms); non si sono più ripetute nelle corse successive.
+  - **Esito:** la trasformazione resta. Non perde frame oltre a quello che perde anche la dissolvenza, tranne nei 3 casi a freddo. Se si vuole la regola alla lettera anche su quelli, si passa alla dissolvenza togliendo il nome alle copertine (una regola CSS).
 - Obiettivi generali: **INP ≤ 200ms**, **CLS ≤ 0,1**, **LCP ≤ 2,5s**; copertine con proporzioni dichiarate e caricamento differito sotto la piega; font precaricati da `next/font`, tranne quello giapponese.
 
 ## Token in Tailwind v4
@@ -464,7 +470,7 @@ I colori del testo si chiamano `ink` e `ink-muted`: in Tailwind il prefisso `tex
 
 ## Da decidere o verificare più avanti
 
-- **Misura con CPU 4× (M1):** ogni effetto sull'app vera, a macchina scarica, a partire dalla transizione card → Dettaglio (vedi budget).
+- **Misura con CPU 4× (M1):** ogni effetto sull'app vera, a macchina scarica, a partire dalla transizione card → Dettaglio (vedi budget). La transizione card → Dettaglio è misurata in M7 (vedi "Budget di prestazioni"); gli altri effetti no.
 - **Ottimizzazione delle copertine (M1):** `next/image` passa dall'ottimizzazione di Vercel, che sul piano gratuito ha limiti mensili; l'alternativa è `<img>` con gli URL di AniList, che offre già tre dimensioni (`medium`, `large`, `extraLarge`).
 - **Noto Sans JP:** byte scaricati su un sistema senza font giapponesi e spazio nella build.
 - **Pulsante "+" (M2):** cosa succede premendolo quando l'anime è già nella lista.

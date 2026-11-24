@@ -6,14 +6,26 @@ import { type MouseEvent, useEffect, useRef } from "react";
 
 // True once the visitor has moved between pages of the app, so "back" stays inside it.
 let navigatedInApp = false;
+// The page shown before the current commit; null until the first page has hydrated.
+let shownPathname: string | null = null;
+
+/**
+ * The pathname committed before this render: read in a layout effect during a client navigation, it is the page
+ * being left. Null on the page the visitor opened directly.
+ */
+export function previousPathname() {
+  return shownPathname;
+}
 
 /** Mounted once in the layout: notices client-side navigations. */
 export function NavigationTracker() {
   const pathname = usePathname();
   const firstPathname = useRef(pathname);
 
+  // A passive effect runs after the new page's layout effects, which still see the page being left.
   useEffect(() => {
     if (pathname !== firstPathname.current) navigatedInApp = true;
+    shownPathname = pathname;
   }, [pathname]);
 
   return null;

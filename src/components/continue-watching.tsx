@@ -101,7 +101,7 @@ export function ContinueWatching() {
       <ul className={`${cardGrid} mt-4 empty:hidden`}>
         {items.map(({ entry, behind }, index) => (
           <li key={entry.id} id={`continua-${entry.media.id}`}>
-            <AnimeCard anime={entry.media}>
+            <AnimeCard anime={entry.media} transitionScope="continua">
               {entry.status === "REPEATING" && (
                 <p>
                   <span className="rounded-control bg-raised px-2 py-0.5 text-label uppercase">Rewatch</span>

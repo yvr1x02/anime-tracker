@@ -201,7 +201,7 @@ function resultsView({
         <ul className={`${cardGrid} mt-3`}>
           {current.map((suggestion) => (
             <li key={suggestion.entry.id}>
-              <AnimeCard anime={suggestion.entry.media}>
+              <AnimeCard anime={suggestion.entry.media} transitionScope="stasera">
                 <p className="text-small font-medium text-cyan tabular-nums">{suggestion.reason}</p>
                 {suggestion.since && <p className="text-small text-ink-muted">{suggestion.since}</p>}
               </AnimeCard>

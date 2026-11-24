@@ -42,7 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         {/* Around the header too: the quick search in it shares the search cache with /ricerca. */}
         <QueryProvider>
-          <header className="sticky top-0 z-40 h-16 border-b border-border bg-bg">
+          <header className="site-header sticky top-0 z-40 h-16 border-b border-border bg-bg">
             <div className={`${pageContainer} flex h-full items-center justify-between gap-4`}>
               <Link
                 href="/"

@@ -1,6 +1,7 @@
 import { type Page, expect, test } from "@playwright/test";
 import { mockAniList, searchResults } from "./anilist-browser";
 import { FAKE_ANILIST, logIn } from "./session";
+import { recordViewTransitions, viewTransitions } from "./view-transitions";
 
 // The logged-in user's list lives in the fake AniList and changes: these tests run one at a time, from a reset.
 test.describe.configure({ mode: "serial" });
@@ -428,6 +429,20 @@ test.describe("Continua a guardare", () => {
     await listRead;
     await expect(section).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Gli altri anime della stagione" })).toHaveCSS("position", "absolute");
+  });
+
+  test("an anime both here and in the season grid morphs from the card clicked, and focus comes back to it", async ({ page }) => {
+    // Senza palinsesto (4) is in both grids: equal names would stop the transition (docs/DESIGN.md, "View Transitions").
+    await recordViewTransitions(page);
+    await logIn(page, "/");
+    const card = page.getByRole("region", { name: "Continua a guardare" }).getByRole("link", { name: "Senza palinsesto" });
+
+    await card.click();
+
+    await expect(page).toHaveURL("/anime/4");
+    await expect.poll(() => viewTransitions(page)).toEqual([expect.arrayContaining(["cover-continua-4"])]);
+    await page.goBack();
+    await expect(card).toBeFocused();
   });
 
   test("from the keyboard, catching up moves focus to the next card, then to the heading, and says so", async ({ page }) => {

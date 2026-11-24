@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { type PointerEvent, type ReactNode, useEffect, useRef } from "react";
 import { CoverImage } from "@/components/cover-image";
+import { CardCover, CardLink } from "@/components/cover-transition";
 import type { MediaFormat, MediaSeason, MediaStatus } from "@/gql/graphql";
 import { type AiringEpisode, formatCardAiring, toISO, upcomingEpisodes } from "@/lib/airing";
 import { animeTitle, episodesLabel, formatSeasonLine } from "@/lib/anime-labels";
@@ -40,11 +40,14 @@ function canTilt(event: PointerEvent) {
 export function AnimeCard({
   anime,
   action,
+  transitionScope,
   children,
 }: {
   anime: AnimeCardData;
   /** On the cover's top right, above the stretched link: the list's "+". */
   action?: ReactNode;
+  /** For cards outside the page's main grid, whose anime can be in it too (cover-transition.tsx). */
+  transitionScope?: string;
   children?: ReactNode;
 }) {
   const title = animeTitle(anime.title);
@@ -85,16 +88,18 @@ export function AnimeCard({
       onPointerLeave={flatten}
     >
       <div className="relative">
-        <CoverImage cover={cover} title={title} sizes={COVER_SIZES} className="rounded-t-panel" />
+        <CardCover id={anime.id} scope={transitionScope}>
+          <CoverImage cover={cover} title={title} sizes={COVER_SIZES} className="rounded-t-panel" />
+        </CardCover>
         <AiringBadge next={anime.nextAiringEpisode} />
         {action && <div className="absolute top-2 right-2 z-10">{action}</div>}
       </div>
       <div className="flex flex-col gap-1 p-3">
         {label && <p className="text-label uppercase text-ink-muted">{label}</p>}
         <h3 className="line-clamp-2 text-h3">
-          <Link href={`/anime/${anime.id}`} className="anime-card-link">
+          <CardLink id={anime.id} scope={transitionScope} className="anime-card-link">
             {title}
-          </Link>
+          </CardLink>
         </h3>
         {anime.episodes ? <p className="text-small text-ink-muted tabular-nums">{episodesLabel(anime.episodes)}</p> : null}
         {children}
