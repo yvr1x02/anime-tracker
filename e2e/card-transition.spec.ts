@@ -71,3 +71,29 @@ test("a Detail page opened directly leaves focus alone", async ({ page }) => {
 
   await expect(page.locator("body")).toBeFocused();
 });
+
+test("a link clicked while the cover flies: the copy goes with the page, nothing left running", async ({ page }) => {
+  const featured = page.getByRole("heading", { level: 2, name: "Hoshi no Kioku" }).getByRole("link");
+  await page.goto("/");
+  await featured.click();
+  await expect(page.getByRole("heading", { level: 1, name: "Hoshi no Kioku" })).toBeFocused();
+
+  // Back, then Calendario 80ms into the 400ms flight; counted in the page, where Playwright's own steps take no time.
+  const seen = await page.evaluate(async () => {
+    const flying = () => document.querySelectorAll("[data-cover-flight]").length;
+    history.back();
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    const during = flying();
+    const card = document.querySelector<HTMLElement>(".featured-anime [data-cover]")!;
+    document.querySelector<HTMLElement>('header a[href="/calendario"]')!.click();
+    while (location.pathname !== "/calendario" || card.isConnected) await new Promise((resolve) => setTimeout(resolve, 5));
+    await Promise.resolve();
+    const running = document
+      .getAnimations()
+      .filter((animation) => ((animation.effect as KeyframeEffect).target as HTMLElement | null)?.dataset.coverFlight !== undefined);
+    return { during, after: flying(), running: running.length, cardVisibility: card.style.visibility };
+  });
+
+  expect(seen).toEqual({ during: 1, after: 0, running: 0, cardVisibility: "" });
+  await expect(page.locator("[data-cover-flight]")).toHaveCount(0);
+});
