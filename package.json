@@ -15,7 +15,8 @@
     "prebuild": "npm run codegen",
     "pretypecheck": "npm run codegen",
     "test:e2e": "playwright test",
-    "check:secret": "node scripts/check-secret.mjs"
+    "check:secret": "node scripts/check-secret.mjs",
+    "screenshots": "playwright test -c playwright.screenshots.config.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "5.108.1",

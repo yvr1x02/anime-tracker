@@ -1,6 +1,7 @@
 // Fake AniList for the e2e tests: the app server points here through ANILIST_API_URL,
 // so tests never spend the real rate limit. All data is invented.
 import http from "node:http";
+import { coverSvg, showcase } from "./showcase.mjs";
 
 const PORT = 3999;
 const HOUR = 3600;
@@ -151,7 +152,7 @@ const listEntry = (id, mediaId, status, progress, score, updatedAt, createdAt = 
 });
 // For Cosa guardo stasera?: Hoshi no Kioku with 7 to go (finished), Serie in corso 2 behind (airing),
 // and two in Da vedere added 150 and 40 days ago. Scores 8, 8,5 and 6 for the score chart.
-const demoLists = [
+let demoLists = [
   { entries: [listEntry(101, 1, "CURRENT", 5, 8, 300), listEntry(105, 11, "CURRENT", 3, 6, 400)] },
   { entries: [listEntry(102, 4, "COMPLETED", 1, 8.5, 200)] },
   { entries: [listEntry(103, 3, "PLANNING", 0, 0, 500), listEntry(106, 13, "PLANNING", 0, 0, 450, startedAt - 40 * DAY)] },
@@ -165,7 +166,7 @@ const demoLists = [
 // by e2e/session.ts, picks it at login, so a worker changing its list never shows in another's. Changes go there;
 // POST /__reset with {"user"} restores one. Each copy also counts its own failing saves: POST /__fail-saves with
 // {"user", "count"} makes the next saves answer 500, to test going back to the previous value.
-const initialMyLists = () => [
+let initialMyLists = () => [
   { entries: [listEntry(201, 4, "CURRENT", 0, 0, 600)] },
   { entries: [listEntry(202, 1, "COMPLETED", 12, 9, 500)] },
 ];
@@ -224,7 +225,7 @@ const romeHourAtUtcNoon = Number(
   new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", hourCycle: "h23" }).format(utcNoon * 1000),
 );
 const noon = utcNoon - (romeHourAtUtcNoon - 12) * HOUR;
-const calendar = [
+let calendar = [
   // Hoshi no Kioku: Ep. 12 an hour before noon (aired), Ep. 13 two hours after, Ep. 14 a week after.
   { id: 1012, episode: 12, airingAt: noon - HOUR, media: scheduleMedia(1) },
   { id: 1013, episode: 13, airingAt: noon + 2 * HOUR, media: scheduleMedia(1) },
@@ -234,6 +235,19 @@ const calendar = [
   { id: 1401, episode: 1, airingAt: noon + 3 * HOUR, media: scheduleMedia(4) },
   { id: 1301, episode: 2, airingAt: noon + 24 * HOUR, media: scheduleMedia(3) },
 ];
+
+// The Home's season: the same invented anime, most popular first.
+let seasonIds = [1, 4, 8];
+
+// FAKE_SHOWCASE=1, for the README's screenshots (npm run screenshots): richer invented data instead of the tests'.
+if (process.env.FAKE_SHOWCASE) {
+  const show = showcase({ base: `http://localhost:${PORT}`, noon, startedAt });
+  Object.assign(anime, show.anime);
+  seasonIds = show.season;
+  calendar = show.calendar;
+  demoLists = show.lists(listEntry);
+  initialMyLists = () => show.lists(listEntry);
+}
 
 const notFound = { data: { Media: null }, errors: [{ message: "Not Found.", status: 404 }] };
 // Anime 4 comes with a Date two hours old, as if served from a cache that has not been refreshed.
@@ -253,6 +267,13 @@ http
       if (url.searchParams.has("state")) redirect.searchParams.set("state", url.searchParams.get("state"));
       response.writeHead(302, { Location: redirect.toString() });
       response.end();
+      return;
+    }
+    // The showcase's covers, drawn from each anime's colour (e2e/showcase.mjs).
+    if (request.method === "GET" && url.pathname.startsWith("/covers/")) {
+      const svg = coverSvg(Number(url.pathname.match(/\/covers\/(\d+)\.svg$/)?.[1]));
+      response.writeHead(svg ? 200 : 404, { "Content-Type": "image/svg+xml", "Cache-Control": "max-age=3600" });
+      response.end(svg ?? "");
       return;
     }
     // When the fake started: tests work out where its invented episodes fall.
@@ -368,9 +389,9 @@ http
       }
       // The Home's season, whatever season is asked: the same invented anime, most popular first.
       if (query.includes("query SeasonAnime")) {
-        const season = [1, 4, 8].map(listMedia);
+        const season = seasonIds.map(listMedia);
         const upcoming = schedule.filter((node) => node.airingAt > Date.now() / 1000).sort((a, b) => a.airingAt - b.airingAt);
-        season[0].nextAiringEpisode = upcoming[0] ?? null;
+        if (!process.env.FAKE_SHOWCASE) season[0].nextAiringEpisode = upcoming[0] ?? null;
         response.writeHead(200, { "Content-Type": "application/json" });
         response.end(JSON.stringify({ data: { Page: { media: season } } }));
         return;
