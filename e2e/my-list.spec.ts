@@ -1,7 +1,7 @@
 import { type Page, expect, test } from "@playwright/test";
-import { currentMonday } from "../src/lib/week";
 import { mockAniList, searchResults } from "./anilist-browser";
 import { FAKE_ANILIST, logIn } from "./session";
+import { recordViewTransitions, viewTransitions } from "./view-transitions";
 
 // The logged-in user's list lives in the fake AniList and changes: these tests run one at a time, from a reset.
 test.describe.configure({ mode: "serial" });
@@ -28,8 +28,8 @@ test("the list is read once per session, not on every visit", async ({ page }) =
     if (request.url().endsWith("/api/list")) reads.push(request.url());
   });
 
-  await page.getByRole("link", { name: "Ricerca" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Ricerca" })).toBeVisible();
+  await page.getByRole("link", { name: "Calendario" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Calendario" })).toBeVisible();
   await page.getByRole("link", { name: "La mia lista" }).click();
 
   await expect(page.getByRole("article")).toHaveCount(2);
@@ -54,6 +54,9 @@ test("/api/list without a session answers 401 and is never cached", async ({ req
   expect(response.status()).toBe(401);
   expect(response.headers()["cache-control"]).toContain("no-store");
 });
+
+// Next.js has its own live regions: pick ours by its text.
+const status = (page: Page, text: string) => page.getByRole("status").filter({ hasText: text });
 
 const card = (page: import("@playwright/test").Page, title: string) =>
   page.getByRole("article").filter({ has: page.getByRole("heading", { name: title }) });
@@ -187,18 +190,82 @@ test.describe("editing", () => {
     await expect(card(page, "Hoshi no Kioku")).toContainText("12 visti · voto 8,5");
   });
 
-  test("a new score moves the anime to its bar, and out of a score filter", async ({ page }) => {
+  test("a new score takes the anime out of a score filter", async ({ page }) => {
     await logIn(page, "/lista?voto=9");
-    const bars = page.getByRole("group", { name: "Filtra per voto" });
     await expect(page.getByRole("article")).toHaveCount(1);
 
     await card(page, "Hoshi no Kioku").getByRole("button", { name: "Modifica: Hoshi no Kioku" }).click();
     await page.getByRole("dialog").getByLabel("Voto").fill("7,5");
     await page.getByRole("dialog").getByRole("button", { name: "Salva" }).click();
 
-    await expect(bars.getByRole("button", { name: "Voto 7: 1 anime" })).toBeVisible();
-    await expect(bars.getByRole("button", { name: "Voto 9: 0 anime" })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByText("Nessun anime con voto 9.")).toBeVisible();
+    // The card left the filter: focus went to the list's heading, which shows while focused.
+    await expect(page.getByRole("heading", { name: "Anime della lista" })).toBeFocused();
+    await expect(page.getByRole("heading", { name: "Anime della lista" })).toBeVisible();
+    await expect(status(page, "Hoshi no Kioku: voto 7,5")).toHaveCount(1);
+  });
+
+  // User's list: Senza palinsesto (Sto guardando, 0 of 1 episode) first, then Hoshi no Kioku (Completato, voto 9).
+  test.describe("focus when a card leaves the list shown", () => {
+    test("removing a card moves focus to the next card's title, and says so", async ({ page }) => {
+      await logIn(page, "/lista");
+
+      await card(page, "Senza palinsesto").getByRole("button", { name: "Modifica: Senza palinsesto" }).focus();
+      await page.keyboard.press("Enter");
+      const dialog = page.getByRole("dialog");
+      await dialog.getByRole("button", { name: "Elimina dalla lista" }).focus();
+      await page.keyboard.press("Enter");
+      await dialog.getByRole("button", { name: "Elimina", exact: true }).focus();
+      await page.keyboard.press("Enter");
+
+      await expect(dialog).toBeHidden();
+      await expect(card(page, "Senza palinsesto")).toHaveCount(0);
+      await expect(card(page, "Hoshi no Kioku").getByRole("link", { name: "Hoshi no Kioku", exact: true })).toBeFocused();
+      await expect(status(page, "Senza palinsesto: eliminato dalla lista")).toHaveCount(1);
+    });
+
+    test("a new status out of the status filter moves focus to the list's heading after the last card", async ({ page }) => {
+      await logIn(page, "/lista");
+      await page.getByRole("group", { name: "Filtra per stato" }).getByRole("button", { name: "Sto guardando (1)" }).click();
+
+      await card(page, "Senza palinsesto").getByRole("button", { name: "Modifica: Senza palinsesto" }).focus();
+      await page.keyboard.press("Enter");
+      const dialog = page.getByRole("dialog");
+      await expect(dialog.getByLabel("Stato")).toBeFocused();
+      await page.keyboard.type("In pa");
+      await page.keyboard.press("Tab");
+      await page.keyboard.press("Enter");
+
+      await expect(dialog).toBeHidden();
+      await expect(page.getByRole("heading", { name: "Anime della lista" })).toBeFocused();
+      await expect(status(page, "Senza palinsesto: passato a «In pausa»")).toHaveCount(1);
+      await expect(page.getByText("Nessun anime in «Sto guardando».")).toBeVisible();
+    });
+
+    test("a +1 on the last episode under Sto guardando moves focus first, as AniList completes the entry", async ({ page }) => {
+      await logIn(page, "/lista");
+      await page.getByRole("group", { name: "Filtra per stato" }).getByRole("button", { name: "Sto guardando (1)" }).click();
+
+      await card(page, "Senza palinsesto").getByRole("button", { name: "+1 episodio visto: Senza palinsesto" }).focus();
+      await page.keyboard.press("Enter");
+
+      await expect(page.getByRole("heading", { name: "Anime della lista" })).toBeFocused();
+      await expect(status(page, "Senza palinsesto: passato a «Completato»")).toHaveCount(1);
+      await expect(card(page, "Senza palinsesto")).toHaveCount(0);
+    });
+
+    test("a change that keeps the card in the filters leaves focus alone", async ({ page }) => {
+      await logIn(page, "/lista");
+      const edit = card(page, "Hoshi no Kioku").getByRole("button", { name: "Modifica: Hoshi no Kioku" });
+
+      await edit.focus();
+      await page.keyboard.press("Enter");
+      await page.getByRole("dialog").getByLabel("Note").fill("Da rivedere");
+      await page.getByRole("dialog").getByRole("button", { name: "Salva" }).press("Enter");
+
+      await expect(page.getByRole("dialog")).toBeHidden();
+      await expect(edit).toBeFocused();
+    });
   });
 
   test("an empty score clears it", async ({ page }) => {
@@ -364,6 +431,20 @@ test.describe("Continua a guardare", () => {
     await expect(page.getByRole("heading", { name: "Gli altri anime della stagione" })).toHaveCSS("position", "absolute");
   });
 
+  test("an anime both here and in the season grid morphs from the card clicked, and focus comes back to it", async ({ page }) => {
+    // Senza palinsesto (4) is in both grids: equal names would stop the transition (docs/DESIGN.md, "View Transitions").
+    await recordViewTransitions(page);
+    await logIn(page, "/");
+    const card = page.getByRole("region", { name: "Continua a guardare" }).getByRole("link", { name: "Senza palinsesto" });
+
+    await card.click();
+
+    await expect(page).toHaveURL("/anime/4");
+    await expect.poll(() => viewTransitions(page)).toEqual([expect.arrayContaining(["cover-continua-4"])]);
+    await page.goBack();
+    await expect(card).toBeFocused();
+  });
+
   test("from the keyboard, catching up moves focus to the next card, then to the heading, and says so", async ({ page }) => {
     await logIn(page, "/");
     // A second card with one episode to go: Hoshi no Kioku back to Sto guardando at 11 of 12.
@@ -507,12 +588,9 @@ test.describe("Calendario, logged in", () => {
   const calendar = (page: Page) => page.locator("main");
 
   test("logged in it filters on the user's own list", async ({ page, request }) => {
-    // Senza palinsesto airs three hours after the fake started: it must fall in this week here.
-    const { startedAt } = await (await request.get(`${FAKE_ANILIST}/__started`)).json();
-    test.skip(
-      currentMonday((startedAt + 3 * 3600) * 1000, "Europe/Rome") !== currentMonday(Date.now(), "Europe/Rome"),
-      "the episode falls in next week right now",
-    );
+    // Senza palinsesto airs at 15:00 on the fake's day (e2e/calendar.spec.ts): the browser's clock is fixed at noon.
+    const { noon } = await (await request.get(`${FAKE_ANILIST}/__started`)).json();
+    await page.clock.setFixedTime(noon * 1000);
     await logIn(page, "/calendario");
 
     await page.getByRole("group", { name: "Quali anime" }).getByRole("button", { name: "Solo la mia lista" }).click();

@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   addDays,
-  columnLabel,
   currentMonday,
-  dayLabel,
+  fullDayLabel,
   groupByDay,
   localDate,
   mondayOf,
+  parseDayParam,
   parseWeekParam,
+  tabLabel,
   weekRangeLabel,
   weekWindow,
 } from "./week";
@@ -62,6 +63,25 @@ describe("parseWeekParam", () => {
     ["2026-11-23T00:00", "with a time"],
   ])("refuses %s (%s)", (value) => {
     expect(parseWeekParam(value, utcMonday)).toBeNull();
+  });
+});
+
+describe("parseDayParam", () => {
+  const utcMonday = "2026-11-23";
+
+  it.each(["2026-11-23", "2026-11-26", "2026-11-17", "2027-02-28"])("accepts %s", (value) => {
+    expect(parseDayParam(value, utcMonday)).toBe(value);
+  });
+
+  it.each<[string | null, string]>([
+    [null, "missing"],
+    ["2026-11-15", "a day two weeks back"],
+    ["2027-03-01", "a day too far ahead"],
+    ["2026-02-30", "not a date"],
+    ["26-11-2026", "wrong format"],
+    ["2026-11-26T00:00", "with a time"],
+  ])("refuses %s (%s)", (value) => {
+    expect(parseDayParam(value, utcMonday)).toBeNull();
   });
 });
 
@@ -130,11 +150,10 @@ describe("groupByDay", () => {
 });
 
 describe("labels", () => {
-  it("names columns and days", () => {
-    expect(columnLabel("2026-11-23")).toBe("lun 23");
-    expect(dayLabel("2026-11-20", "2026-11-20")).toBe("Oggi");
-    expect(dayLabel("2026-11-21", "2026-11-20")).toBe("Domani");
-    expect(dayLabel("2026-11-22", "2026-11-20")).toBe("dom 22 nov");
+  it("names the day tabs and the chosen day", () => {
+    expect(tabLabel("2026-11-23")).toEqual({ weekday: "lun", day: 23 });
+    expect(tabLabel("2026-12-06")).toEqual({ weekday: "dom", day: 6 });
+    expect(fullDayLabel("2026-11-24")).toBe("martedì 24 novembre");
   });
 
   it.each([

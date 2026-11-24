@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { BackLink } from "@/components/back-link";
 import { CoverImage } from "@/components/cover-image";
+import { DetailCover, DetailTitle } from "@/components/cover-transition";
 import { DataFreshness } from "@/components/data-freshness";
 import { KanjiBackdrop } from "@/components/kanji-backdrop";
 import { DetailListAction } from "@/components/list-actions";
@@ -85,16 +86,18 @@ export default async function AnimeDetailPage({ params }: PageProps<"/anime/[id]
         <div className={`${pageContainer} relative pt-6 pb-14`}>
           <BackLink />
           <div className="mt-4 grid items-end gap-8 md:grid-cols-[minmax(12rem,18rem)_1fr]">
-            <CoverImage
-              cover={anime.coverImage}
-              title={title}
-              sizes="(min-width: 768px) 18rem, min(18rem, 100vw - 2rem)"
-              eager
-              className="detail-cover max-w-72 rounded-panel"
-            />
+            <DetailCover id={anime.id}>
+              <CoverImage
+                cover={anime.coverImage}
+                title={title}
+                sizes="(min-width: 768px) 18rem, min(18rem, 100vw - 2rem)"
+                eager
+                className="detail-cover max-w-72 rounded-panel"
+              />
+            </DetailCover>
             <div>
               {label && <p className="text-label uppercase text-ink-muted">{label}</p>}
-              <h1 className="mt-2 text-display text-balance">{title}</h1>
+              <DetailTitle className="mt-2 text-display text-balance">{title}</DetailTitle>
               {englishTitle && <p className="mt-3 text-h3 text-ink-muted">{englishTitle}</p>}
               {facts.length > 0 && (
                 <p className="mt-4 text-small text-ink-muted tabular-nums">{facts.join(" · ")}</p>

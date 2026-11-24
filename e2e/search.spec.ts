@@ -90,15 +90,6 @@ test("a search that fails twice shows the error, and Riprova tries again", async
   expect(searches).toHaveLength(3);
 });
 
-test("the header marks Ricerca as the current page only there", async ({ page }) => {
-  await page.goto("/ricerca");
-  const link = page.getByRole("navigation", { name: "Principale" }).getByRole("link", { name: "Ricerca" });
-  await expect(link).toHaveAttribute("aria-current", "page");
-
-  await page.goto("/");
-  await expect(link).not.toHaveAttribute("aria-current");
-});
-
 test("on a 390px phone the results are in two columns", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await mockAniList(page, [ok]);

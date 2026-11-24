@@ -1,12 +1,12 @@
 import { AxeBuilder } from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockAniList, searchResults } from "./anilist-browser";
-import { logIn } from "./session";
+import { FAKE_ANILIST, logIn } from "./session";
 
 // WCAG 2.0, 2.1 and 2.2 at levels A and AA. Every new page gets an entry here.
 const wcagAA = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
-for (const path of ["/", "/pagina-che-non-esiste", "/anime/1", "/anime/4", "/anime/5", "/ricerca", "/accesso", "/accesso?esito=uscito", "/lista", "/calendario", "/statistiche"]) {
+for (const path of ["/", "/pagina-che-non-esiste", "/anime/1", "/anime/4", "/anime/5", "/ricerca", "/accesso", "/accesso?esito=uscito", "/lista", "/lista?voto=8", "/calendario", "/statistiche"]) {
   test(`no WCAG A/AA violations on ${path}`, async ({ page }) => {
     await page.goto(path);
     const { violations } = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
@@ -67,6 +67,28 @@ test("no WCAG A/AA violations on the Home with Cosa guardo stasera? suggestions"
   await page.goto("/");
   await page.getByRole("button", { name: "Serata intera" }).click();
   await expect(page.getByRole("region", { name: "Cosa guardo stasera?" }).getByRole("article")).toHaveCount(3);
+  const { violations } = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
+  expect(violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
+});
+
+test.describe("on a 360px phone", () => {
+  test.use({ viewport: { width: 360, height: 780 } });
+
+  test("no WCAG A/AA violations with the header menu open", async ({ page }) => {
+    await page.goto("/calendario");
+    await page.getByRole("button", { name: "Menu" }).click();
+    await expect(page.getByRole("navigation", { name: "Principale" }).getByRole("link").first()).toBeVisible();
+    const { violations } = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
+    expect(violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
+  });
+});
+
+test("no WCAG A/AA violations on the Home with In onda ora", async ({ page, request }) => {
+  // The fake's calendar day at noon (e2e/calendar.spec.ts): the strip has its episodes.
+  const { noon } = await (await request.get(`${FAKE_ANILIST}/__started`)).json();
+  await page.clock.setFixedTime(noon * 1000);
+  await page.goto("/");
+  await expect(page.getByRole("region", { name: "In onda ora" })).toBeVisible();
   const { violations } = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
   expect(violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
 });

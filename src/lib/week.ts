@@ -58,6 +58,17 @@ export function parseWeekParam(value: string | undefined | null, utcMonday: stri
   return value >= earliest && value <= latest ? value : null;
 }
 
+/**
+ * The ?giorno= value (M7): a real date whose week passes the same checks as ?settimana= (parseWeekParam).
+ * Null when it's off.
+ */
+export function parseDayParam(value: string | undefined | null, utcMonday: string): string | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(toUtc(value)) || fromUtc(toUtc(value)) !== value) {
+    return null;
+  }
+  return parseWeekParam(mondayOf(value), utcMonday) ? value : null;
+}
+
 /** Each day of the week with the episodes airing then in the time zone, soonest first. Others are dropped. */
 export function groupByDay<T extends { airingAt: number }>(
   episodes: readonly T[],
@@ -72,24 +83,17 @@ export function groupByDay<T extends { airingAt: number }>(
   return days;
 }
 
-const weekdayDay = new Intl.DateTimeFormat("it-IT", { weekday: "short", day: "numeric", timeZone: "UTC" });
-const weekdayDayMonth = new Intl.DateTimeFormat("it-IT", {
-  weekday: "short",
-  day: "numeric",
-  month: "short",
-  timeZone: "UTC",
-});
+const shortWeekday = new Intl.DateTimeFormat("it-IT", { weekday: "short", timeZone: "UTC" });
+const fullDay = new Intl.DateTimeFormat("it-IT", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
 
-/** Column heading: "lun 23". */
-export function columnLabel(date: string): string {
-  return weekdayDay.format(toUtc(date));
+/** A day's tab: "lun", "23". */
+export function tabLabel(date: string): { weekday: string; day: number } {
+  return { weekday: shortWeekday.format(toUtc(date)), day: Number(date.slice(8)) };
 }
 
-/** Day heading in the phone list: "Oggi", "Domani", then "sab 22 nov". */
-export function dayLabel(date: string, today: string): string {
-  if (date === today) return "Oggi";
-  if (date === addDays(today, 1)) return "Domani";
-  return weekdayDayMonth.format(toUtc(date));
+/** The chosen day's heading and the tab's full name: "lunedì 23 novembre". */
+export function fullDayLabel(date: string): string {
+  return fullDay.format(toUtc(date));
 }
 
 const dayMonth = new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "long", timeZone: "UTC" });

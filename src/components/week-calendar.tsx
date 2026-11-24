@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { type ReactNode, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { type KeyboardEvent, type ReactNode, useEffect, useState } from "react";
 import { CoverImage } from "@/components/cover-image";
 import { DataFreshness } from "@/components/data-freshness";
 import { toISO } from "@/lib/airing";
@@ -17,20 +17,28 @@ import { useNow } from "@/lib/use-now";
 import {
   MAX_WEEKS_AHEAD,
   addDays,
-  columnLabel,
   currentMonday,
-  dayLabel,
+  fullDayLabel,
   groupByDay,
   localDate,
+  tabLabel,
   weekRangeLabel,
 } from "@/lib/week";
 
 const time = new Intl.DateTimeFormat("it-IT", { hour: "2-digit", minute: "2-digit" });
 const weeksBetween = (from: string, to: string) => Math.round((Date.parse(to) - Date.parse(from)) / (7 * 24 * 3600 * 1000));
+const episodesText = (count: number) => (count === 1 ? "1 episodio" : `${count} episodi`);
+
+/** ?giorno= changes in place: no history entry per day (DESIGN, "Calendario"); useSearchParams follows it. */
+function showDay(date: string) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("giorno", date);
+  window.history.replaceState(null, "", url);
+}
 
 type Props = {
   monday: string;
-  /** Whether ?settimana= was given; without it the server used the UTC week. */
+  /** Whether ?giorno= was given; without it the server used the UTC week. */
   asked: boolean;
   episodes: ScheduledEpisode[];
   fetchedAt: string | null;
@@ -38,11 +46,13 @@ type Props = {
 };
 
 /**
- * Monday to Sunday in the viewer's time zone (docs/DESIGN.md, "Calendario"): seven columns from 1024px, a list of
- * days below, starting today in the current week. Days and times exist only in the browser.
+ * The week one day at a time, Monday to Sunday in the viewer's time zone (docs/DESIGN.md, "Calendario"): a tab
+ * per day with its count, then the chosen day's episodes. It opens on today, or on Monday in later weeks.
+ * Days and times exist only in the browser.
  */
 export function WeekCalendar({ monday, asked, episodes, fetchedAt, maxAgeSeconds }: Props) {
   const router = useRouter();
+  const askedDay = useSearchParams().get("giorno");
   const now = useNow();
   const viewer = useViewer();
   const loggedIn = viewer === undefined ? undefined : viewer !== null;
@@ -53,15 +63,28 @@ export function WeekCalendar({ monday, asked, episodes, fetchedAt, maxAgeSeconds
   const filter = onlyMine && loggedIn !== undefined ? listFilter(loggedIn ? mine : demo, loggedIn) : null;
   const shown = filter?.ids ? episodes.filter((episode) => filter.ids!.has(episode.media.id)) : episodes;
   const thisMonday = now === null ? null : currentMonday(now);
+  const today = now === null ? null : localDate(now);
   const ahead = thisMonday === null ? 0 : weeksBetween(thisMonday, monday);
-  // The server's guess (UTC) or the asked week doesn't fit this viewer: go to the right one.
+  // The server's guess (UTC) or the asked day doesn't fit this viewer: go to today.
   const misplaced = thisMonday !== null && ((!asked && monday !== thisMonday) || ahead < 0 || ahead > MAX_WEEKS_AHEAD);
 
   useEffect(() => {
-    if (misplaced && thisMonday) router.replace(`/calendario?settimana=${thisMonday}`);
-  }, [misplaced, thisMonday, router]);
+    if (misplaced && today) router.replace(`/calendario?giorno=${today}`);
+  }, [misplaced, today, router]);
 
-  const today = now === null ? null : localDate(now);
+  const days = groupByDay(shown, monday);
+  const chosen = days.find(({ date }) => date === askedDay) ?? days.find(({ date }) => date === today) ?? days[0];
+
+  /** APG tabs, automatic activation: arrows move and choose at once, wrapping; Home and End go to the ends. */
+  function onTabKey(event: KeyboardEvent<HTMLDivElement>) {
+    const index = days.indexOf(chosen);
+    const next = { ArrowRight: index + 1, ArrowLeft: index - 1, Home: 0, End: days.length - 1 }[event.key];
+    if (next === undefined) return;
+    event.preventDefault();
+    const date = days[(next + days.length) % days.length].date;
+    showDay(date);
+    document.getElementById(`tab-${date}`)?.focus();
+  }
 
   return (
     <>
@@ -96,49 +119,50 @@ export function WeekCalendar({ monday, asked, episodes, fetchedAt, maxAgeSeconds
 
       {now === null || misplaced || (filter && !filter.ids) ? (
         filter?.message ? null : <WaitingWeek />
-      ) : onlyMine && shown.length === 0 ? (
-        <p className="mt-6">
-          Questa settimana non escono episodi degli anime {loggedIn ? "della tua lista" : "della lista dimostrativa"}.
-        </p>
       ) : (
-        <ol className="mt-6 grid gap-6 lg:grid-cols-7 lg:gap-3">
-          {groupByDay(shown, monday).map(({ date, episodes: day }) => {
-            const isToday = date === today;
-            const past = today !== null && date < today;
-            const firstUpcoming = day.findIndex((episode) => episode.airingAt * 1000 > now);
-            return (
-              <li
-                key={date}
-                // Phones list the current week from today: earlier days only appear in the columns.
-                className={`${past ? "hidden lg:block" : ""} ${isToday ? "calendar-today" : ""} rounded-panel lg:p-2`}
-              >
-                <section aria-labelledby={`giorno-${date}`}>
-                  <h2 id={`giorno-${date}`} className="text-small font-semibold">
-                    <span className="lg:hidden">{dayLabel(date, today!)}</span>
-                    <span className="hidden lg:inline">
-                      {columnLabel(date)}
-                      {isToday && " · Oggi"}
-                    </span>
-                  </h2>
-                  {day.length === 0 ? (
-                    <p className="mt-2 text-small text-ink-muted">Nessun episodio</p>
-                  ) : (
-                    <ol className="mt-2 flex flex-col">
-                      {day.map((episode, index) => (
-                        <EpisodeRow
-                          key={episode.id}
-                          episode={episode}
-                          aired={episode.airingAt * 1000 <= now}
-                          nowMark={isToday && index === firstUpcoming && firstUpcoming > 0}
-                        />
-                      ))}
-                    </ol>
-                  )}
-                </section>
-              </li>
-            );
-          })}
-        </ol>
+        <>
+          <div role="tablist" aria-label="Giorni della settimana" onKeyDown={onTabKey} className="day-tabs mt-6">
+            {days.map(({ date, episodes: list }) => {
+              const { weekday, day } = tabLabel(date);
+              const selected = date === chosen.date;
+              return (
+                <button
+                  key={date}
+                  id={`tab-${date}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  aria-controls="giorno-scelto"
+                  tabIndex={selected ? 0 : -1}
+                  onClick={() => showDay(date)}
+                  className={`day-tab ${date === today ? "day-tab-today" : ""}`}
+                >
+                  {/* Short on screen; the full name for screen readers, so no aria-label. */}
+                  <span aria-hidden="true" className="text-label uppercase">
+                    {weekday}
+                  </span>
+                  <span aria-hidden="true" className="text-h3 tabular-nums">
+                    {day}
+                  </span>
+                  <span aria-hidden="true" className="day-tab-count text-small tabular-nums">
+                    {list.length} ep.
+                  </span>
+                  <span className="sr-only">
+                    {fullDayLabel(date)}
+                    {date === today && ", oggi"}, {episodesText(list.length)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <DayPanel
+            date={chosen.date}
+            episodes={chosen.episodes}
+            now={now}
+            isToday={chosen.date === today}
+            whose={onlyMine ? (loggedIn ? "della tua lista" : "della lista dimostrativa") : null}
+          />
+        </>
       )}
 
       <nav aria-label="Settimane" className="mt-8 flex flex-wrap gap-3">
@@ -148,7 +172,7 @@ export function WeekCalendar({ monday, asked, episodes, fetchedAt, maxAgeSeconds
           </Link>
         )}
         {ahead < MAX_WEEKS_AHEAD && (
-          <Link href={`/calendario?settimana=${addDays(monday, 7)}`} className="button inline-flex items-center">
+          <Link href={`/calendario?giorno=${addDays(monday, 7)}`} className="button inline-flex items-center">
             Settimana successiva <span aria-hidden="true">&nbsp;→</span>
           </Link>
         )}
@@ -157,6 +181,44 @@ export function WeekCalendar({ monday, asked, episodes, fetchedAt, maxAgeSeconds
         <DataFreshness fetchedAt={fetchedAt} maxAgeSeconds={maxAgeSeconds} />
       </div>
     </>
+  );
+}
+
+/** The chosen day's episodes; today with aired ones muted and the Adesso mark before the first to come. */
+function DayPanel({
+  date,
+  episodes,
+  now,
+  isToday,
+  whose,
+}: {
+  date: string;
+  episodes: ScheduledEpisode[];
+  now: number;
+  isToday: boolean;
+  /** "della tua lista" when the filter is on. */
+  whose: string | null;
+}) {
+  const firstUpcoming = episodes.findIndex((episode) => episode.airingAt * 1000 > now);
+  return (
+    // APG: a panel with nothing focusable in it is a tab stop itself.
+    <section role="tabpanel" id="giorno-scelto" aria-labelledby={`tab-${date}`} tabIndex={episodes.length ? undefined : 0} className="mt-6">
+      <h2 className="text-h2">{fullDayLabel(date)}</h2>
+      {episodes.length === 0 ? (
+        <p className="mt-4 text-ink-muted">Nessun episodio in questo giorno{whose && ` degli anime ${whose}`}.</p>
+      ) : (
+        <ol className="calendar-day mt-4">
+          {episodes.map((episode, index) => (
+            <EpisodeRow
+              key={episode.id}
+              episode={episode}
+              aired={episode.airingAt * 1000 <= now}
+              nowMark={isToday && index === firstUpcoming && firstUpcoming > 0}
+            />
+          ))}
+        </ol>
+      )}
+    </section>
   );
 }
 
@@ -171,23 +233,22 @@ function EpisodeRow({ episode, aired, nowMark }: { episode: ScheduledEpisode; ai
         </li>
       )}
       <li>
-        <Link
-          href={`/anime/${episode.media.id}`}
-          className={`calendar-row rounded-control py-1.5 text-small ${aired ? "text-ink-muted" : ""}`}
-        >
-          <time dateTime={toISO(episode.airingAt)} className="[grid-area:time] tabular-nums">
-            {time.format(episode.airingAt * 1000)}
-          </time>
+        <Link href={`/anime/${episode.media.id}`} className={`calendar-row ${aired ? "text-ink-muted" : ""}`}>
           <CoverImage
-            cover={{ medium: episode.media.coverImage?.medium ?? null, large: null, extraLarge: null }}
+            cover={{ medium: episode.media.coverImage?.medium ?? null, large: episode.media.coverImage?.large ?? null, extraLarge: null }}
             title={title}
-            sizes="2rem"
-            className="rounded-[0.25rem] text-small [grid-area:cover]"
+            sizes="(min-width: 1024px) 7.5rem, 6rem"
+            className="rounded-[0.5rem] text-h2"
           />
-          <span className="min-w-0 [grid-area:text]">
-            {aired && <span className="sr-only">Già uscito: </span>}
-            <span className="line-clamp-2 font-medium">{title}</span>{" "}
-            <span className="tabular-nums">Ep. {episode.episode}</span>
+          <span className="flex min-w-0 flex-col gap-1">
+            <time dateTime={toISO(episode.airingAt)} className="text-h3 tabular-nums">
+              {time.format(episode.airingAt * 1000)}
+            </time>
+            <span>
+              {aired && <span className="sr-only">Già uscito: </span>}
+              <span className="line-clamp-2 font-medium">{title}</span>{" "}
+              <span className={`text-small tabular-nums ${aired ? "" : "text-ink-muted"}`}>Ep. {episode.episode}</span>
+            </span>
           </span>
         </Link>
       </li>
@@ -195,19 +256,23 @@ function EpisodeRow({ episode, aired, nowMark }: { episode: ScheduledEpisode; ai
   );
 }
 
-/** Same rough shape as the days, until the browser knows its date and time zone. */
+/** Same rough shape as the tabs and rows, until the browser knows its date and time zone. */
 function WaitingWeek() {
   return (
     <div aria-busy="true" className="mt-6">
       <p className="sr-only">Caricamento…</p>
-      <div aria-hidden="true" className="grid gap-6 lg:grid-cols-7 lg:gap-3">
-        {Array.from({ length: 7 }, (_, index) => (
-          <div key={index} className="flex flex-col gap-2">
-            <div className="h-4 w-16 rounded-control bg-raised" />
-            <div className="h-10 rounded-control bg-raised" />
-            <div className="h-10 rounded-control bg-raised" />
-          </div>
-        ))}
+      <div aria-hidden="true">
+        <div className="day-tabs">
+          {Array.from({ length: 7 }, (_, index) => (
+            <div key={index} className="h-16 rounded-control bg-raised" />
+          ))}
+        </div>
+        <div className="mt-6 h-9 w-64 max-w-full rounded-control bg-raised" />
+        <div className="calendar-day mt-4">
+          {Array.from({ length: 3 }, (_, index) => (
+            <div key={index} className="h-40 rounded-panel bg-raised" />
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -1,33 +1,19 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { type CSSProperties, type FormEvent, useEffect, useState } from "react";
 import { AnimeCard, AnimeCardSkeleton } from "@/components/anime-card";
 import { ListToggle } from "@/components/list-actions";
-import { AniListRateLimitError, requestAniList } from "@/lib/anilist/client";
-import { SearchAnimeQuery } from "@/lib/anilist/queries";
 import { cardGrid } from "@/lib/card-grid";
-
-const MAX_QUERY_LENGTH = 100;
-// ADR-0003: a request only after 400ms without typing, and only from 3 characters.
-const DEBOUNCE_MS = 400;
-const MIN_LENGTH = 3;
-const PER_PAGE = 24;
-
-const length = (text: string) => [...text].length;
+import { MAX_QUERY_LENGTH, PER_PAGE, searchProblem, useAnimeSearch } from "@/lib/use-anime-search";
 
 /** Search field and results. ?q= is read from the current address, so coming back from a detail page keeps the search. */
 export function AnimeSearch() {
   const initialQuery = (useSearchParams().get("q") ?? "").slice(0, MAX_QUERY_LENGTH);
   const [input, setInput] = useState(initialQuery);
-  const [term, setTerm] = useState(initialQuery.trim());
-  const ready = length(term) >= MIN_LENGTH;
-
-  useEffect(() => {
-    const timer = setTimeout(() => setTerm(input.trim()), DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [input]);
+  const state = useAnimeSearch(input, initialQuery.trim());
+  const { term, setTerm, ready, search, waitSeconds, loading, results } = state;
+  const problem = searchProblem(state);
 
   // Keeps the address shareable without a server round trip or a history entry per search. Only on a real
   // change: replacing on mount, before Next stores its own history state, would break the back button.
@@ -36,24 +22,10 @@ export function AnimeSearch() {
     window.history.replaceState(null, "", term ? `/ricerca?q=${encodeURIComponent(term)}` : "/ricerca");
   }, [term]);
 
-  const search = useQuery({
-    queryKey: ["search", term],
-    queryFn: ({ signal }) => requestAniList(SearchAnimeQuery, { search: term, perPage: PER_PAGE }, { signal }),
-    enabled: ready,
-    select: ({ data }) => (data.Page?.media ?? []).filter((anime) => anime !== null),
-  });
-
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setTerm(input.trim());
   }
-
-  const waitSeconds =
-    search.fetchStatus === "fetching" && search.failureReason instanceof AniListRateLimitError
-      ? search.failureReason.retryAfterSeconds
-      : null;
-  const loading = ready && search.isPending;
-  const results = ready ? search.data : undefined;
 
   return (
     <>
@@ -85,21 +57,7 @@ export function AnimeSearch() {
 
       <div role="status" className="mt-8">
         {loading && waitSeconds === null && <span className="sr-only">Caricamento…</span>}
-        {loading && waitSeconds !== null && (
-          <p>
-            AniList sta ricevendo troppe richieste. Riprovo tra {waitSeconds}{" "}
-            {waitSeconds === 1 ? "secondo" : "secondi"}.
-          </p>
-        )}
-        {ready && search.isError && (
-          <p>Non riesco a raggiungere AniList in questo momento. Riprova tra qualche minuto.</p>
-        )}
-        {results?.length === 0 && (
-          <p>
-            Nessun risultato per «{term}». AniList conosce solo alcuni titoli italiani: prova con il titolo in
-            romaji o in inglese.
-          </p>
-        )}
+        {problem && <p>{problem}</p>}
         {results && results.length > 0 && (
           <p className="text-small text-ink-muted">
             {results.length === PER_PAGE

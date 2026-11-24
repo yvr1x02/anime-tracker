@@ -4,7 +4,7 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 **Regola per ogni milestone:** ogni nuova pagina entra nel controllo di accessibilità di `e2e/accessibility.spec.ts` (axe, WCAG 2.2 AA) nello stesso commit che la aggiunge.
 
-**Milestone attiva:** M7
+**Milestone attiva:** M8
 
 ## M0 — Fondamenta (completata il 2026-11-19)
 
@@ -66,21 +66,27 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Grafici in HTML e CSS con alternativa testuale dei dati (decisione del 2026-11-23: niente Recharts, nota in ADR-0001).
 - **Distribuzione dei voti in "La mia lista"** (SPEC, "La mia lista"): grafico a barre per voto intero; un clic su una barra filtra la lista su quel voto, un secondo clic toglie il filtro. Barre usabili da tastiera (pulsanti con `aria-pressed`), alternativa testuale in tabella. Lo stesso componente serve alla pagina Statistiche. Verificato il 2026-11-23: nella documentazione di Recharts le barre-pulsante non ci sono, quindi barre in HTML e CSS.
 
-## M7 — Passata di stile
+## M7 — Passata di stile (completata il 2026-11-24)
 
 - Transizione card → Dettaglio con le View Transitions (`docs/DESIGN.md`, "Card → Dettaglio"): la copertina passa dalla card al Dettaglio, l'header resta fermo, il focus va sul titolo e al ritorno sulla card; con movimento ridotto solo dissolvenza.
-- **Misura con CPU rallentata 4×** (Chrome DevTools, a macchina scarica) della transizione vera. Se perde frame diventa una dissolvenza, secondo il budget di prestazioni di `docs/DESIGN.md`.
-- Menu dell'header per il telefono: da M2 la navigazione scorre in orizzontale sotto i 640px, una soluzione provvisoria che non regge altre voci (Calendario, Statistiche).
-- Striscia "in onda ora" sotto l'header della Home (`docs/DESIGN.md`), spostata qui da M3 (decisione del 2026-11-20): è soprattutto animazione, con il pulsante di pausa per WCAG 2.2.2. Con i suoi circa 45px la prima fila della Home (797px da M4) passerebbe oltre gli 800px.
-- **Rivalutare la regola "prima fila entro 800px a 1280×800"** (`docs/DESIGN.md`, "Home") insieme alla striscia, invece di continuare a ridurre l'intestazione (decisione del 2026-11-20). Il test di `e2e/home.spec.ts` va aggiornato secondo la regola che si sceglie.
-- Revisione dell'aspetto delle pagine fatte fino a qui. Appunti dell'utente: _da completare_.
+- **Misura con CPU rallentata 4×** (Chrome DevTools, a macchina scarica) della transizione vera. Se perde frame diventa una dissolvenza, secondo il budget di prestazioni di `docs/DESIGN.md`. Misurata il 2026-11-24: nessun frame perso oltre a quello che perde anche la dissolvenza, tranne 3 corse a freddo su 23; la trasformazione resta (DESIGN, "Budget di prestazioni").
+- Ritorno con Indietro del browser e con "← Torna indietro": la copertina torna nella card, come all'andata al contrario (richiesta del 2026-11-24). React non anima un `popstate`, quindi il ritorno è disegnato con la Web Animations API (DESIGN, "View Transitions"); misurato a CPU 4× senza frame persi.
+- Menu dell'header per il telefono: da M2 la navigazione scorre in orizzontale sotto i 640px, una soluzione provvisoria che non regge altre voci (Calendario, Statistiche). Diventa un pulsante "Menu" a scomparsa (DESIGN, "Header e navigazione").
+- Striscia "in onda ora" sotto l'header della Home (`docs/DESIGN.md`), spostata qui da M3 (decisione del 2026-11-20): è soprattutto animazione, con il pulsante di pausa per WCAG 2.2.2. Contenuto: gli episodi delle prossime 24 ore, al massimo 12 (decisione del 2026-11-23).
+- **Regola della prima fila della Home** (decisione del 2026-11-23, al posto di "prima fila entro 800px"): a 1280×800 la prima fila comincia sopra gli 800px e se ne vedono almeno 100px di copertine. Il test di `e2e/home.spec.ts` si aggiorna.
+- **Ricerca rapida** in sovrimpressione (SPEC, "Ricerca"; DESIGN, "Ricerca rapida"): ⌘K / Ctrl+K e pulsante "Cerca" nell'header, dialogo modale con combobox; "Ricerca" esce dalla navigazione.
+- **Calendario un giorno alla volta** (SPEC e DESIGN, "Calendario"): striscia dei 7 giorni, `?giorno=` con redirect da `?settimana=`.
+- **La mia lista senza grafico dei voti:** il filtro `?voto=` resta, con l'etichetta "Voto 8 ×".
+- Test del calendario che dipendono da giorno e ora: deterministici con `page.clock` di Playwright, così non si saltano mai (spostato qui da M8, decisione del 2026-11-23, perché in M7 i test del calendario si riscrivono).
+- Revisione dell'aspetto delle pagine fatte fino a qui: nessun appunto in più, Home, Dettaglio e Statistiche restano così (decisione del 2026-11-24).
 
 ## M8 — Rifinitura
 
+- **Test con il login che possono fallire a caso.** I test di accessibilità con il login (`e2e/accessibility.spec.ts`) leggono la lista dell'utente di prova, che `e2e/my-list.spec.ts` modifica e ripristina mentre gira in parallelo: visto fallire una volta in M6, su un'esecuzione parziale. Soluzione proposta: una lista di prova separata nel finto AniList per ogni test o per ogni worker (per esempio un utente di prova per worker, scelto con `testInfo.workerIndex`), invece di spostare i test in sequenza come in M5.
 - Accessibilità, versione mobile, stati vuoti e di errore.
 - README con screenshot.
 - Calendario, risposta di AniList con stato 200 e un errore su una pagina (ADR-0003): da rivedere se si presenta in produzione.
-- Test del calendario che dipendono da giorno e ora (`e2e/calendar.spec.ts`, oggi con `test.skip`): renderli deterministici con `page.clock` di Playwright, così non si saltano mai.
+- Focus quando una card esce da La mia lista (M6): valutare di decidere dove va il focus dalla risposta di `SaveMediaListEntry` invece che dalla previsione di `savedStatusAndScore` (`src/lib/list-rules.ts`), così non si dipende dal completamento automatico di AniList.
 
 ## Dopo la v1
 

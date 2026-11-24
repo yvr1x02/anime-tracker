@@ -127,6 +127,53 @@
     box-shadow: 0 28px 64px -12px var(--tint-cover-glow);
   }
 
+  /*
+   * View Transitions (docs/DESIGN.md): card → Detail. The cover moves, the rest of the page fades, the header
+   * stays still above it. Clicks go through to the page underneath.
+   */
+  .site-header {
+    view-transition-name: site-header;
+  }
+
+  ::view-transition {
+    pointer-events: none;
+  }
+
+  ::view-transition-group(site-header) {
+    z-index: 100;
+    animation: none;
+  }
+
+  ::view-transition-old(site-header) {
+    display: none;
+  }
+
+  ::view-transition-new(site-header) {
+    animation: none;
+  }
+
+  ::view-transition-old(root) {
+    animation-duration: calc(var(--duration-base) * 0.7);
+    animation-timing-function: var(--ease-in);
+  }
+
+  ::view-transition-new(root) {
+    animation-duration: var(--duration-base);
+    animation-timing-function: var(--ease-out);
+  }
+
+  ::view-transition-group(.cover) {
+    animation-duration: 400ms;
+    animation-timing-function: var(--spring-gentle);
+  }
+
+  /* Reduced motion: no element has a name, so the whole page only fades (150ms at most). Not html: it is the page. */
+  @media (prefers-reduced-motion: reduce) {
+    body * {
+      view-transition-name: none !important;
+    }
+  }
+
   /* docs/DESIGN.md, "Pulsanti e filtri": pressed in 100ms, released with a spring. */
   .button {
     min-height: 2.75rem;
@@ -225,32 +272,86 @@
   }
 
   /* Calendar (docs/DESIGN.md, "Calendario"): today's column, and the static Adesso mark inside it. */
-  @media (min-width: 1024px) {
-    .calendar-today {
-      background-color: var(--color-surface);
-      box-shadow: inset 0 2px 0 var(--color-cyan);
+  /* Calendar (docs/DESIGN.md, "Calendario"): seven day tabs across the width, about 46px each at 390px. */
+  .day-tabs {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.25rem;
+  }
+
+  @media (min-width: 640px) {
+    .day-tabs {
+      gap: 0.5rem;
     }
   }
 
-  /* A calendar row: time, cover, title on phones; in the narrow columns the time goes above the title. */
+  .day-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 4rem;
+    padding-block: 0.5rem;
+    border-top: 2px solid transparent;
+    border-radius: var(--radius-control);
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+  }
+
+  .day-tab[aria-selected="true"] {
+    background-color: var(--color-ink);
+    color: var(--color-on-accent);
+  }
+
+  .day-tab-today {
+    border-top-color: var(--color-cyan);
+  }
+
+  .day-tab-count {
+    color: var(--color-ink-muted);
+  }
+
+  .day-tab[aria-selected="true"] .day-tab-count {
+    color: inherit;
+  }
+
+  /* The chosen day: one column on phones, two from 768px, three from 1280px. */
+  .calendar-day {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  @media (min-width: 768px) {
+    .calendar-day {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .calendar-day {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
   .calendar-row {
     display: grid;
-    grid-template-areas: "time cover text";
-    grid-template-columns: 2.75rem 2rem 1fr;
+    grid-template-columns: 6rem 1fr;
     align-items: start;
-    gap: 0 0.5rem;
+    gap: 1rem;
+    height: 100%;
+    padding: 0.75rem;
+    border-radius: var(--radius-panel);
+    background-color: var(--color-surface);
   }
 
   @media (min-width: 1024px) {
     .calendar-row {
-      grid-template-areas:
-        "cover time"
-        "cover text";
-      grid-template-columns: 2rem 1fr;
+      grid-template-columns: 7.5rem 1fr;
     }
   }
 
   .now-mark {
+    grid-column: 1 / -1;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -373,34 +474,15 @@
     }
   }
 
-  .nav-scroll {
-    overflow-x: auto;
-    scrollbar-width: none;
-    mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
-  }
-
-  @media (min-width: 640px) {
-    .nav-scroll {
-      overflow-x: visible;
-      mask-image: none;
-    }
-  }
-
-  /* Header: bar under the current page, inset like the item's padding (12px, 8px on phones), 6px above its bottom. */
+  /* Header: bar under the current page, inset like the item's padding (12px), 6px above its bottom. */
   .nav-link[aria-current="page"]::after {
     content: "";
     position: absolute;
-    inset-inline: 0.5rem;
+    inset-inline: 0.75rem;
     bottom: 0.375rem;
     height: 2px;
     border-radius: 2px;
     background-color: var(--color-ink);
-  }
-
-  @media (min-width: 640px) {
-    .nav-link[aria-current="page"]::after {
-      inset-inline: 0.75rem;
-    }
   }
 
   /*
@@ -472,6 +554,142 @@
 
   .entry-editor::backdrop {
     background-color: rgb(0 0 0 / 0.6);
+  }
+
+  /* "In onda ora" (docs/DESIGN.md, "Striscia"): one row, edges fading over 64px, the track looping by half. */
+  .airing-strip {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-height: 2.75rem;
+    margin-bottom: 0.75rem;
+    font-size: var(--text-small);
+  }
+
+  .airing-strip-viewport {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, #000 4rem, #000 calc(100% - 4rem), transparent);
+  }
+
+  .airing-strip-track {
+    display: flex;
+    width: max-content;
+    animation: strip-scroll var(--strip-duration, 40s) linear infinite;
+  }
+
+  .airing-strip:hover .airing-strip-track,
+  .airing-strip:focus-within .airing-strip-track,
+  .airing-strip[data-paused] .airing-strip-track {
+    animation-play-state: paused;
+  }
+
+  .airing-strip-list {
+    display: flex;
+    gap: 2rem;
+    padding-right: 2rem;
+  }
+
+  @keyframes strip-scroll {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  /* At most 18rem: the title shortens with an ellipsis, episode and time stay whole. */
+  .airing-item {
+    display: flex;
+    gap: 0.375rem;
+    max-width: 18rem;
+    white-space: nowrap;
+  }
+
+  .airing-item-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 600;
+  }
+
+  /* Reduced motion: still, one copy, scrolled by hand with room at both edges; nothing to pause. */
+  @media (prefers-reduced-motion: reduce) {
+    .airing-strip-track {
+      animation: none;
+    }
+
+    .airing-strip-copy,
+    .airing-strip-pause {
+      display: none;
+    }
+
+    .airing-strip-viewport {
+      overflow-x: auto;
+      padding-inline: 4rem;
+    }
+  }
+
+  /* Quick search (docs/DESIGN.md, "Ricerca rapida"): near the top on wide screens, the whole screen on phones. */
+  .quick-search {
+    width: min(40rem, calc(100% - 2rem));
+    max-height: 76dvh;
+    margin: 12dvh auto auto;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-panel);
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    box-shadow: 0 24px 64px -16px rgb(0 0 0 / 0.6);
+  }
+
+  .quick-search[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .quick-search::backdrop {
+    background-color: rgb(0 0 0 / 0.6);
+  }
+
+  @media (max-width: 639px) {
+    .quick-search {
+      width: 100%;
+      max-width: 100%;
+      height: 100dvh;
+      max-height: 100dvh;
+      margin: 0;
+      border: 0;
+      border-radius: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .quick-search[open] {
+      animation: quick-search-in 150ms var(--ease-out);
+    }
+  }
+
+  @keyframes quick-search-in {
+    from {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+  }
+
+  /* The highlighted result: raised, with an ink bar so it shows without colour too. */
+  .quick-search-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    border-left: 3px solid transparent;
+    border-radius: var(--radius-control);
+    cursor: pointer;
+  }
+
+  .quick-search-option[aria-selected="true"] {
+    border-left-color: var(--color-ink);
+    background-color: var(--color-raised);
   }
 
   /* Skeleton: shows up after 150ms so quick loads don't flash, with a sheen sweeping across. */

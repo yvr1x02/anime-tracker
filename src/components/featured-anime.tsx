@@ -1,8 +1,8 @@
 import { type AnimeCardData } from "@/components/anime-card";
 import { CoverImage } from "@/components/cover-image";
+import { CardCover, CardLink } from "@/components/cover-transition";
 import { ListToggle } from "@/components/list-actions";
 import { NextEpisode } from "@/components/upcoming-episodes";
-import Link from "next/link";
 import { animeTitle, episodesLabel, formatSeasonLine } from "@/lib/anime-labels";
 import { coverTintProps } from "@/lib/cover-tint";
 
@@ -25,14 +25,16 @@ export function FeaturedAnime({ anime }: { anime: AnimeCardData }) {
       style={tint.style}
     >
       <div className="w-[clamp(8rem,10vw,10rem)]">
-        <CoverImage cover={cover} title={title} sizes="clamp(8rem, 10vw, 10rem)" eager className="rounded-[0.5rem]" />
+        <CardCover id={anime.id}>
+          <CoverImage cover={cover} title={title} sizes="clamp(8rem, 10vw, 10rem)" eager className="rounded-[0.5rem]" />
+        </CardCover>
       </div>
       <div className="min-w-0">
         <p className="text-label uppercase text-cyan">N. 1 della stagione</p>
         <h2 id={`in-evidenza-${anime.id}`} className="mt-2 text-h2 text-balance">
-          <Link href={`/anime/${anime.id}`} className="anime-card-link">
+          <CardLink id={anime.id} className="anime-card-link">
             {title}
-          </Link>
+          </CardLink>
         </h2>
         {facts.length > 0 && <p className="mt-2 text-small text-ink-muted tabular-nums">{facts.join(" · ")}</p>}
         <NextEpisode schedule={anime.nextAiringEpisode ? [anime.nextAiringEpisode] : []} />

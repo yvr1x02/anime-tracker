@@ -29,6 +29,8 @@ Gli anime della stagione in corso, ordinati per popolarità. La stagione si calc
 
 Dalle card si può aggiungere un anime alla lista.
 
+- **In onda ora** (M7): una striscia sotto l'header con gli episodi delle **prossime 24 ore**, al massimo 12, con titolo, numero dell'episodio e orario nel fuso del browser. Si calcola dalle settimane già in cache per il Calendario (ADR-0003); scorre da sola e si mette in pausa con un pulsante.
+
 - **Continua a guardare** (solo per chi è collegato): gli anime della propria lista con episodi già usciti e non ancora visti, con quanti ne mancano ("Sei indietro di 2 episodi").
   - **Episodi usciti, secondo AniList:** per un anime concluso o cancellato, il numero totale di episodi; per un anime in corso, il numero del prossimo episodio in programma meno uno (`Media.nextAiringEpisode`), contando come uscito anche il prossimo se il suo orario è già passato. Se AniList non dà né il prossimo episodio né il totale, l'anime non compare.
   - **Episodi arretrati** = episodi usciti − episodi visti, quando sono più di zero.
@@ -47,6 +49,11 @@ Ricerca degli anime per titolo, senza filtri aggiuntivi nella v1. Dalle card dei
 - **Titoli cercabili:** giapponese traslitterato (romaji) e inglese, cioè i titoli che AniList fornisce.
 - **Titoli italiani:** AniList non ha un campo per il titolo italiano. La ricerca lo trova quando coincide con il romaji o con l'inglese, o se compare tra i sinonimi. Verificato in M1 (2026-11-20) con tre ricerche reali: la ricerca considera i sinonimi, e "L'attacco dei giganti", "Ken il guerriero" e "Il mio vicino Totoro" trovano l'anime giusto come primo risultato. I sinonimi però li aggiungono gli utenti di AniList, quindi non tutti i titoli italiani ci sono.
 - La pagina suggerisce di cercare in romaji o in inglese quando la ricerca non dà risultati.
+- **Ricerca rapida** (M7, decisione del 2026-11-23): una finestra in sovrimpressione apribile da ogni pagina con ⌘K su Mac e Ctrl+K altrove, o dal pulsante "Cerca" dell'header.
+  - I risultati arrivano mentre si scrive, con le regole della pagina (ADR-0003): al massimo 8, con copertina, titolo, formato e anno.
+  - Le frecce scelgono un risultato, Invio apre il suo Dettaglio, Esc chiude la finestra e riporta il focus dove era. In fondo, "Tutti i risultati per «…»" porta alla pagina `/ricerca?q=`.
+  - Per aggiungere un anime alla lista si usa la pagina dei risultati o il Dettaglio: dentro la finestra i risultati sono solo da aprire.
+  - La pagina `/ricerca` resta, per i link condivisi (`?q=`) e per chi non usa JavaScript; "Ricerca" esce dalla navigazione dell'header, sostituita dal pulsante "Cerca". Su `/ricerca` la scorciatoia porta al campo della pagina.
 
 ### 3. Dettaglio
 
@@ -59,13 +66,10 @@ La scheda di un anime: copertina, titolo, trama, generi, studio, numero e durata
 
 Gli anime della lista AniList dell'utente, filtrabili per stato. Per ogni voce si modificano stato, episodi visti, voto e note; una voce si rimuove dopo una conferma. Senza login: modalità demo.
 
-- **Distribuzione dei voti (M6):** sopra la lista, un grafico a barre con il numero di anime per voto, una barra per ogni voto intero da 1 a 10 (la barra 8 comprende i voti da 8,0 a 8,9); gli anime senza voto non contano.
-  - Un clic su una barra filtra la lista su quel voto, insieme al filtro per stato; un secondo clic sulla stessa barra toglie il filtro. La barra attiva si distingue anche senza colore.
-  - Il filtro per voto sta nell'indirizzo (`/lista?voto=8`): così le Statistiche portano alla lista già filtrata e ricaricare la pagina lo conserva. Un valore non valido si ignora. Un clic su una barra aggiorna l'indirizzo senza aggiungere voci alla cronologia.
-  - Tutte e 10 le barre ci sono sempre, anche a zero: filtrano su una lista vuota, con il messaggio.
-  - Le barre si usano da tastiera: ognuna è un pulsante con lo stato premuto (`aria-pressed`) e un nome completo, per esempio "Voto 8: 12 anime".
-  - Alternativa testuale: gli stessi numeri in una tabella, leggibile da lettori di schermo e da chi non vede il grafico, dentro un `<details>` "Dati del grafico in tabella".
-  - È lo stesso componente della "Distribuzione dei voti" delle Statistiche.
+- **Filtro per voto** (da M6; in M7 il grafico esce da La mia lista e resta nelle Statistiche, decisione del 2026-11-23): con `/lista?voto=8` la lista mostra solo gli anime con voto da 8,0 a 8,9, insieme al filtro per stato. Ci si arriva da una barra della "Distribuzione dei voti" delle Statistiche.
+  - Sopra i filtri per stato compare l'etichetta "Voto 8 ×", un pulsante che toglie il filtro; il focus passa al filtro per stato attivo e un annuncio dice "Filtro per voto tolto".
+  - Un valore non valido di `?voto=` si ignora; ricaricare la pagina conserva il filtro.
+- **Card che lascia la lista mostrata** (eliminata, o fuori dai filtri attivi dopo una modifica, compreso un "+1" sull'ultimo episodio che AniList fa diventare "Completato"): il focus passa alla card successiva o al titolo dell'elenco, con un annuncio per i lettori di schermo, come in "Continua a guardare" (decisione del 2026-11-23).
 
 ### 5. Calendario della settimana
 
@@ -73,8 +77,10 @@ Gli anime della lista AniList dell'utente, filtrabili per stato. Per ogni voce s
 - Di base mostra **tutti gli anime in onda** (tranne quelli per adulti); un filtro mostra **solo quelli della mia lista**: le voci in "Sto guardando", "In rewatch", "Da vedere" e "In pausa". Senza login il filtro usa la lista pubblica del profilo demo, con l'avviso della modalità demo.
 - Si apre sulla **settimana corrente** e permette di andare **avanti** alle settimane successive, fino a **12 settimane** dopo quella corrente (oltre, AniList ha raramente orari). Non si va nelle settimane passate; dalle settimane future si torna a quella corrente.
 - La settimana va dal lunedì alla domenica **nel fuso del browser**: un episodio sta nel giorno in cui esce per chi guarda.
+- **Un giorno alla volta** (M7, decisione del 2026-11-23): in alto i 7 giorni della settimana, ognuno con il numero di episodi (che segue il filtro); sotto, gli episodi del giorno scelto. Si apre su oggi; nelle settimane successive sul lunedì.
+- **Il giorno sta nell'indirizzo** (`/calendario?giorno=2026-11-25`), così si condivide; la settimana è quella che contiene quel giorno. I vecchi indirizzi `?settimana=` portano a `?giorno=` dello stesso lunedì. Un giorno non valido, di una settimana passata o oltre il tetto riporta a oggi.
 - **Orari:** AniList fornisce l'orario di messa in onda in Giappone. L'app lo converte nel fuso del browser e lo indica come "messa in onda in Giappone", perché le piattaforme di streaming possono pubblicare l'episodio più tardi.
-- **Layout:** su desktop 7 colonne, una per giorno, da lunedì a domenica: la colonna di oggi è evidenziata, gli episodi già usciti sono attenuati e un segno "Adesso", senza animazioni, separa quelli usciti da quelli in arrivo. Su mobile un elenco giorno per giorno che parte da oggi.
+- **Layout:** lo stesso su telefono e desktop, adattato (DESIGN). Per oggi gli episodi già usciti sono attenuati e un segno "Adesso", senza animazioni, separa quelli usciti da quelli in arrivo. Fino a M6 erano 7 colonne su desktop e un elenco di giorni su telefono.
 - **Settimane complete o niente:** una settimana si mostra solo se AniList l'ha data tutta. Se una parte manca (errore, limite di richieste, rete), si mostra l'ultima versione completa o il messaggio d'errore, mai una settimana a metà (ADR-0003).
 
 ### 6. Statistiche
@@ -85,7 +91,7 @@ Calcolate a partire dalla lista personale letta da AniList, con una sola richies
   - Gli anime senza durata su AniList non entrano nelle ore, e la pagina dice quanti sono.
   - Il voto medio conta solo gli anime con un voto, con un decimale.
 - **Generi più visti:** i primi 10, grafico a barre orizzontali con il numero di anime per genere.
-- **Distribuzione dei voti:** da 1 a 10, con lo stesso grafico di "La mia lista" (barre da tastiera, alternativa testuale). Qui un clic su una barra porta a "La mia lista" filtrata su quel voto (`/lista?voto=8`).
+- **Distribuzione dei voti:** da 1 a 10, grafico a barre (una barra per voto intero; la barra 8 comprende i voti da 8,0 a 8,9; gli anime senza voto non contano), con alternativa testuale in tabella. Ogni barra è un link a "La mia lista" filtrata su quel voto (`/lista?voto=8`). Fino a M6 lo stesso grafico stava anche in La mia lista.
 - **Studi più presenti:** i primi 5 studi d'animazione, cioè le società con `Studio.isAnimationStudio`. Un anime in coproduzione conta per tutti i suoi studi d'animazione (decisione del 2026-11-23).
   - **Perché non lo studio principale (`isMain`):** dentro `MediaListCollection` AniList ignora `studios(isMain: true)` e restituisce tutte le società, compresi editori, emittenti e distributori. Verificato il 2026-11-23 su Black Clover: nella lista Studio Pierrot, Funimation, TV Tokyo, Crunchyroll e Shueisha; con la query del singolo anime solo Studio Pierrot. Filtrare per `isAnimationStudio` non costa richieste in più.
 - **Cosa conta per "più visti"** (generi e studi): tutte le voci tranne "Da vedere", perché un anime mai iniziato non è stato visto (decisione del 2026-11-23). A parità di numero, ordine alfabetico.

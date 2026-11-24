@@ -125,6 +125,7 @@ export const WeekSchedulePage = graphql(`
         }
         coverImage {
           medium
+          large
           color
         }
         format

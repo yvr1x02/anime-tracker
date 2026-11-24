@@ -41,7 +41,7 @@ test("a score bar is a link to La mia lista filtered on that score", async ({ pa
   await page.keyboard.press("Enter");
 
   await expect(page).toHaveURL(/\/lista\?voto=8$/);
-  await expect(page.getByRole("button", { name: "Voto 8: 2 anime" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Voto 8, togli il filtro" })).toBeVisible();
   await expect(page.getByRole("article")).toHaveCount(2);
 });
 
