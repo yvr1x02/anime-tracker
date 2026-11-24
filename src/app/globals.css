@@ -119,7 +119,12 @@
   }
 
   /* Detail header: strong tint for the first 30%, then fading to the page background. */
+  /*
+   * The kanji backdrop enters from 8% to the right: without the clip the page scrolls sideways while it moves.
+   * clip, not hidden: no scroll container, and the cover's glow still spills below.
+   */
   .detail-header {
+    overflow-x: clip;
     background-image: linear-gradient(to bottom, var(--tint-header) 0%, var(--tint-header) 30%, transparent 100%);
   }
 
