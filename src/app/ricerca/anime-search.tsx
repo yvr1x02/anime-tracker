@@ -88,19 +88,23 @@ export function AnimeSearch() {
         )}
 
         {results && results.length > 0 && (
-          // A new key per search restarts the cascade; results already in memory (back from a detail page) don't cascade.
-          <ul key={term} className={`${cardGrid} mt-4`}>
-            {results.map((anime, index) => (
-              <li
-                key={anime.id}
-                className={search.isFetchedAfterMount ? "card-cascade" : undefined}
-                style={{ "--i": index } as CSSProperties}
-              >
-                {/* Search never returns adult anime (isAdult: false in the query). */}
-              <AnimeCard anime={anime} action={<ListToggle media={{ ...anime, isAdult: false }} />} />
-              </li>
-            ))}
-          </ul>
+          <>
+            {/* The cards' titles are h3: a heading for the results, for screen readers, keeps the order (h1, h2, h3). */}
+            <h2 className="sr-only">Risultati</h2>
+            {/* A new key per search restarts the cascade; results already in memory (back from a detail page) don't cascade. */}
+            <ul key={term} className={`${cardGrid} mt-4`}>
+              {results.map((anime, index) => (
+                <li
+                  key={anime.id}
+                  className={search.isFetchedAfterMount ? "card-cascade" : undefined}
+                  style={{ "--i": index } as CSSProperties}
+                >
+                  {/* Search never returns adult anime (isAdult: false in the query). */}
+                  <AnimeCard anime={anime} action={<ListToggle media={{ ...anime, isAdult: false }} />} />
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </div>
     </>
