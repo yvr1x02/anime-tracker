@@ -23,7 +23,7 @@ export function CoverImage({ cover, title, sizes, eager = false, className = "" 
 
   if (sources.length === 0) {
     return (
-      <div aria-hidden="true" className={`${frame} flex items-center justify-center bg-raised text-display text-ink-muted`}>
+      <div aria-hidden="true" data-cover="" className={`${frame} flex items-center justify-center bg-raised text-display text-ink-muted`}>
         {title.trim().charAt(0).toUpperCase()}
       </div>
     );
@@ -36,6 +36,7 @@ export function CoverImage({ cover, title, sizes, eager = false, className = "" 
       srcSet={sources.map(([url, width]) => `${url} ${width}w`).join(", ")}
       sizes={sizes}
       alt=""
+      data-cover=""
       width={460}
       height={690}
       loading={eager ? "eager" : "lazy"}
