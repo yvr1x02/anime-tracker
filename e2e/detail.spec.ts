@@ -84,3 +84,29 @@ test.describe("a long title (docs/DESIGN.md, Dettaglio)", () => {
     });
   }
 });
+
+for (const [width, height] of [
+  [1280, 800],
+  [390, 844],
+]) {
+  test(`at ${width}×${height} the Detail never scrolls sideways, even while the kanji backdrop slides in`, async ({ page }) => {
+    await page.setViewportSize({ width, height });
+    await page.goto("/anime/1");
+
+    // Sampled while the backdrop still moves (it enters from 8% to the right) and after it has settled.
+    const samples = await page.evaluate(async () => {
+      const backdrop = document.querySelector(".kanji-backdrop")!;
+      const sample = () => ({
+        moving: getComputedStyle(backdrop).transform !== "none",
+        scrollWidth: document.documentElement.scrollWidth,
+        clientWidth: document.documentElement.clientWidth,
+      });
+      const first = sample();
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      return [first, sample()];
+    });
+
+    expect(samples[0].moving).toBe(true);
+    for (const { scrollWidth, clientWidth } of samples) expect(scrollWidth).toBe(clientWidth);
+  });
+}
