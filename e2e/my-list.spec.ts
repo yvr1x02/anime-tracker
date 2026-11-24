@@ -658,3 +658,23 @@ test.describe("Calendario, logged in", () => {
     await expect(page.getByText(/Modalità demo/)).toHaveCount(0);
   });
 });
+
+test("an empty list says where to find something to add, in La mia lista and Statistiche", async ({ page, request, context }) => {
+  await logIn(page, "/lista");
+  // Both entries of this worker's test list, deleted on the fake AniList with the session's token.
+  const token = (await context.cookies()).find((cookie) => cookie.name === "__Host-session")!.value;
+  for (const id of [201, 202]) {
+    await request.post(FAKE_ANILIST, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { query: "mutation DeleteListEntry($id: Int) { DeleteMediaListEntry(id: $id) { deleted } }", variables: { id } },
+    });
+  }
+
+  for (const path of ["/lista", "/statistiche"]) {
+    await page.goto(path);
+    const empty = page.getByText("La lista è vuota: aggiungi qualcosa dalla Ricerca o dagli anime della stagione.");
+    await expect(empty).toBeVisible();
+    await expect(empty.getByRole("link", { name: "Ricerca" })).toHaveAttribute("href", "/ricerca");
+    await expect(empty.getByRole("link", { name: "anime della stagione" })).toHaveAttribute("href", "/");
+  }
+});

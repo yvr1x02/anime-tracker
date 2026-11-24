@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useLayoutEffect, useRef, useState } from "react";
 import { AnimeCard } from "@/components/anime-card";
+import { EmptyList } from "@/components/empty-list";
 import { EditEntryButton, type EditOutcome } from "@/components/entry-editor";
 import { useListEditing } from "@/components/list-editing";
 import type { MediaListStatus } from "@/gql/graphql";
@@ -85,7 +86,7 @@ export function AnimeList({ entries, editable = false }: { entries: ListEntry[];
     // Focusable: where focus goes when the last entry is removed.
     return (
       <p id="anime-della-lista" tabIndex={-1} className="mt-8 text-ink-muted focus:outline-none">
-        La lista è vuota.
+        <EmptyList own={editable} />
       </p>
     );
   }
