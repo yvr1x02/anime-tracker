@@ -80,21 +80,21 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 - Test del calendario che dipendono da giorno e ora: deterministici con `page.clock` di Playwright, così non si saltano mai (spostato qui da M8, decisione del 2026-11-23, perché in M7 i test del calendario si riscrivono).
 - Revisione dell'aspetto delle pagine fatte fino a qui: nessun appunto in più, Home, Dettaglio e Statistiche restano così (decisione del 2026-11-24).
 
-## M8 — Rifinitura
+## M8 — Rifinitura (lavoro fatto il 2026-11-24; chiusura dopo la prova in produzione)
 
-Piano approvato il 2026-11-24, in quest'ordine:
+Piano approvato il 2026-11-24. Esito di ogni passo:
 
-1. **Test con il login che possono fallire a caso.** I test di accessibilità con il login (`e2e/accessibility.spec.ts`) leggono la lista dell'utente di prova, che `e2e/my-list.spec.ts` modifica e ripristina mentre gira in parallelo: visto fallire una volta in M6, su un'esecuzione parziale. Soluzione: una lista di prova separata nel finto AniList per ogni worker (un utente di prova per worker, scelto con `testInfo.workerIndex`), invece di spostare i test in sequenza come in M5.
-2. **Focus quando una card esce da La mia lista** (M6): decidere dove va il focus dalla risposta di `SaveMediaListEntry` invece che dalla previsione di `savedStatusAndScore` (`src/lib/list-rules.ts`), così non si dipende dal completamento automatico di AniList. Prima del codice, i casi in cui previsione e risposta possono divergere.
-3. **Calendario, risposta di AniList con stato 200 e un errore su una pagina** (ADR-0003): verifica nei log di produzione; correzione solo se si presenta.
-4. **`robots.txt` che vieta tutto** (decisione del 2026-11-24): contromisura di cortesia verso i bot, scritta in ADR-0003; la protezione vera restano la cache e la gestione del 429.
-5. **Accessibilità, versione mobile, stati vuoti e di errore:** revisione pagina per pagina; prima l'elenco di ciò che si trova, poi le correzioni.
-6. **Documentazione allineata al codice:** le voci "da decidere o verificare" di DESIGN e di ADR-0004 chiuse o aggiornate.
-7. **Prova finale in produzione:** tutte le pagine, login, modalità demo, Core Web Vitals contro gli obiettivi di DESIGN.
-8. **README finale:** in cima il link alla versione in produzione, presentato come il modo migliore per vedere l'app; screenshot sui dati del finto AniList, curati (decisione del 2026-11-24: le copertine vere non entrano nel repository); sezione sulle decisioni principali (ADR-0003, ADR-0004, accessibilità).
-9. Chiusura: MILESTONES, report, testo della PR.
+1. **Test con il login che possono fallire a caso:** fatto. Ogni worker di Playwright ha la sua lista di prova nel finto AniList (cookie `e2e-user` sul percorso di autorizzazione, token legato all'utente, `__reset` e `__fail-saves` per utente); `my-list.spec.ts` non gira più in sequenza. I tre file con il login ripetuti 5 volte in parallelo: 315 su 315, prima 7 falliti e 121 non eseguiti.
+2. **Focus quando una card esce da La mia lista:** fatto. Niente più previsione (`savedStatusAndScore` tolta): la lista reagisce all'uscita reale della card, il focus si sposta solo se è ancora nella card, l'annuncio dice lo stato reale. Il "+1" sull'ultimo episodio passa il focus a "Modifica". ADR-0004 chiude senza prova i comportamenti di AniList da cui il codice non dipende più.
+3. **Calendario, 200 con un errore:** chiuso senza correzione in ADR-0003 (i log di produzione non sono leggibili da qui; nessun caso nelle prove sui dati veri).
+4. **`robots.txt` che vieta tutto:** fatto, scritto in ADR-0003 come contromisura di cortesia.
+5. **Accessibilità, telefono, stati vuoti e di errore:** revisione fatta e corretti: riadattamento a 320px (header e Statistiche), bersagli di 44px (striscia, "Esci", tabella del grafico), titolo `h2` "Risultati" nella Ricerca, lista vuota con l'indicazione di cosa fare, messaggi di "Cosa guardo stasera?" e del Calendario letti una volta sola. Il nuovo tentativo di `/api/list` e `/api/demo-list` era già uno solo (verificato: errore dopo circa 1,4 secondi). La prova con VoiceOver la fa l'utente.
+6. **Documentazione allineata al codice:** fatto (DESIGN, ADR-0003, ADR-0004).
+7. **Prova finale in produzione:** fatta sulla versione pubblicata (`main`, senza M8). Tutte le pagine rispondono; Core Web Vitals nei limiti tranne l'LCP della Home da telefono (5,6 s con rete "4G lenta" e CPU 4×). Il CLS della Home (0,083) è corretto in M8. **Aperti:** in produzione la lista demo non è disponibile (`/api/demo-list` risponde 404, mentre AniList dà la lista pubblica del profilo: probabilmente manca `ANILIST_DEMO_USERNAME` su Vercel); login in produzione da provare dall'utente; dopo il merge, la stessa prova sulla versione con M8.
+8. **README finale:** fatto, con il link alla produzione in cima e gli screenshot della vetrina del finto AniList (`npm run screenshots`).
+9. Chiusura: questo resoconto e il testo della PR.
 
-I facoltativi (misura a CPU 4× degli altri effetti, animazione con Avanti, striscia a 390px, peso di Noto Sans JP, `sitemap.xml`, `LICENSE`) si valutano dopo la chiusura di M8.
+Facoltativi, da valutare dopo la chiusura: misura a CPU 4× degli altri effetti, animazione con Avanti, striscia a 390px, peso di Noto Sans JP, `sitemap.xml`, `LICENSE`.
 
 ## Dopo la v1
 
