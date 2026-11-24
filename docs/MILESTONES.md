@@ -82,12 +82,21 @@ Si lavora su **una milestone alla volta**: quella segnata come attiva. Ogni mile
 
 ## M8 — Rifinitura
 
-- **Test con il login che possono fallire a caso.** I test di accessibilità con il login (`e2e/accessibility.spec.ts`) leggono la lista dell'utente di prova, che `e2e/my-list.spec.ts` modifica e ripristina mentre gira in parallelo: visto fallire una volta in M6, su un'esecuzione parziale. Soluzione proposta: una lista di prova separata nel finto AniList per ogni test o per ogni worker (per esempio un utente di prova per worker, scelto con `testInfo.workerIndex`), invece di spostare i test in sequenza come in M5.
-- Accessibilità, versione mobile, stati vuoti e di errore.
-- README con screenshot.
-- Calendario, risposta di AniList con stato 200 e un errore su una pagina (ADR-0003): da rivedere se si presenta in produzione.
-- Focus quando una card esce da La mia lista (M6): valutare di decidere dove va il focus dalla risposta di `SaveMediaListEntry` invece che dalla previsione di `savedStatusAndScore` (`src/lib/list-rules.ts`), così non si dipende dal completamento automatico di AniList.
+Piano approvato il 2026-11-24, in quest'ordine:
+
+1. **Test con il login che possono fallire a caso.** I test di accessibilità con il login (`e2e/accessibility.spec.ts`) leggono la lista dell'utente di prova, che `e2e/my-list.spec.ts` modifica e ripristina mentre gira in parallelo: visto fallire una volta in M6, su un'esecuzione parziale. Soluzione: una lista di prova separata nel finto AniList per ogni worker (un utente di prova per worker, scelto con `testInfo.workerIndex`), invece di spostare i test in sequenza come in M5.
+2. **Focus quando una card esce da La mia lista** (M6): decidere dove va il focus dalla risposta di `SaveMediaListEntry` invece che dalla previsione di `savedStatusAndScore` (`src/lib/list-rules.ts`), così non si dipende dal completamento automatico di AniList. Prima del codice, i casi in cui previsione e risposta possono divergere.
+3. **Calendario, risposta di AniList con stato 200 e un errore su una pagina** (ADR-0003): verifica nei log di produzione; correzione solo se si presenta.
+4. **`robots.txt` che vieta tutto** (decisione del 2026-11-24): contromisura di cortesia verso i bot, scritta in ADR-0003; la protezione vera restano la cache e la gestione del 429.
+5. **Accessibilità, versione mobile, stati vuoti e di errore:** revisione pagina per pagina; prima l'elenco di ciò che si trova, poi le correzioni.
+6. **Documentazione allineata al codice:** le voci "da decidere o verificare" di DESIGN e di ADR-0004 chiuse o aggiornate.
+7. **Prova finale in produzione:** tutte le pagine, login, modalità demo, Core Web Vitals contro gli obiettivi di DESIGN.
+8. **README finale:** in cima il link alla versione in produzione, presentato come il modo migliore per vedere l'app; screenshot sui dati del finto AniList, curati (decisione del 2026-11-24: le copertine vere non entrano nel repository); sezione sulle decisioni principali (ADR-0003, ADR-0004, accessibilità).
+9. Chiusura: MILESTONES, report, testo della PR.
+
+I facoltativi (misura a CPU 4× degli altri effetti, animazione con Avanti, striscia a 390px, peso di Noto Sans JP, `sitemap.xml`, `LICENSE`) si valutano dopo la chiusura di M8.
 
 ## Dopo la v1
 
 - Wrapped annuale.
+- **Effetti di DESIGN non fatti nella v1** (decisione del 2026-11-24; descrizioni in DESIGN, "Effetti" e "View Transitions"): l'indicatore della pagina attiva che scorre verso la nuova voce (`nav-indicator`), il riposizionamento delle card al cambio di filtro in La mia lista e nel Calendario (`card-{id}`), le animazioni degli elementi che entrano o escono senza corrispondente (`:only-child`). Ognuno con la misura a CPU 4×.
