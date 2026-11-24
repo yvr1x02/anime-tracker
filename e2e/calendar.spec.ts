@@ -171,3 +171,15 @@ test.describe("Solo la mia lista", () => {
     await expect(tab(page, today())).toHaveAccessibleName(`${fullDayLabel(today())}, oggi, 2 episodi`);
   });
 });
+
+test("a problem with Solo la mia lista is said once: the visible message is the live region itself", async ({ page }) => {
+  await page.route("**/api/demo-list", (route) => route.fulfill({ status: 500, body: "" }));
+  await page.goto("/calendario");
+
+  await page.getByRole("button", { name: "Solo la mia lista" }).click();
+
+  const text = "Non riesco a raggiungere AniList in questo momento. Riprova tra qualche minuto.";
+  await expect(page.getByRole("status").filter({ hasText: text })).toBeVisible();
+  await expect(page.getByText(text)).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "Riprova" })).toBeVisible();
+});

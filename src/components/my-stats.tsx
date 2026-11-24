@@ -16,7 +16,7 @@ export function MyStats() {
         </div>
       }
     >
-      {(entries) => <ListStats entries={entries} />}
+      {(entries) => <ListStats entries={entries} own />}
     </OwnList>
   );
 }

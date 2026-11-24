@@ -1,6 +1,7 @@
 // Fake AniList for the e2e tests: the app server points here through ANILIST_API_URL,
 // so tests never spend the real rate limit. All data is invented.
 import http from "node:http";
+import { coverSvg, showcase } from "./showcase.mjs";
 
 const PORT = 3999;
 const HOUR = 3600;
@@ -151,7 +152,7 @@ const listEntry = (id, mediaId, status, progress, score, updatedAt, createdAt = 
 });
 // For Cosa guardo stasera?: Hoshi no Kioku with 7 to go (finished), Serie in corso 2 behind (airing),
 // and two in Da vedere added 150 and 40 days ago. Scores 8, 8,5 and 6 for the score chart.
-const demoLists = [
+let demoLists = [
   { entries: [listEntry(101, 1, "CURRENT", 5, 8, 300), listEntry(105, 11, "CURRENT", 3, 6, 400)] },
   { entries: [listEntry(102, 4, "COMPLETED", 1, 8.5, 200)] },
   { entries: [listEntry(103, 3, "PLANNING", 0, 0, 500), listEntry(106, 13, "PLANNING", 0, 0, 450, startedAt - 40 * DAY)] },
@@ -161,18 +162,24 @@ const demoLists = [
   },
 ];
 
-// The logged-in test user's own list (Viewer id 7). Changes go here; POST /__reset restores it.
-const initialMyLists = () => [
+// The logged-in test user's own list (Viewer id 7), one copy per Playwright worker: the e2e-user cookie, set
+// by e2e/session.ts, picks it at login, so a worker changing its list never shows in another's. Changes go there;
+// POST /__reset with {"user"} restores one. Each copy also counts its own failing saves: POST /__fail-saves with
+// {"user", "count"} makes the next saves answer 500, to test going back to the previous value.
+let initialMyLists = () => [
   { entries: [listEntry(201, 4, "CURRENT", 0, 0, 600)] },
   { entries: [listEntry(202, 1, "COMPLETED", 12, 9, 500)] },
 ];
-let myLists = initialMyLists();
-// Each login gets its own token, all starting with the fake one the tests look for in leaks.
+const testUsers = new Map();
+function testUser(user = "default") {
+  if (!testUsers.has(user)) testUsers.set(user, { lists: initialMyLists(), failingSaves: 0 });
+  return testUsers.get(user);
+}
+// Each login gets its own token, all starting with the fake one the tests look for in leaks, tied to its user.
 // POST /__revoke with {"token"} stops one, as when a user revokes the app: other tests' logins keep working.
 let tokensIssued = 0;
+const tokenUsers = new Map();
 const revokedTokens = new Set();
-// POST /__fail-saves with {"count"}: the next saves answer 500, to test going back to the previous value.
-let failingSaves = 0;
 // POST /__fail-schedule with {"from", "status"}: the next calendar answer for that window fails on its third
 // page (HTTP status, 500 by default, with the first two pages in the body), as when AniList breaks halfway
 // through a week. One week only, so tests running alongside are not hit.
@@ -181,7 +188,7 @@ let nextEntryId = 300;
 
 // Like AniList: one entry per anime; only the variables sent change; scoreRaw is out of 100 and the list
 // reads it back as POINT_10_DECIMAL.
-function saveEntry({ mediaId, scoreRaw, ...changes }) {
+function saveEntry(myLists, { mediaId, scoreRaw, ...changes }) {
   let entry = myLists.flatMap((list) => list.entries).find((item) => item.media.id === mediaId);
   if (!entry) {
     entry = listEntry(nextEntryId++, mediaId, "PLANNING", 0, 0, 0);
@@ -198,7 +205,7 @@ function saveEntry({ mediaId, scoreRaw, ...changes }) {
   return { SaveMediaListEntry: entry };
 }
 
-function deleteEntry({ id }) {
+function deleteEntry(myLists, { id }) {
   for (const list of myLists) list.entries = list.entries.filter((entry) => entry.id !== id);
   return { DeleteMediaListEntry: { deleted: true } };
 }
@@ -218,7 +225,7 @@ const romeHourAtUtcNoon = Number(
   new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", hourCycle: "h23" }).format(utcNoon * 1000),
 );
 const noon = utcNoon - (romeHourAtUtcNoon - 12) * HOUR;
-const calendar = [
+let calendar = [
   // Hoshi no Kioku: Ep. 12 an hour before noon (aired), Ep. 13 two hours after, Ep. 14 a week after.
   { id: 1012, episode: 12, airingAt: noon - HOUR, media: scheduleMedia(1) },
   { id: 1013, episode: 13, airingAt: noon + 2 * HOUR, media: scheduleMedia(1) },
@@ -228,6 +235,19 @@ const calendar = [
   { id: 1401, episode: 1, airingAt: noon + 3 * HOUR, media: scheduleMedia(4) },
   { id: 1301, episode: 2, airingAt: noon + 24 * HOUR, media: scheduleMedia(3) },
 ];
+
+// The Home's season: the same invented anime, most popular first.
+let seasonIds = [1, 4, 8];
+
+// FAKE_SHOWCASE=1, for the README's screenshots (npm run screenshots): richer invented data instead of the tests'.
+if (process.env.FAKE_SHOWCASE) {
+  const show = showcase({ base: `http://localhost:${PORT}`, noon, startedAt });
+  Object.assign(anime, show.anime);
+  seasonIds = show.season;
+  calendar = show.calendar;
+  demoLists = show.lists(listEntry);
+  initialMyLists = () => show.lists(listEntry);
+}
 
 const notFound = { data: { Media: null }, errors: [{ message: "Not Found.", status: 404 }] };
 // Anime 4 comes with a Date two hours old, as if served from a cache that has not been refreshed.
@@ -242,10 +262,18 @@ http
     if (request.method === "GET" && url.pathname === "/oauth/authorize") {
       const redirect = new URL(url.searchParams.get("redirect_uri"));
       const known = url.searchParams.get("client_id") === oauth.clientId;
-      redirect.searchParams.set(known ? "code" : "error", known ? oauth.code : "invalid_client");
+      const user = request.headers.cookie?.match(/(?:^|; )e2e-user=([^;]+)/)?.[1];
+      redirect.searchParams.set(known ? "code" : "error", known ? (user ? `${oauth.code}.${user}` : oauth.code) : "invalid_client");
       if (url.searchParams.has("state")) redirect.searchParams.set("state", url.searchParams.get("state"));
       response.writeHead(302, { Location: redirect.toString() });
       response.end();
+      return;
+    }
+    // The showcase's covers, drawn from each anime's colour (e2e/showcase.mjs).
+    if (request.method === "GET" && url.pathname.startsWith("/covers/")) {
+      const svg = coverSvg(Number(url.pathname.match(/\/covers\/(\d+)\.svg$/)?.[1]));
+      response.writeHead(svg ? 200 : 404, { "Content-Type": "image/svg+xml", "Cache-Control": "max-age=3600" });
+      response.end(svg ?? "");
       return;
     }
     // When the fake started: tests work out where its invented episodes fall.
@@ -258,16 +286,15 @@ http
       response.end("fake AniList");
       return;
     }
-    if (url.pathname === "/__reset") {
-      myLists = initialMyLists();
-      failingSaves = 0;
-      response.writeHead(204);
-      response.end();
-      return;
-    }
     let body = "";
     request.on("data", (chunk) => (body += chunk));
     request.on("end", () => {
+      if (url.pathname === "/__reset") {
+        testUsers.delete(JSON.parse(body || "{}").user);
+        response.writeHead(204);
+        response.end();
+        return;
+      }
       if (url.pathname === "/__fail-schedule") {
         const { from, status = 500 } = JSON.parse(body);
         failingSchedule = { from, status };
@@ -276,7 +303,8 @@ http
         return;
       }
       if (url.pathname === "/__fail-saves") {
-        failingSaves = JSON.parse(body).count;
+        const { user, count } = JSON.parse(body);
+        testUser(user).failingSaves = count;
         response.writeHead(204);
         response.end();
         return;
@@ -289,13 +317,15 @@ http
       }
       if (url.pathname === "/oauth/token") {
         const grant = JSON.parse(body);
+        const [code, user] = String(grant.code).split(".");
         const valid =
           grant.grant_type === "authorization_code" &&
           grant.client_id === oauth.clientId &&
           grant.client_secret === oauth.clientSecret &&
-          grant.code === oauth.code;
+          code === oauth.code;
         response.writeHead(valid ? 200 : 400, { "Content-Type": "application/json" });
         const token = `${oauth.accessToken}-${++tokensIssued}`;
+        if (valid) tokenUsers.set(token, user);
         response.end(JSON.stringify(valid ? { token_type: "Bearer", access_token: token } : { error: "invalid_grant" }));
         return;
       }
@@ -313,19 +343,20 @@ http
           response.end(JSON.stringify(invalidToken));
           return;
         }
-        if (failingSaves > 0) {
-          failingSaves--;
+        const user = testUser(tokenUsers.get(token));
+        if (user.failingSaves > 0) {
+          user.failingSaves--;
           response.writeHead(500, { "Content-Type": "application/json" });
           response.end(JSON.stringify({ data: null, errors: [{ message: "Internal error", status: 500 }] }));
           return;
         }
         response.writeHead(200, { "Content-Type": "application/json" });
-        response.end(JSON.stringify({ data: query.includes("mutation SaveListEntry") ? saveEntry(variables) : deleteEntry(variables) }));
+        response.end(JSON.stringify({ data: query.includes("mutation SaveListEntry") ? saveEntry(user.lists, variables) : deleteEntry(user.lists, variables) }));
         return;
       }
       if (query.includes("query UserAnimeList") && variables?.userId === viewer.id) {
         response.writeHead(authorized ? 200 : 404, { "Content-Type": "application/json" });
-        response.end(JSON.stringify(authorized ? { data: { MediaListCollection: { lists: myLists } } } : notFound));
+        response.end(JSON.stringify(authorized ? { data: { MediaListCollection: { lists: testUser(tokenUsers.get(token)).lists } } } : notFound));
         return;
       }
       if (query.includes("query UserAnimeList")) {
@@ -358,9 +389,9 @@ http
       }
       // The Home's season, whatever season is asked: the same invented anime, most popular first.
       if (query.includes("query SeasonAnime")) {
-        const season = [1, 4, 8].map(listMedia);
+        const season = seasonIds.map(listMedia);
         const upcoming = schedule.filter((node) => node.airingAt > Date.now() / 1000).sort((a, b) => a.airingAt - b.airingAt);
-        season[0].nextAiringEpisode = upcoming[0] ?? null;
+        if (!process.env.FAKE_SHOWCASE) season[0].nextAiringEpisode = upcoming[0] ?? null;
         response.writeHead(200, { "Content-Type": "application/json" });
         response.end(JSON.stringify({ data: { Page: { media: season } } }));
         return;

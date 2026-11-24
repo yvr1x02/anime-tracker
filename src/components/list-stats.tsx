@@ -1,3 +1,4 @@
+import { EmptyList } from "@/components/empty-list";
 import { ScoreChart } from "@/components/score-chart";
 import { genreLabel, genreLang, listStatusLabel } from "@/lib/anime-labels";
 import type { ListEntry } from "@/lib/list";
@@ -7,8 +8,14 @@ import { type Ranked, listStats } from "@/lib/stats";
 const wholeNumber = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 0 });
 
 /** Statistiche (SPEC, docs/DESIGN.md "Statistiche"), from a list already read: no requests of its own. */
-export function ListStats({ entries }: { entries: ListEntry[] }) {
-  if (entries.length === 0) return <p className="mt-8 text-ink-muted">La lista è vuota.</p>;
+export function ListStats({ entries, own = false }: { entries: ListEntry[]; own?: boolean }) {
+  if (entries.length === 0) {
+    return (
+      <p className="mt-8 text-ink-muted">
+        <EmptyList own={own} />
+      </p>
+    );
+  }
 
   const stats = listStats(entries);
   const numbers = [

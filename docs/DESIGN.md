@@ -150,7 +150,7 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 2. **Noto Sans JP come riserva**, con `next/font/google`: solo peso 700, `preload: false`, `display: "optional"`. Next.js lo ospita sul nostro dominio (nessuna richiesta a Google dal browser del visitatore). I caratteri giapponesi sono divisi da Google in blocchi con `unicode-range`: il browser scarica solo i blocchi che contengono i caratteri del titolo. `preload: false` è obbligatorio, perché questi blocchi non sono sottoinsiemi precaricabili (in `next/font` 16.4.6 Noto Sans JP elenca solo `cyrillic`, `latin`, `latin-ext`, `vietnamese`).
 3. `display: "optional"`: se il font non arriva subito resta quello di sistema, senza scambi visibili; per una decorazione è il comportamento giusto.
 
-**Da verificare all'implementazione:** i byte scaricati su un sistema senza font giapponesi, e lo spazio occupato nella build dai blocchi ospitati.
+**Spazio nella build, misurato in M8 (2026-11-24):** i blocchi ospitati di Noto Sans JP sono 124 file `woff2`, 2,9 MB in tutto, scaricati solo quando servono. I byte scaricati davvero su un sistema senza font giapponesi non sono misurati: facoltativo, da valutare dopo M8.
 
 ## Spaziature e layout
 
@@ -164,11 +164,11 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 
 - Fisso in alto (`position: sticky`), fondo `bg`, bordo inferiore `border`, altezza 64px. Contiene il nome dell'app e la navigazione.
 - Ha un `view-transition-name` proprio (`site-header`) ed è escluso dalle animazioni delle View Transitions: è il punto di riferimento fisso.
-- Voci di navigazione: `small`, peso 500, `ink-muted`, altezza minima 44px, padding orizzontale 12px. La voce attiva ha `aria-current="page"`, testo `ink` e un **indicatore**: barretta di 2px in `ink`, raggio 2px, rientrata di 12px ai lati, 6px sopra il bordo inferiore della voce. L'indicatore ha un `view-transition-name` proprio (`nav-indicator`), così scorre verso la nuova voce.
+- Voci di navigazione: `small`, peso 500, `ink-muted`, altezza minima 44px, padding orizzontale 12px. La voce attiva ha `aria-current="page"`, testo `ink` e un **indicatore**: barretta di 2px in `ink`, raggio 2px, rientrata di 12px ai lati, 6px sopra il bordo inferiore della voce. L'indicatore ha un `view-transition-name` proprio (`nav-indicator`), così scorre verso la nuova voce. _Dopo la v1: oggi l'indicatore cambia posto senza animazione (MILESTONES)._
 - **Voci (da M7):** La mia lista, Calendario, Statistiche. "Ricerca" non è più una voce: c'è il pulsante "Cerca".
 - **Pulsante "Cerca"** (M7), tra la navigazione e l'account. Da 640px: testo "Cerca" con accanto la scorciatoia in un `<kbd>` (`label`, bordo `border-strong`, raggio 4px): "⌘K" su Mac, "Ctrl K" altrove, scritta solo nel browser che sa su che sistema gira. Sotto i 640px: solo l'icona della lente, 44×44px, con nome accessibile "Cerca". Apre la ricerca rapida; ha `aria-haspopup="dialog"` e `aria-keyshortcuts="Meta+K Control+K"`. Senza JavaScript è un link a `/ricerca`.
 - A destra della navigazione, l'account: "Accedi" in ciano, che porta a `/accesso`; da collegati, il nome in `small` `ink-muted` e il pulsante "Esci" (un `<form method="post">`). Compare solo nel browser, perché il nome viene da un cookie (ADR-0004).
-- **Sotto i 640px: menu a scomparsa** (M7; fino a M6 la navigazione scorreva in orizzontale). Una riga: nome dell'app, lente, "Accedi"/"Esci" e il pulsante "Menu" (icona e testo, 44px di altezza). Segue il pattern APG "disclosure navigation", **non** `role="menu"`: il pulsante ha `aria-expanded` e `aria-controls`; il pannello si apre sotto l'header, a tutta larghezza, fondo `surface` e bordo inferiore `border`, con le voci una per riga (altezza 48px) e la voce attiva segnata con `aria-current="page"` e una barretta `ink` a sinistra. Esc chiude il menu e riporta il focus sul pulsante; anche portare il focus fuori dal menu o scegliere una voce lo chiude. Il nome dell'utente non compare. L'header resta su una riga, alto 64px, anche a 360px.
+- **Sotto i 640px: menu a scomparsa** (M7; fino a M6 la navigazione scorreva in orizzontale). Una riga: nome dell'app, lente, "Accedi"/"Esci" e il pulsante "Menu" (icona e testo, 44px di altezza; sotto i 360px solo l'icona, 44×44px, con il nome "Menu" per i lettori di schermo, perché la riga stia in 320px come chiede WCAG 1.4.10, decisione del 2026-11-24). Segue il pattern APG "disclosure navigation", **non** `role="menu"`: il pulsante ha `aria-expanded` e `aria-controls`; il pannello si apre sotto l'header, a tutta larghezza, fondo `surface` e bordo inferiore `border`, con le voci una per riga (altezza 48px) e la voce attiva segnata con `aria-current="page"` e una barretta `ink` a sinistra. Esc chiude il menu e riporta il focus sul pulsante; anche portare il focus fuori dal menu o scegliere una voce lo chiude. Il nome dell'utente non compare. L'header resta su una riga, alto 64px, anche a 360px.
 - Sotto l'header, solo nella Home, c'è la striscia "in onda ora" (vedi la sezione dedicata).
 
 ## Pulsanti e filtri
@@ -178,7 +178,7 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 - **Filtri** (La mia lista: Tutti + i 6 stati; Calendario: Tutti / Solo la mia lista): pulsanti con `aria-pressed`, dentro un `role="group"` con `aria-label`. Il filtro attivo ha fondo `ink`, bordo `ink` e testo `on-accent` (17,34:1), non rosa.
 - **Etichetta di un filtro attivo** (La mia lista, `?voto=`, M7): pulsante sopra la riga dei filtri per stato, con fondo `ink`, testo `on-accent` e la ×: "Voto 8 ×". Nome accessibile "Voto 8, togli il filtro". Premuto toglie il filtro; il focus passa al filtro per stato attivo.
 - **Filtri su mobile: una sola riga, mai a capo.** La riga scorre in orizzontale (`flex-wrap: nowrap; overflow-x: auto`), arriva fino ai bordi dello schermo (margine negativo pari al margine laterale della pagina, con lo stesso valore come padding interno e come `scroll-padding-inline`) e ha una sfumatura di 32px sul bordo destro (`mask-image`), che segnala altri filtri. Con la tastiera, il filtro che riceve il focus entra da solo nell'area visibile; all'apertura della pagina il filtro attivo viene portato nell'area visibile.
-- Al cambio di filtro le card si riposizionano con le View Transitions (vedi Effetti).
+- Al cambio di filtro le card si riposizionano con le View Transitions (vedi Effetti). _Dopo la v1: oggi cambiano posto senza animazione (MILESTONES)._
 
 ## Home
 
@@ -217,7 +217,7 @@ Un giorno alla volta (M7, decisione del 2026-11-23); fino a M6 erano 7 colonne s
 
 Disegnati in HTML e CSS, senza librerie (ADR-0001, nota del 2026-11-23). Nessuna animazione delle barre.
 
-- **Distribuzione dei voti** (Statistiche; in La mia lista fino a M6, decisione del 2026-11-23): 10 colonne verticali da 1 a 10, in una riga larga al massimo 42rem (come l'avviso demo): più larghe, le colonne diventano blocchi pesanti. Sopra ogni barra il numero di anime (`small`, `tabular-nums`), sotto il voto. La barra è alta in proporzione al voto più frequente, con un minimo di 2px se non è zero; il fondo della colonna è `raised`, la barra `ink-muted`.
+- **Distribuzione dei voti** (Statistiche; in La mia lista fino a M6, decisione del 2026-11-23): 10 colonne verticali da 1 a 10, in una riga larga al massimo 42rem (come l'avviso demo): più larghe, le colonne diventano blocchi pesanti. Sopra ogni barra il numero di anime (`small`, `tabular-nums`), sotto il voto. Colonne larghe almeno 24px, 8px tra l'una e l'altra; sotto i 360px 4px, perché le 10 colonne stiano in 320px. La barra è alta in proporzione al voto più frequente, con un minimo di 2px se non è zero; il fondo della colonna è `raised`, la barra `ink-muted`.
   - Ogni colonna è un link a La mia lista filtrata ("Voto 8: 12 anime, apri La mia lista").
   - Larghezza minima di una colonna 24px (WCAG 2.5.8): a 390px le 10 colonne stanno in 358px con 8px di spazio fra l'una e l'altra.
   - Sotto, un `<details>` "Dati del grafico in tabella" con la tabella Voto / Anime.
@@ -234,7 +234,7 @@ Disegnati in HTML e CSS, senza librerie (ADR-0001, nota del 2026-11-23). Nessuna
 
 - Titolo "Ricerca" in `h1`; sotto, un `<form role="search">` largo al massimo 36rem: etichetta visibile "Titolo dell'anime", campo `type="search"` (altezza minima 44px, fondo `surface`, bordo `border-strong`, raggio 6px), pulsante "Cerca" e un testo d'aiuto collegato con `aria-describedby`.
 - La ricerca parte da sola (ADR-0003); "Cerca" e Invio la fanno partire subito. L'indirizzo segue la ricerca (`?q=`) senza aggiungere voci alla cronologia.
-- Sotto il modulo, un'area `role="status"` annuncia numero di risultati, attesa per il limite di AniList, errori e "nessun risultato". Poi la griglia delle card, con la cascata solo quando i risultati arrivano dalla rete.
+- Sotto il modulo, un'area `role="status"` annuncia numero di risultati, attesa per il limite di AniList, errori e "nessun risultato". Poi la griglia delle card, con la cascata solo quando i risultati arrivano dalla rete, sotto un titolo `h2` "Risultati" solo per i lettori di schermo (M8): i titoli delle card sono `h3`.
 - Durante il caricamento: 12 skeleton nella griglia, contenitore con `aria-busy`, "Caricamento…" per i lettori di schermo.
 
 ### Ricerca rapida (M7)
@@ -302,7 +302,10 @@ Nella lista, sotto il numero di episodi, una riga in `small` `ink-muted` con sta
 - La copertina ha `alt=""`: il titolo è già accanto.
 - Il badge "in onda" ha un prefisso per lettori di schermo ("Prossimo episodio:") e non intercetta i clic.
 - La copertina ha proporzioni fisse anche prima del caricamento: nessuno spostamento del layout.
-- **Card che lascia La mia lista** (eliminata, o fuori dai filtri dopo una modifica o un "+1" che fa completare l'anime): come in "Continua a guardare", il focus va al titolo della card successiva o, dopo l'ultima, al titolo "Anime della lista", che è solo per i lettori di schermo e diventa visibile mentre ha il focus. Una regione `role="status"` dice perché: "{titolo}: eliminato dalla lista", "{titolo}: passato a «In pausa»", "{titolo}: voto 7,5".
+- **Lista vuota** (La mia lista e Statistiche, con il login; M8): "La lista è vuota: aggiungi qualcosa dalla Ricerca o dagli anime della stagione.", con i due link, come in "Cosa guardo stasera?". La lista demo, in sola lettura, dice solo "La lista è vuota.". Un filtro che non lascia niente ha il suo messaggio ("Nessun anime in «Completato».").
+- **Card che lascia La mia lista** (eliminata, o fuori dai filtri dopo una modifica o un "+1" che fa completare l'anime): come in "Continua a guardare", il focus va al titolo della card successiva o, dopo l'ultima, al titolo "Anime della lista", che è solo per i lettori di schermo e diventa visibile mentre ha il focus. Una regione `role="status"` dice perché, dallo stato reale della voce: "{titolo}: eliminato dalla lista", "{titolo}: passato a «In pausa»", "{titolo}: voto 7,5".
+  - **Quando** (M8, 2026-11-24): al momento in cui la card esce davvero, subito per un nuovo stato o un'eliminazione, alla risposta di AniList per il completamento automatico. Il focus si sposta solo se in quel momento è ancora dentro la card; se l'utente si è già spostato, c'è solo l'annuncio. Se la card non esce (salvataggio fallito e voce ripristinata, o AniList che non completa), focus e annuncio restano come sono e l'errore lo dice l'avviso `role="alert"`.
+  - Il "+1" sull'ultimo episodio sparisce subito: il focus passa a "Modifica" della stessa card, così resta dentro la card.
 
 ### Pulsante "+"
 
@@ -380,9 +383,9 @@ I valori vengono da un piccolo script che simula una molla smorzata e semplifica
 |---|---|---|---|---|
 | Titoli display in entrata | Dove sono? | Ogni riga è in un contenitore con `overflow: hidden`; il testo, `inline-block`, sale da `translateY(100%)` in 400ms con `--spring-gentle`, 60ms tra una riga e l'altra | `transform` | Dissolvenza 150ms |
 | Cascata delle card | Cosa è arrivato? | Salgono di 16px e da scala 0,97, 350ms, ritardo di 20ms per le prime 8 (fine entro 490ms) | `transform`, `opacity` | Dissolvenza 150ms, tutte insieme |
-| Riposizionamento al cambio di filtro | Cosa è cambiato? | Ogni card ha un `view-transition-name` durante la transizione: quelle che restano scorrono nella nuova posizione (`--spring-snappy`), quelle nuove entrano da scala 0,92, quelle che escono si dissolvono in 150ms | gruppi delle View Transitions, `transform`, `opacity` | Nessun nome: solo dissolvenza della pagina |
+| Riposizionamento al cambio di filtro (dopo la v1) | Cosa è cambiato? | Ogni card ha un `view-transition-name` durante la transizione: quelle che restano scorrono nella nuova posizione (`--spring-snappy`), quelle nuove entrano da scala 0,92, quelle che escono si dissolvono in 150ms | gruppi delle View Transitions, `transform`, `opacity` | Nessun nome: solo dissolvenza della pagina |
 | Card → Dettaglio | Da dove arriva? | La copertina della card diventa la copertina del Dettaglio (stesso `name`), `--spring-gentle`, 400ms; il resto si dissolve | gruppo della View Transition | Solo dissolvenza |
-| Indicatore della pagina attiva | Dove sono? | La barretta sotto la voce attiva scorre verso la nuova voce, `--spring-snappy` | gruppo della View Transition | Cambia posto senza animazione |
+| Indicatore della pagina attiva (dopo la v1) | Dove sono? | La barretta sotto la voce attiva scorre verso la nuova voce, `--spring-snappy` | gruppo della View Transition | Cambia posto senza animazione |
 | Inclinazione al passaggio del mouse | — (riscontro) | Segue il puntatore, massimo 6°, aggiornata una volta per frame; torna in piano con `--spring-snappy` | `transform` | Disattivata |
 | Kanji all'apertura del Dettaglio | Dove sono? | Scorrono di 8% da destra e compaiono, 400ms, `--spring-gentle`, 80ms dopo la pagina | `transform`, `opacity` | Dissolvenza 150ms |
 | Scroll nel Dettaglio | Dove sono nella pagina? | Copertina: `animation-timeline: scroll(root block)`, intervallo 0–70vh, fino a `translateY(18vh) scale(0.94)` e opacità 0,25. Kanji: stesso tipo di timeline, intervallo 0–80vh, fino a `translateY(30vh)` e opacità 0. Sezioni del corpo: `animation-timeline: view()`, intervallo `entry 10%`–`cover 30%`, da opacità 0 e `translateY(32px)`. Tutte con curva lineare e `animation-fill-mode: both`, dentro `@supports (animation-timeline: view())` e `@media (prefers-reduced-motion: no-preference)` | `transform`, `opacity` | Disattivate: tutto statico e visibile |
@@ -400,6 +403,7 @@ I valori vengono da un piccolo script che simula una molla smorzata e semplifica
 - **Bordi sfumati** con `mask-image` (64px per lato): il testo entra ed esce in dissolvenza, mai tagliato di netto. Con movimento ridotto la sfumatura resta e l'elenco ha 64px di margine ai lati, così il primo e l'ultimo elemento sono leggibili.
 - Si mette in pausa con hover e con focus su un suo elemento.
 - Con movimento ridotto la striscia è ferma: senza la copia e senza il pulsante, che non avrebbe niente da fermare (decisione del 2026-11-23).
+- **Spazio tenuto dal server** (M8, 2026-11-24): gli episodi delle prossime 24 ore si scelgono nel browser, con la sua ora. Finché non la conosce, la striscia occupa già il suo spazio, vuota, se il server le ha passato degli episodi: altrimenti comparendo spingeva giù tutta la Home (CLS 0,083 a 1280px in produzione, 0,077 nel test).
 - **Ha anche un pulsante "Pausa / Riprendi" visibile.** Serve per WCAG 2.2.2 (Pausa, stop, nascondi): un contenuto che si muove da solo per più di 5 secondi deve poter essere fermato da chiunque, non solo da chi usa il mouse.
 
 ### Cosa non si anima
@@ -411,6 +415,8 @@ I valori vengono da un piccolo script che simula una molla smorzata e semplifica
 - Proprietà che ricalcolano il layout (`width`, `height`, `top`, `margin`…) e i filtri (`blur`).
 
 ### View Transitions
+
+- **Nella v1 c'è solo la transizione card → Dettaglio** (con il ritorno disegnato a mano). L'indicatore della pagina attiva, il riposizionamento al cambio di filtro e le animazioni degli elementi senza corrispondente sono descritti qui come progetto e spostati in MILESTONES, "Dopo la v1" (decisione del 2026-11-24).
 
 - In Next.js 16.4 si usa il componente `<ViewTransition>` di React 19.3, che si appoggia alla View Transitions API del browser. Non serve nessun flag di configurazione (`experimental.viewTransition` è stato rimosso in Next 16.3). Fonte: `node_modules/next/dist/docs/01-app/02-guides/view-transitions.md`, versione installata.
 - **Card → Dettaglio:** stesso `name` sulla copertina nelle due pagine (`cover-{id}`), con `share` esplicito e `default="none"`. Due nomi uguali nella stessa pagina annullano la transizione, e nella Home lo stesso anime può stare in "Continua a guardare" o nelle proposte di "Cosa guardo stasera?" e anche nella griglia della stagione: le card di queste due sezioni aggiungono un ambito al nome (`cover-continua-{id}`, `cover-stasera-{id}`). Il Dettaglio prende il nome della card su cui si è fatto clic; aperto in altro modo (ricerca rapida, striscia "in onda ora", indirizzo diretto) usa `cover-{id}` (decisione del 2026-11-24, `src/components/cover-transition.tsx`).
@@ -475,8 +481,10 @@ I colori del testo si chiamano `ink` e `ink-muted`: in Tailwind il prefisso `tex
 
 ## Da decidere o verificare più avanti
 
-- **Misura con CPU 4× (M1):** ogni effetto sull'app vera, a macchina scarica, a partire dalla transizione card → Dettaglio (vedi budget). La transizione card → Dettaglio è misurata in M7 (vedi "Budget di prestazioni"); gli altri effetti no.
-- **Ottimizzazione delle copertine (M1):** `next/image` passa dall'ottimizzazione di Vercel, che sul piano gratuito ha limiti mensili; l'alternativa è `<img>` con gli URL di AniList, che offre già tre dimensioni (`medium`, `large`, `extraLarge`).
-- **Noto Sans JP:** byte scaricati su un sistema senza font giapponesi e spazio nella build.
-- **Pulsante "+" (M2):** cosa succede premendolo quando l'anime è già nella lista.
+Stato alla chiusura di M8 (2026-11-24): ogni voce è decisa, verificata o rimandata in modo esplicito.
+
+- **Misura con CPU 4× (M1):** misurate la transizione card → Dettaglio (M7) e il ritorno con Indietro (M7 e M8), vedi "Budget di prestazioni". Gli altri effetti (inclinazione delle card, animazioni dello scroll nel Dettaglio, striscia "in onda ora"): facoltativo, da valutare dopo M8.
+- **Ottimizzazione delle copertine (M1): deciso in M1** `<img>` con gli URL di AniList e le sue tre dimensioni (`medium`, `large`, `extraLarge`) in `srcset`, senza `next/image`, che passerebbe dall'ottimizzazione di Vercel con i suoi limiti mensili (`src/components/cover-image.tsx`).
+- **Noto Sans JP:** spazio nella build misurato in M8 (vedi "Caricamento del font giapponese"); i byte scaricati su un sistema senza font giapponesi restano facoltativi, dopo M8.
+- **Pulsante "+" (M2): deciso in M2.** Con l'anime già nella lista mostra ✓ (`aria-pressed="true"`) e, premuto, chiede conferma prima di eliminarlo dalla lista su AniList (ADR-0004; `src/components/list-actions.tsx`).
 - **Spazio della prima fila nella Home:** verificato in M3 (775px senza la striscia) e rifatto in M7 con la striscia, sul finto AniList e sui dati veri (vedi "Home").

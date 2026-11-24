@@ -1,3 +1,4 @@
+import { AxeBuilder } from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockAniList, searchResults } from "./anilist-browser";
 
@@ -136,4 +137,15 @@ test("Torna indietro on a detail page opened directly leads to the Home", async 
 
   await expect(page).toHaveURL("/");
   await expect(page.getByText("Stagione in corso")).toBeVisible();
+});
+
+test("results sit under a Risultati heading, so headings go h1, h2, h3", async ({ page }) => {
+  await mockAniList(page, [ok]);
+  await page.goto("/ricerca?q=hoshi");
+  await expect(page.getByRole("article")).toHaveCount(2);
+
+  await expect(page.getByRole("heading", { level: 2, name: "Risultati" })).toHaveCount(1);
+  await expect(page.getByRole("heading", { level: 3, name: "Hoshi no Kioku" })).toBeVisible();
+  const { violations } = await new AxeBuilder({ page }).withRules(["heading-order"]).analyze();
+  expect(violations).toEqual([]);
 });

@@ -1,7 +1,12 @@
 import { AxeBuilder } from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockAniList, searchResults } from "./anilist-browser";
-import { FAKE_ANILIST, logIn } from "./session";
+import { FAKE_ANILIST, logIn, resetMyList } from "./session";
+
+// Logged-in pages read this worker's test list: from its starting state, whatever ran before in the worker.
+test.beforeEach(async ({ request }) => {
+  await resetMyList(request);
+});
 
 // WCAG 2.0, 2.1 and 2.2 at levels A and AA. Every new page gets an entry here.
 const wcagAA = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
@@ -73,6 +78,16 @@ test("no WCAG A/AA violations on the Home with Cosa guardo stasera? suggestions"
 
 test.describe("on a 360px phone", () => {
   test.use({ viewport: { width: 360, height: 780 } });
+
+  for (const path of ["/", "/anime/1", "/ricerca", "/accesso", "/lista", "/calendario", "/statistiche"]) {
+    test(`no WCAG A/AA violations on ${path}`, async ({ page }) => {
+      await page.goto(path);
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      await expect(page.locator("[aria-busy=true]")).toHaveCount(0);
+      const { violations } = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
+      expect(violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
+    });
+  }
 
   test("no WCAG A/AA violations with the header menu open", async ({ page }) => {
     await page.goto("/calendario");

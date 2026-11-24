@@ -32,6 +32,9 @@ export function AiringStrip({ episodes }: { episodes: SoonEpisode[] }) {
     if (track.current) track.current.style.setProperty("--strip-duration", `${track.current.scrollWidth / 2 / PIXELS_PER_SECOND}s`);
   }, [key]);
 
+  // Until the browser knows the time, the strip keeps its room, so the Home does not move down when it appears
+  // (CLS). The server's span is wider than 24 hours: rarely, the room goes away again.
+  if (now === null && episodes.length > 0) return <div aria-hidden="true" className="airing-strip" />;
   if (soon.length === 0) return null;
 
   const items = soon.map(({ id, episode, airingAt, media }) => (

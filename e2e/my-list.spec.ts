@@ -1,12 +1,12 @@
 import { type Page, expect, test } from "@playwright/test";
 import { mockAniList, searchResults } from "./anilist-browser";
-import { FAKE_ANILIST, logIn } from "./session";
+import { FAKE_ANILIST, failNextSaves, logIn, resetMyList } from "./session";
 import { backAnimations, recordBackAnimations, recordViewTransitions, viewTransitions } from "./view-transitions";
 
-// The logged-in user's list lives in the fake AniList and changes: these tests run one at a time, from a reset.
-test.describe.configure({ mode: "serial" });
+// The logged-in user's list lives in the fake AniList and changes: each test starts from a reset of its worker's
+// own copy, which no other worker reads.
 test.beforeEach(async ({ request }) => {
-  await request.post(`${FAKE_ANILIST}/__reset`);
+  await resetMyList(request);
 });
 
 test("logged in, La mia lista is the user's own list, without the demo notice", async ({ page }) => {
@@ -45,7 +45,7 @@ test("a token AniList refuses ends the session: message, and all session cookies
   await page.goto("/lista");
 
   await expect(page.getByRole("status")).toContainText("La sessione con AniList è scaduta o è stata revocata.");
-  await expect.poll(async () => (await context.cookies()).map((cookie) => cookie.name)).toEqual([]);
+  await expect.poll(async () => (await context.cookies(page.url())).map((cookie) => cookie.name)).toEqual([]);
 });
 
 test("/api/list without a session answers 401 and is never cached", async ({ request }) => {
@@ -215,6 +215,8 @@ test.describe("editing", () => {
       const dialog = page.getByRole("dialog");
       await dialog.getByRole("button", { name: "Elimina dalla lista" }).focus();
       await page.keyboard.press("Enter");
+      // The editor moves focus to the question a frame later: only then on to Elimina, or Enter lands on the text.
+      await expect(dialog.getByText("Eliminare «Senza palinsesto» dalla lista su AniList?")).toBeFocused();
       await dialog.getByRole("button", { name: "Elimina", exact: true }).focus();
       await page.keyboard.press("Enter");
 
@@ -254,6 +256,40 @@ test.describe("editing", () => {
       await expect(card(page, "Senza palinsesto")).toHaveCount(0);
     });
 
+    test("a +1 on the last episode whose save fails: the card stays, focus stays in it, nothing said about leaving", async ({
+      page,
+      request,
+    }) => {
+      await logIn(page, "/lista");
+      await page.getByRole("group", { name: "Filtra per stato" }).getByRole("button", { name: "Sto guardando (1)" }).click();
+      await failNextSaves(request, 1);
+
+      await card(page, "Senza palinsesto").getByRole("button", { name: "+1 episodio visto: Senza palinsesto" }).focus();
+      await page.keyboard.press("Enter");
+
+      // The "+1" goes with the last episode: focus moves to Modifica, in the same card.
+      await expect(card(page, "Senza palinsesto").getByRole("button", { name: "Modifica: Senza palinsesto" })).toBeFocused();
+      await expect(page.getByRole("alert").filter({ hasText: "la modifica non è stata salvata" })).toBeVisible();
+      await expect(card(page, "Senza palinsesto").getByRole("button", { name: "+1 episodio visto: Senza palinsesto" })).toBeVisible();
+      await expect(card(page, "Senza palinsesto").getByRole("button", { name: "Modifica: Senza palinsesto" })).toBeFocused();
+      await expect(page.locator('p[role="status"]')).toHaveText("");
+    });
+
+    test("a card leaving late, once the user has moved on: only said, focus left where the user put it", async ({ page }) => {
+      await logIn(page, "/lista");
+      await page.getByRole("group", { name: "Filtra per stato" }).getByRole("button", { name: "Sto guardando (1)" }).click();
+
+      await card(page, "Senza palinsesto").getByRole("button", { name: "+1 episodio visto: Senza palinsesto" }).focus();
+      await page.keyboard.press("Enter");
+      // Before AniList answers (800ms of grouping, then the request), the user goes on to the header.
+      const calendario = page.getByRole("banner").getByRole("link", { name: "Calendario" });
+      await calendario.focus();
+
+      await expect(card(page, "Senza palinsesto")).toHaveCount(0);
+      await expect(status(page, "Senza palinsesto: passato a «Completato»")).toHaveCount(1);
+      await expect(calendario).toBeFocused();
+    });
+
     test("a change that keeps the card in the filters leaves focus alone", async ({ page }) => {
       await logIn(page, "/lista");
       const edit = card(page, "Hoshi no Kioku").getByRole("button", { name: "Modifica: Hoshi no Kioku" });
@@ -282,7 +318,7 @@ test.describe("editing", () => {
   });
 
   test("a change AniList refuses goes back and says so", async ({ page, request }) => {
-    await request.post(`${FAKE_ANILIST}/__fail-saves`, { data: { count: 1 } });
+    await failNextSaves(request, 1);
     await logIn(page, "/lista");
 
     await card(page, "Senza palinsesto").getByRole("button", { name: /\+1/ }).click();
@@ -621,4 +657,24 @@ test.describe("Calendario, logged in", () => {
     await expect(calendar(page).getByRole("link", { name: /Hoshi no Kioku/ })).toHaveCount(0);
     await expect(page.getByText(/Modalità demo/)).toHaveCount(0);
   });
+});
+
+test("an empty list says where to find something to add, in La mia lista and Statistiche", async ({ page, request, context }) => {
+  await logIn(page, "/lista");
+  // Both entries of this worker's test list, deleted on the fake AniList with the session's token.
+  const token = (await context.cookies()).find((cookie) => cookie.name === "__Host-session")!.value;
+  for (const id of [201, 202]) {
+    await request.post(FAKE_ANILIST, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { query: "mutation DeleteListEntry($id: Int) { DeleteMediaListEntry(id: $id) { deleted } }", variables: { id } },
+    });
+  }
+
+  for (const path of ["/lista", "/statistiche"]) {
+    await page.goto(path);
+    const empty = page.getByText("La lista è vuota: aggiungi qualcosa dalla Ricerca o dagli anime della stagione.");
+    await expect(empty).toBeVisible();
+    await expect(empty.getByRole("link", { name: "Ricerca" })).toHaveAttribute("href", "/ricerca");
+    await expect(empty.getByRole("link", { name: "anime della stagione" })).toHaveAttribute("href", "/");
+  }
 });

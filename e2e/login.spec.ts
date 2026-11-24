@@ -3,7 +3,12 @@ import path from "node:path";
 import { type Page, expect, test } from "@playwright/test";
 import { mockAniList, searchResults } from "./anilist-browser";
 import { SERVER_LOG, e2eOAuth } from "./secrets";
-import { logIn } from "./session";
+import { logIn, resetMyList } from "./session";
+
+// Logged-in pages read this worker's test list: from its starting state, whatever ran before in the worker.
+test.beforeEach(async ({ request }) => {
+  await resetMyList(request);
+});
 
 // The fake AniList (e2e/fake-anilist.mjs) approves every login straight away.
 const header = (page: Page) => page.getByRole("banner");
@@ -103,7 +108,7 @@ test("logout removes both cookies and explains how to revoke access", async ({ p
     "href",
     "https://anilist.co/settings/apps",
   );
-  expect((await context.cookies()).map((cookie) => cookie.name)).toEqual([]);
+  expect((await context.cookies(page.url())).map((cookie) => cookie.name)).toEqual([]);
   await expect(header(page).getByRole("link", { name: "Accedi" })).toBeVisible();
 });
 

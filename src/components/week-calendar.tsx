@@ -111,14 +111,16 @@ export function WeekCalendar({ monday, asked, episodes, fetchedAt, maxAgeSeconds
         ))}
       </div>
       {filter?.notice}
-      {/* One live region from the first render, saying what the filter left. */}
-      <p role="status" className="sr-only">
+      {/* One live region from the first render, saying what the filter left. A problem is shown in it too, so it
+          is seen, announced, and read once. */}
+      <p role="status" className={filter?.shown ? "mt-4" : "sr-only"}>
         {filter?.status ?? ""}
+        {filter?.extra && <> {filter.extra}</>}
       </p>
-      {filter?.message && <div className="mt-4">{filter.message}</div>}
+      {filter?.action}
 
       {now === null || misplaced || (filter && !filter.ids) ? (
-        filter?.message ? null : <WaitingWeek />
+        filter?.shown ? null : <WaitingWeek />
       ) : (
         <>
           <div role="tablist" aria-label="Giorni della settimana" onKeyDown={onTabKey} className="day-tabs mt-6">
@@ -287,31 +289,30 @@ type ListQuery = ReturnType<typeof useMyList> | ReturnType<typeof useDemoList>;
 function listFilter(
   query: ListQuery,
   loggedIn: boolean,
-): { ids?: Set<number>; status: string; message?: ReactNode; notice?: ReactNode } {
+): { ids?: Set<number>; status: string; shown?: boolean; extra?: ReactNode; action?: ReactNode; notice?: ReactNode } {
   const login = (text: string) => (
     <Link href="/accesso?da=%2Fcalendario" className="text-cyan underline underline-offset-2">
       {text}
     </Link>
   );
   if (query.error instanceof NotLoggedInError) {
-    const status = "La sessione con AniList è scaduta.";
-    return { status, message: <p>{status} {login("Accedi di nuovo")} per filtrare la tua lista.</p> };
+    return { status: "La sessione con AniList è scaduta.", shown: true, extra: <>{login("Accedi di nuovo")} per filtrare la tua lista.</> };
   }
   if (!loggedIn && query.error instanceof AniListError && query.error.status === 404) {
-    const status = "La lista dimostrativa non è disponibile in questo momento.";
-    return { status, message: <p>{status} {login("Accedi con AniList")} per filtrare la tua lista.</p> };
+    return {
+      status: "La lista dimostrativa non è disponibile in questo momento.",
+      shown: true,
+      extra: <>{login("Accedi con AniList")} per filtrare la tua lista.</>,
+    };
   }
   if (query.isError) {
-    const status = "Non riesco a raggiungere AniList in questo momento. Riprova tra qualche minuto.";
     return {
-      status,
-      message: (
-        <>
-          <p>{status}</p>
-          <button type="button" onClick={() => query.refetch()} className="button mt-3">
-            Riprova
-          </button>
-        </>
+      status: "Non riesco a raggiungere AniList in questo momento. Riprova tra qualche minuto.",
+      shown: true,
+      action: (
+        <button type="button" onClick={() => query.refetch()} className="button mt-3">
+          Riprova
+        </button>
       ),
     };
   }

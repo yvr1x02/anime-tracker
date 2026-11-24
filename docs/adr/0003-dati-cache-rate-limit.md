@@ -56,7 +56,8 @@ Ogni pagina del Dettaglio si genera alla prima visita (`generateStaticParams` vu
 
 - **Id non validi** (non interi positivi, oppure oltre il massimo di `Int` in GraphQL): 404 subito, senza richieste ad AniList.
 - **Id validi ma inesistenti, o di anime per adulti:** prova locale con la build di produzione e un finto AniList che risponde sempre "Not Found" e conta le richieste. Tre visite a `/anime/2` hanno fatto **una sola** richiesta; un altro id ne ha fatta una in più, poi nessuna. Anche la 404 resta in cache, come pagina generata: la cache di `fetch` era vuota.
-- **Rischio che resta:** un id nuovo costa sempre una richiesta. Non ho verificato quanto dura in cache una 404, né il comportamento su Vercel. Le contromisure verso i bot (per esempio `robots.txt`) si valutano in M8, la Rifinitura.
+- **Rischio che resta:** un id nuovo costa sempre una richiesta. Non ho verificato quanto dura in cache una 404, né il comportamento su Vercel.
+- **`robots.txt` (M8, decisione del 2026-11-24):** vieta tutto (`User-Agent: *`, `Disallow: /`), perché il progetto è un esercizio per il portfolio e non ha bisogno di essere trovato dai motori di ricerca. È una **contromisura di cortesia**: la rispettano solo i bot che vogliono rispettarla, e non toglie dagli indici gli indirizzi che altri siti linkano. La protezione vera del limite di AniList restano la cache sul server (una richiesta per finestra di `revalidate`, anche con molte visite) e la gestione del 429 (dati vecchi invece di nuove richieste, messaggio con l'attesa). Con questa scelta si rinuncia all'indicizzazione dei Dettagli prevista da ADR-0001.
 
 ### Calendario (M5, 2026-11-20)
 
@@ -74,6 +75,8 @@ Ogni pagina del Dettaglio si genera alla prima visita (`generateStaticParams` vu
   | Stato 200 con un errore sulla terza pagina | La cache di `fetch` conserva ogni risposta 200 (codice di Next 16.4.6, `patch-fetch.js`): la risposta difettosa sostituisce quella completa e la settimana mostra la pagina d'errore fino alla scadenza successiva. Mai una settimana a metà, ma nemmeno l'ultima completa |
 
   Finora AniList ha sempre dato i suoi errori con lo stato HTTP corrispondente (400, 404, 429), quindi il terzo caso non è stato visto con AniList vero. Coprirlo richiederebbe di mettere in cache la settimana già validata (per esempio con `unstable_cache`), con una nuova prova: decisione aperta alla chiusura di M5.
+
+  **Chiusa in M8 (decisione del 2026-11-24): non si corregge.** I log di produzione non sono leggibili da qui (il progetto su Vercel non sta nell'account collegato agli strumenti, e sul piano Hobby i log di runtime durano un'ora), quindi la chiusura si basa su ciò che è stato visto con AniList vero: la prova del 2026-11-20 qui sopra; la prova di M7 del 2026-11-24 (settimana del 23–29 novembre, 130 episodi, e il redirect da `?settimana=`); la fotografia della produzione del 2026-11-24, con le settimane del 23–29 novembre e del 30 novembre–6 dicembre complete (151 e 137 orari di uscita nei dati della pagina, nessuna pagina d'errore). In nessun caso AniList ha risposto 200 con un errore. Se succedesse, il danno resta quello della tabella: la pagina d'errore con "Riprova" per al massimo un'ora, mai una settimana a metà.
 - **Finestra:** il server non conosce il fuso di chi guarda, quindi per la settimana che inizia lunedì D scarica dal lunedì D alle 00:00 UTC meno 14 ore al lunedì successivo più 12 ore: copre quella settimana in ogni fuso, da UTC−12 a UTC+14. Il browser tiene solo gli episodi della settimana nel suo fuso.
 - **Settimane future:** al massimo 12 dopo quella corrente; il parametro della settimana è validato (una data di lunedì, non nel passato, entro il tetto) prima di chiamare AniList.
 - **Da M7 il parametro è il giorno** (`?giorno=`): il server ne ricava il lunedì e lo valida con le stesse regole; cambiare giorno nella stessa settimana avviene nel browser, senza richieste. Per le copertine grandi la query chiede anche `coverImage.large`: la query cambia, quindi dopo il deploy ogni settimana si riscarica una volta.
@@ -111,7 +114,7 @@ Ogni pagina del Dettaglio si genera alla prima visita (`generateStaticParams` vu
 - dati più vecchi della durata della loro cache: solo "Dati aggiornati alle {ora}.", in tono neutro;
 - "AniList al momento non risponde" e gli altri messaggi d'errore compaiono solo quando una richiesta fallisce davvero, mai dedotti dall'età dei dati.
 
-Con la cache di `fetch`, un aggiornamento fallito sul server non arriva alla pagina: il visitatore riceve la versione precedente, al massimo con il messaggio neutro. I messaggi d'errore riguardano quindi le richieste dal browser (Ricerca, parti personali) e le pagine senza dati in cache. Da verificare in M1: l'ora dei dati deve essere quella del download, non quella della generazione della pagina, per esempio dall'intestazione `Date` della risposta, che resta in cache insieme ai dati.
+Con la cache di `fetch`, un aggiornamento fallito sul server non arriva alla pagina: il visitatore riceve la versione precedente, al massimo con il messaggio neutro. I messaggi d'errore riguardano quindi le richieste dal browser (Ricerca, parti personali) e le pagine senza dati in cache. L'ora dei dati deve essere quella del download, non quella della generazione della pagina: è l'intestazione `Date` della risposta, che resta in cache insieme ai dati (verificato in M1, vedi sotto).
 
 **Implementazione in M1 (2026-11-20).**
 
