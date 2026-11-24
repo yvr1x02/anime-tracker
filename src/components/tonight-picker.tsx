@@ -73,9 +73,12 @@ export function TonightPicker() {
           ))}
         </div>
       </div>
-      {/* One live region from the first render: one inserted with its text is often not announced. */}
-      <p role="status" className="sr-only">
-        {view?.status ?? ""}
+      {view?.before}
+      {/* The visible message is the live region itself, there from the first render (one inserted with its text is
+          often not announced): seen, announced, and read once. */}
+      <p role="status" className={view?.statusClass}>
+        {view?.status}
+        {view?.extra && <> {view.extra}</>}
       </p>
       {view?.content}
     </section>
@@ -86,7 +89,10 @@ type Source =
   | { kind: "mine"; query: ReturnType<typeof useMyList> }
   | { kind: "demo"; query: ReturnType<typeof useDemoList> };
 
-/** What follows a time choice: the text the live region announces, and what is shown. */
+/**
+ * What follows a time choice: the status, shown and announced by the live region (with `extra` in the same
+ * sentence), and what is shown before and after it.
+ */
 function resultsView({
   time,
   page,
@@ -103,21 +109,14 @@ function resultsView({
   choose: (option: TimeOption) => void;
   now: number | null;
   source: Source;
-}): { status: string; content: ReactNode } {
+}): { status: string; statusClass: string; extra?: ReactNode; before?: ReactNode; content?: ReactNode } {
   const { query } = source;
   const login = (text: string) => (
     <Link href="/accesso?da=%2F" className="text-cyan underline underline-offset-2">
       {text}
     </Link>
   );
-  const message = (status: string, extra?: ReactNode) => ({
-    status,
-    content: (
-      <p className="mt-4">
-        {status} {extra}
-      </p>
-    ),
-  });
+  const message = (status: string, extra?: ReactNode) => ({ status, statusClass: "mt-4", extra });
 
   if (query.error instanceof NotLoggedInError) {
     return message("La sessione con AniList è scaduta.", <>{login("Accedi di nuovo")} per avere proposte dalla tua lista.</>);
@@ -132,28 +131,26 @@ function resultsView({
     const status = "Non riesco a raggiungere AniList in questo momento. Riprova tra qualche minuto.";
     return {
       status,
+      statusClass: "mt-4",
       content: (
-        <div className="mt-4">
-          <p>{status}</p>
-          <button type="button" onClick={() => query.refetch()} className="button mt-3">
-            Riprova
-          </button>
-        </div>
+        <button type="button" onClick={() => query.refetch()} className="button mt-3">
+          Riprova
+        </button>
       ),
     };
   }
-  if (query.isPending || now === null) {
-    return { status: "Cerco le proposte…", content: <p className="mt-4 text-ink-muted">Cerco le proposte…</p> };
-  }
+  if (query.isPending || now === null) return { status: "Cerco le proposte…", statusClass: "mt-4 text-ink-muted" };
 
   const entries = source.kind === "mine" ? source.query.data! : source.query.data!.entries;
   const demoNotice =
     source.kind === "demo" ? (
-      <p className="mt-3 text-small text-ink-muted">
+      <p className="mt-4 text-small text-ink-muted">
         Modalità demo: proposte dalla lista pubblica di {source.query.data!.userName} su AniList.{" "}
         {login("Accedi con AniList")} per usare la tua.
       </p>
     ) : null;
+  // The status follows the demo notice, or the times when there is none.
+  const afterNotice = demoNotice ? "mt-3" : "mt-4";
   const pages = tonightPages(tonightCandidates(entries, time, now));
   const timeText = time.minutes === 180 ? "la serata intera" : time.label;
 
@@ -165,21 +162,19 @@ function resultsView({
         : `Niente nella lista sta in ${time.minutes === 180 ? "una serata" : time.label}.`;
     return {
       status,
+      statusClass: afterNotice,
+      before: demoNotice,
       content: (
-        <div className="mt-4">
-          {demoNotice}
-          <p className="mt-3">{status}</p>
-          <p className="mt-3 flex flex-wrap items-center gap-3">
-            {entries.length > 0 && next && (
-              <button type="button" onClick={() => choose(next)} className="button">
-                Prova con {next.minutes === 180 ? "la serata intera" : next.label}
-              </button>
-            )}
-            <Link href="/ricerca" className="text-cyan underline underline-offset-2">
-              Cerca un anime
-            </Link>
-          </p>
-        </div>
+        <p className="mt-3 flex flex-wrap items-center gap-3">
+          {entries.length > 0 && next && (
+            <button type="button" onClick={() => choose(next)} className="button">
+              Prova con {next.minutes === 180 ? "la serata intera" : next.label}
+            </button>
+          )}
+          <Link href="/ricerca" className="text-cyan underline underline-offset-2">
+            Cerca un anime
+          </Link>
+        </p>
       ),
     };
   }
@@ -193,11 +188,11 @@ function resultsView({
 
   return {
     status,
+    statusClass: `${afterNotice} text-small text-ink-muted`,
+    before: demoNotice,
     content: (
       // The id shows the season grid's heading (globals.css), to tell the two grids apart.
-      <div id="stasera-proposte" className="mt-4">
-        {demoNotice}
-        <p className="mt-3 text-small text-ink-muted">{status}</p>
+      <div id="stasera-proposte">
         <ul className={`${cardGrid} mt-3`}>
           {current.map((suggestion) => (
             <li key={suggestion.entry.id}>

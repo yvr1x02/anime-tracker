@@ -71,3 +71,16 @@ test("from the keyboard, the whole evening, Altre proposte and Ricomincia dalle 
   await times(page).getByRole("button", { name: "2 ore" }).click();
   await expect(picker(page).getByRole("status")).not.toContainText("Di nuovo");
 });
+
+test("a problem is said once: the visible message is the live region itself", async ({ page }) => {
+  await page.route("**/api/demo-list", (route) => route.fulfill({ status: 500, body: "" }));
+  await page.goto("/");
+
+  await times(page).getByRole("button", { name: "1 ora" }).click();
+
+  const text = "Non riesco a raggiungere AniList in questo momento. Riprova tra qualche minuto.";
+  await expect(picker(page).getByRole("status")).toHaveText(text);
+  await expect(picker(page).getByRole("status")).toBeVisible();
+  await expect(picker(page).getByText(text)).toHaveCount(1);
+  await expect(picker(page).getByRole("button", { name: "Riprova" })).toBeVisible();
+});
