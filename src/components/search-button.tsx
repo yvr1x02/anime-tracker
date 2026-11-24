@@ -32,6 +32,8 @@ export function SearchButton() {
   const dialog = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLElement | null>(null);
   const [open, setOpen] = useState(false);
+  // A new quick search at each opening, even when the last close event has not arrived yet.
+  const [opening, setOpening] = useState(0);
 
   function openSearch() {
     if (pathname === "/ricerca") {
@@ -41,6 +43,7 @@ export function SearchButton() {
     if (dialog.current?.open) return;
     opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setOpen(true);
+    setOpening((count) => count + 1);
     dialog.current?.showModal();
   }
 
@@ -87,13 +90,16 @@ export function SearchButton() {
         ref={dialog}
         aria-labelledby="ricerca-rapida-titolo"
         onClose={() => {
+          // The close event comes a task after Esc: a ⌘K in between has opened the dialog again.
+          if (dialog.current?.open) return;
           setOpen(false);
-          // Back where the user was (APG dialog); a page change leaves focus to the new page.
-          if (opener.current?.isConnected) opener.current.focus();
+          // Back where the user was (APG dialog). The browser has usually done it already, and focus may have moved
+          // since (a new page, another element): only when it is lost.
+          if (opener.current?.isConnected && document.activeElement === document.body) opener.current.focus();
         }}
         className="quick-search"
       >
-        {open && <QuickSearch close={() => dialog.current?.close()} />}
+        {open && <QuickSearch key={opening} close={() => dialog.current?.close()} />}
       </dialog>
     </>
   );
