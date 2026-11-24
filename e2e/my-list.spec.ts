@@ -215,6 +215,8 @@ test.describe("editing", () => {
       const dialog = page.getByRole("dialog");
       await dialog.getByRole("button", { name: "Elimina dalla lista" }).focus();
       await page.keyboard.press("Enter");
+      // The editor moves focus to the question a frame later: only then on to Elimina, or Enter lands on the text.
+      await expect(dialog.getByText("Eliminare «Senza palinsesto» dalla lista su AniList?")).toBeFocused();
       await dialog.getByRole("button", { name: "Elimina", exact: true }).focus();
       await page.keyboard.press("Enter");
 
@@ -252,6 +254,40 @@ test.describe("editing", () => {
       await expect(page.getByRole("heading", { name: "Anime della lista" })).toBeFocused();
       await expect(status(page, "Senza palinsesto: passato a «Completato»")).toHaveCount(1);
       await expect(card(page, "Senza palinsesto")).toHaveCount(0);
+    });
+
+    test("a +1 on the last episode whose save fails: the card stays, focus stays in it, nothing said about leaving", async ({
+      page,
+      request,
+    }) => {
+      await logIn(page, "/lista");
+      await page.getByRole("group", { name: "Filtra per stato" }).getByRole("button", { name: "Sto guardando (1)" }).click();
+      await failNextSaves(request, 1);
+
+      await card(page, "Senza palinsesto").getByRole("button", { name: "+1 episodio visto: Senza palinsesto" }).focus();
+      await page.keyboard.press("Enter");
+
+      // The "+1" goes with the last episode: focus moves to Modifica, in the same card.
+      await expect(card(page, "Senza palinsesto").getByRole("button", { name: "Modifica: Senza palinsesto" })).toBeFocused();
+      await expect(page.getByRole("alert").filter({ hasText: "la modifica non è stata salvata" })).toBeVisible();
+      await expect(card(page, "Senza palinsesto").getByRole("button", { name: "+1 episodio visto: Senza palinsesto" })).toBeVisible();
+      await expect(card(page, "Senza palinsesto").getByRole("button", { name: "Modifica: Senza palinsesto" })).toBeFocused();
+      await expect(page.locator('p[role="status"]')).toHaveText("");
+    });
+
+    test("a card leaving late, once the user has moved on: only said, focus left where the user put it", async ({ page }) => {
+      await logIn(page, "/lista");
+      await page.getByRole("group", { name: "Filtra per stato" }).getByRole("button", { name: "Sto guardando (1)" }).click();
+
+      await card(page, "Senza palinsesto").getByRole("button", { name: "+1 episodio visto: Senza palinsesto" }).focus();
+      await page.keyboard.press("Enter");
+      // Before AniList answers (800ms of grouping, then the request), the user goes on to the header.
+      const calendario = page.getByRole("banner").getByRole("link", { name: "Calendario" });
+      await calendario.focus();
+
+      await expect(card(page, "Senza palinsesto")).toHaveCount(0);
+      await expect(status(page, "Senza palinsesto: passato a «Completato»")).toHaveCount(1);
+      await expect(calendario).toBeFocused();
     });
 
     test("a change that keeps the card in the filters leaves focus alone", async ({ page }) => {

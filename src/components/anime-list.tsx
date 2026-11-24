@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { AnimeCard } from "@/components/anime-card";
 import { EditEntryButton, type EditOutcome } from "@/components/entry-editor";
 import { useListEditing } from "@/components/list-editing";
@@ -9,7 +9,6 @@ import type { MediaListStatus } from "@/gql/graphql";
 import { animeTitle, listStatusLabel } from "@/lib/anime-labels";
 import { cardGrid } from "@/lib/card-grid";
 import { type ListEntry, entrySummary } from "@/lib/list";
-import { type EntryChange, savedStatusAndScore } from "@/lib/list-rules";
 import { formatScore } from "@/lib/score";
 import { parseScoreFilter, scoreBar } from "@/lib/stats";
 
@@ -28,6 +27,17 @@ function emptyMessage(status: MediaListStatus | null, score: number | null) {
   return score ? `Nessun anime con voto ${score}${inStatus}.` : `Nessun anime${inStatus}.`;
 }
 
+/** Why an entry is no longer shown, from what it is now: removed, another status, another score. */
+function leaveMessage(entries: ListEntry[], before: ListEntry | undefined, filter: MediaListStatus | null, mediaId: number) {
+  const entry = entries.find((item) => item.media.id === mediaId);
+  const title = animeTitle((entry ?? before)?.media.title ?? null);
+  if (!entry) return `${title}: eliminato dalla lista`;
+  if (filter && entry.status !== filter) {
+    return `${title}: passato a «${entry.status ? listStatusLabel[entry.status] : "nessuno stato"}»`;
+  }
+  return entry.score ? `${title}: voto ${formatScore(entry.score)}` : `${title}: voto tolto`;
+}
+
 /**
  * A list's cards with the status filters and, from Statistiche's score bars, the ?voto= filter with its label
  * (docs/DESIGN.md, "Pulsanti e filtri"): the two filters add up, and the status counts are on the whole list.
@@ -44,6 +54,32 @@ export function AnimeList({ entries, editable = false }: { entries: ListEntry[];
 
   const [announcement, setAnnouncement] = useState("");
   const statusFilters = useRef<HTMLDivElement>(null);
+  // Cards edited here that may leave the list shown, now (a new status) or when AniList answers (completing).
+  const mayLeave = useRef(new Set<number>());
+  // Cards that had the focus when they were taken off the page, and the order shown before this render.
+  const focusedOnRemoval = useRef(new Set<number>());
+  const shownBefore = useRef<ListEntry[]>([]);
+
+  /**
+   * An edited card that has left the list shown, for whatever reason, as in Continua a guardare: the live region
+   * says why, from the entry as it is now, and focus, if it was still in the card, moves to the next card's title
+   * or to the list's heading. Nothing when the card stays, for example when the save fails and the entry goes back.
+   */
+  useLayoutEffect(() => {
+    const ids = shown.map((entry) => entry.media.id);
+    for (const [position, before] of shownBefore.current.entries()) {
+      const id = before.media.id;
+      if (ids.includes(id) || !mayLeave.current.has(id)) continue;
+      mayLeave.current.delete(id);
+      setAnnouncement(leaveMessage(entries, before, filter, id));
+      if (!focusedOnRemoval.current.has(id)) continue;
+      const next = shownBefore.current.slice(position + 1).find((later) => ids.includes(later.media.id));
+      const target = document.getElementById(next ? `lista-${next.media.id}` : "anime-della-lista");
+      (target?.querySelector<HTMLElement>("a") ?? target)?.focus();
+    }
+    focusedOnRemoval.current.clear();
+    shownBefore.current = shown;
+  }, [entries, filter, shown]);
 
   if (entries.length === 0) {
     // Focusable: where focus goes when the last entry is removed.
@@ -54,49 +90,20 @@ export function AnimeList({ entries, editable = false }: { entries: ListEntry[];
     );
   }
 
-  /**
-   * A card about to leave the list shown would take the keyboard focus with it, as in Continua a guardare:
-   * focus moves first to the next card's title, or to the list's heading after the last one, and the live
-   * region says why.
-   */
-  function moveFocusPast(index: number, message: string) {
-    const next = shown[index + 1];
-    const target = document.getElementById(next ? `lista-${next.media.id}` : "anime-della-lista");
-    (target?.querySelector<HTMLElement>("a") ?? target)?.focus();
-    setAnnouncement(message);
-  }
-
-  /** Why `change` takes the entry out of the filters on, or null when it stays. */
-  function leaveMessage(entry: ListEntry, change: EntryChange): string | null {
-    const title = animeTitle(entry.media.title);
-    const after = savedStatusAndScore(entry, change);
-    if (filter && after.status !== filter) {
-      return `${title}: passato a «${after.status ? listStatusLabel[after.status] : "nessuno stato"}»`;
-    }
-    if (score && scoreBar(after.score) !== score) {
-      return after.score ? `${title}: voto ${formatScore(after.score)}` : `${title}: voto tolto`;
-    }
-    return null;
-  }
-
-  function afterEdit(index: number, entry: ListEntry, outcome: EditOutcome) {
-    if (!outcome) return undefined;
-    const message =
-      "deleted" in outcome ? `${animeTitle(entry.media.title)}: eliminato dalla lista` : leaveMessage(entry, outcome.change);
-    return message ? () => moveFocusPast(index, message) : undefined;
+  /** The user changing the filters takes cards away on purpose: nothing to say about those. */
+  function changeFilter(status: MediaListStatus | null) {
+    mayLeave.current.clear();
+    setFilter(status);
   }
 
   /** The label goes away with the filter: focus moves to the status filter in use. */
   function clearScoreFilter() {
+    mayLeave.current.clear();
     clearScoreParam();
     statusFilters.current?.querySelector<HTMLElement>("[aria-pressed=true]")?.focus();
     setAnnouncement("Filtro per voto tolto");
   }
 
-  function afterAddEpisode(index: number, entry: ListEntry) {
-    const message = leaveMessage(entry, { progress: (entry.progress ?? 0) + 1 });
-    if (message) moveFocusPast(index, message);
-  }
 
   return (
     <>
@@ -123,7 +130,7 @@ export function AnimeList({ entries, editable = false }: { entries: ListEntry[];
             key={status ?? "all"}
             type="button"
             aria-pressed={filter === status}
-            onClick={() => setFilter(status)}
+            onClick={() => changeFilter(status)}
             className="button shrink-0 tabular-nums aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-on-accent"
           >
             {status ? listStatusLabel[status] : "Tutti"} ({count(status)})
@@ -135,8 +142,15 @@ export function AnimeList({ entries, editable = false }: { entries: ListEntry[];
         <p className="mt-6 text-ink-muted">{emptyMessage(filter, score)}</p>
       ) : (
         <ul className={`${cardGrid} mt-6`}>
-          {shown.map((entry, index) => (
-            <li key={entry.id} id={`lista-${entry.media.id}`}>
+          {shown.map((entry) => (
+            <li
+              key={entry.id}
+              id={`lista-${entry.media.id}`}
+              // Runs as the card is taken off the page, while it still holds the focus it had.
+              ref={(item) => () => {
+                if (item?.contains(document.activeElement)) focusedOnRemoval.current.add(entry.media.id);
+              }}
+            >
               <AnimeCard anime={entry.media}>
                 <p className="text-small text-ink-muted tabular-nums">
                   {!filter && entry.status && `${listStatusLabel[entry.status]} · `}
@@ -145,8 +159,11 @@ export function AnimeList({ entries, editable = false }: { entries: ListEntry[];
                 {editable && (
                   <EntryControls
                     entry={entry}
-                    onAddEpisode={() => afterAddEpisode(index, entry)}
-                    onEditDone={(outcome) => afterEdit(index, entry, outcome)}
+                    onAddEpisode={() => mayLeave.current.add(entry.media.id)}
+                    onEditDone={(outcome) => {
+                      if (outcome) mayLeave.current.add(entry.media.id);
+                      return undefined;
+                    }}
                   />
                 )}
               </AnimeCard>
@@ -169,16 +186,21 @@ export function EntryControls({
   onEditDone?: (outcome: EditOutcome) => (() => void) | undefined;
 }) {
   const { addEpisode } = useListEditing();
+  const controls = useRef<HTMLDivElement>(null);
   const watching = entry.status === "CURRENT" || entry.status === "REPEATING";
   const more = !entry.media.episodes || (entry.progress ?? 0) < entry.media.episodes;
 
   return (
-    <div className="relative z-10 mt-2 flex flex-wrap gap-2">
+    <div ref={controls} className="relative z-10 mt-2 flex flex-wrap gap-2">
       {watching && more && (
         <button
           type="button"
           aria-label={`+1 episodio visto: ${animeTitle(entry.media.title)}`}
           onClick={() => {
+            // The last episode takes the "+1" away: focus stays in the card, on Modifica, before the caller decides.
+            if (entry.media.episodes && (entry.progress ?? 0) + 1 >= entry.media.episodes) {
+              controls.current?.querySelector<HTMLElement>(":scope > button:last-of-type")?.focus();
+            }
             onAddEpisode?.();
             addEpisode(entry);
           }}
