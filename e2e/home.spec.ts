@@ -60,6 +60,23 @@ test("at 1280×800, with the strip, the first row starts above the fold with at 
 });
 
 test.describe("In onda ora", () => {
+  test("appearing, it moves nothing: its room is kept from the server's page (CLS)", async ({ page, request }) => {
+    await atNoon(page, request);
+    await page.addInitScript(() => {
+      const shifts = { total: 0 };
+      Object.assign(window, { __shifts: shifts });
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries() as (PerformanceEntry & { value: number; hadRecentInput: boolean })[])
+          if (!entry.hadRecentInput) shifts.total += entry.value;
+      }).observe({ type: "layout-shift", buffered: true });
+    });
+    await page.goto("/");
+    await expect(page.getByRole("region", { name: "In onda ora" })).toBeVisible();
+    await page.waitForTimeout(500);
+
+    expect(await page.evaluate(() => (window as unknown as { __shifts: { total: number } }).__shifts.total)).toBeLessThan(0.01);
+  });
+
   test("its items are 44px tall to touch, as tall as the strip", async ({ page, request }) => {
     await atNoon(page, request);
     await page.setViewportSize({ width: 390, height: 844 });

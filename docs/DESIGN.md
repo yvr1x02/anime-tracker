@@ -403,6 +403,7 @@ I valori vengono da un piccolo script che simula una molla smorzata e semplifica
 - **Bordi sfumati** con `mask-image` (64px per lato): il testo entra ed esce in dissolvenza, mai tagliato di netto. Con movimento ridotto la sfumatura resta e l'elenco ha 64px di margine ai lati, così il primo e l'ultimo elemento sono leggibili.
 - Si mette in pausa con hover e con focus su un suo elemento.
 - Con movimento ridotto la striscia è ferma: senza la copia e senza il pulsante, che non avrebbe niente da fermare (decisione del 2026-11-23).
+- **Spazio tenuto dal server** (M8, 2026-11-24): gli episodi delle prossime 24 ore si scelgono nel browser, con la sua ora. Finché non la conosce, la striscia occupa già il suo spazio, vuota, se il server le ha passato degli episodi: altrimenti comparendo spingeva giù tutta la Home (CLS 0,083 a 1280px in produzione, 0,077 nel test).
 - **Ha anche un pulsante "Pausa / Riprendi" visibile.** Serve per WCAG 2.2.2 (Pausa, stop, nascondi): un contenuto che si muove da solo per più di 5 secondi deve poter essere fermato da chiunque, non solo da chi usa il mouse.
 
 ### Cosa non si anima
