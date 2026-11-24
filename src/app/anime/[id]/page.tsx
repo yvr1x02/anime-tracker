@@ -97,8 +97,17 @@ export default async function AnimeDetailPage({ params }: PageProps<"/anime/[id]
             </DetailCover>
             <div>
               {label && <p className="text-label uppercase text-ink-muted">{label}</p>}
-              <DetailTitle className="mt-2 text-display text-balance">{title}</DetailTitle>
-              {englishTitle && <p className="mt-3 text-h3 text-ink-muted">{englishTitle}</p>}
+              {/* docs/DESIGN.md, "Dettaglio": at most 3 lines, 2 for the English title; the whole text stays in the page.
+                  The clamp clips at the box: line height 1 and 0.09em below show the third line's descenders whole
+                  and none of the fourth line (at the display's 0.95 the two overlap). */}
+              <DetailTitle title={title} className="mt-2 line-clamp-3 pb-[0.09em] text-display leading-none text-balance">
+                {title}
+              </DetailTitle>
+              {englishTitle && (
+                <p title={englishTitle} className="mt-3 line-clamp-2 text-h3 text-ink-muted">
+                  {englishTitle}
+                </p>
+              )}
               {facts.length > 0 && (
                 <p className="mt-4 text-small text-ink-muted tabular-nums">{facts.join(" · ")}</p>
               )}

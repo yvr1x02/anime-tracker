@@ -202,7 +202,7 @@ export function DetailCover({ id, children }: { id: number; children: ReactNode 
 }
 
 /** The Detail's `h1`: after a navigation inside the app, focus moves here (not on a page opened directly). */
-export function DetailTitle({ className, children }: { className?: string; children: ReactNode }) {
+export function DetailTitle({ className, title: fullTitle, children }: { className?: string; title?: string; children: ReactNode }) {
   const title = useRef<HTMLHeadingElement>(null);
 
   useLayoutEffect(() => {
@@ -210,7 +210,7 @@ export function DetailTitle({ className, children }: { className?: string; child
   }, []);
 
   return (
-    <h1 ref={title} tabIndex={-1} className={`${className ?? ""} focus:outline-none`}>
+    <h1 ref={title} tabIndex={-1} title={fullTitle} className={`${className ?? ""} focus:outline-none`}>
       {children}
     </h1>
   );

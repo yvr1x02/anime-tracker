@@ -79,6 +79,27 @@ const anime = {
     genres: ["Romance"],
     studios: { nodes: [{ id: 11, name: "Studio Notte", isAnimationStudio: true }] },
   },
+  // A light-novel-length title, in romaji and English, for the Detail's line clamp. Only reachable by its address.
+  14: {
+    id: 14,
+    title: {
+      romaji:
+        "Tensei Shita Shisho wa Isekai no Toshokan de Kyou mo Shizuka ni Hon wo Narabete Imasu ga, Naze ka Maou-sama ga Maiban Kashidashi Mado ni Yatte Kuru Ken ni Tsuite",
+      english: "The Reincarnated Librarian Quietly Shelves Books in Another World's Library Every Day, but the Demon King Comes to the Lending Desk Every Night",
+      native: "転生した司書は異世界の図書館で今日も静かに本を並べています",
+    },
+    coverImage: null,
+    description: null,
+    genres: [],
+    studios: { nodes: [] },
+    format: "TV",
+    status: "FINISHED",
+    episodes: 12,
+    duration: 24,
+    season: "SPRING",
+    seasonYear: 2026,
+    airingSchedule: { nodes: [] },
+  },
   // Adult anime: the app must never show it, so queries ask for isAdult: false.
   3: { id: 3, isAdult: true, title: { romaji: "Solo per adulti" } },
 };

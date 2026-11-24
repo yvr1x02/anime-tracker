@@ -47,3 +47,40 @@ for (const path of ["/anime/2", "/anime/3", "/anime/abc", "/anime/0", "/anime/99
     await expect(page.getByRole("heading", { level: 1, name: "Pagina non trovata" })).toBeVisible();
   });
 }
+
+test.describe("a long title (docs/DESIGN.md, Dettaglio)", () => {
+  // e2e/fake-anilist.mjs, anime 14: a light-novel-length romaji title and a long English one.
+  const romaji =
+    "Tensei Shita Shisho wa Isekai no Toshokan de Kyou mo Shizuka ni Hon wo Narabete Imasu ga, Naze ka Maou-sama ga Maiban Kashidashi Mado ni Yatte Kuru Ken ni Tsuite";
+  const english =
+    "The Reincarnated Librarian Quietly Shelves Books in Another World's Library Every Day, but the Demon King Comes to the Lending Desk Every Night";
+
+  for (const [width, height] of [
+    [1280, 800],
+    [390, 844],
+  ]) {
+    test(`at ${width}×${height} it takes 3 lines, the English one 2, whole in the page, and the cover stays above the fold`, async ({ page }) => {
+      await page.setViewportSize({ width, height });
+      await page.goto("/anime/1");
+      const displaySize = await page.locator("h1").evaluate((h1) => getComputedStyle(h1).fontSize);
+      await page.goto("/anime/14");
+
+      // Only clamped on screen: the accessible name and the title attribute are the whole title.
+      const title = page.getByRole("heading", { level: 1, name: romaji, exact: true });
+      await expect(title).toHaveAttribute("title", romaji);
+      await expect(title).toHaveText(romaji);
+      const subtitle = page.getByText(english, { exact: true });
+      await expect(subtitle).toHaveAttribute("title", english);
+
+      const lines = (element: HTMLElement) => {
+        const style = getComputedStyle(element);
+        return { clamp: style.webkitLineClamp, lines: Math.round(element.clientHeight / parseFloat(style.lineHeight)), fontSize: style.fontSize };
+      };
+      expect(await title.evaluate(lines)).toEqual({ clamp: "3", lines: 3, fontSize: displaySize });
+      expect(await subtitle.evaluate(lines)).toMatchObject({ clamp: "2", lines: 2 });
+
+      const cover = await page.locator(".detail-cover").boundingBox();
+      expect(cover!.y + cover!.height).toBeLessThanOrEqual(height);
+    });
+  }
+});
