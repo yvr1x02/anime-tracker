@@ -1,0 +1,4 @@
+# Anime Tracker is a portfolio project, not a product: no crawling (ADR-0003). A courtesy only:
+# the real protection of AniList's rate limit is the server cache and the handling of 429.
+User-Agent: *
+Disallow: /

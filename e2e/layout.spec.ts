@@ -121,3 +121,10 @@ test.describe("header on a 360px phone", () => {
     await expect(items.first()).toBeHidden();
   });
 });
+
+test("robots.txt asks every crawler to stay out (ADR-0003)", async ({ request }) => {
+  const response = await request.get("/robots.txt");
+
+  expect(response.status()).toBe(200);
+  expect(await response.text()).toMatch(/^User-Agent: \*\nDisallow: \/$/m);
+});
