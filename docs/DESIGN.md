@@ -193,7 +193,7 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
   - **Focus quando una card sparisce:** un "+1" che mette in pari sposta subito il focus sul titolo della card successiva, o sul titolo `h2` della sezione (`tabindex="-1"`) dopo l'ultima, e una regione `role="status"` della sezione annuncia "Sei in pari con {titolo}". Dopo l'ultima card la sezione resta, con "Sei in pari: nessun episodio arretrato." in `ink-muted`, finché non si ricarica la pagina.
   - Dalla modifica della voce vale lo stesso, alla chiusura del dialogo (il focus non può uscire prima da un dialogo modale), invece di tornare al pulsante "Modifica" che sta per sparire. In pari vuol dire episodi fino agli arretrati o "Completato". Se la card sparisce per un altro stato o perché la voce è eliminata, l'annuncio è "{titolo} non è più in Continua a guardare" e, dopo l'ultima, "Nessun altro anime da continuare."
 - Sotto l'intestazione (o sotto "Continua a guardare"), la griglia degli altri anime della stagione in ordine di popolarità, 16px più in basso. Il suo titolo `h2` "Gli altri anime della stagione" è solo per i lettori di schermo, perché visibile sposterebbe la prima fila oltre gli 800px; diventa visibile (32px sopra, 16px sotto) quando sopra c'è un'altra griglia, cioè "Continua a guardare" o le proposte di "Cosa guardo stasera?" (`:has()`).
-- **A 1280×800 la prima fila di card comincia sopra gli 800px e se ne vedono almeno 100px di copertine** (regola del 2026-11-23, con la striscia di M7). Prima la regola chiedeva l'intera prima fila entro 800px: in M4 finiva a 797px e la striscia, circa 45px, l'avrebbe portata oltre. Cominciare a vedere le copertine basta a far capire che sotto c'è altro; ridurre ancora l'intestazione l'avrebbe svuotata. Un test di Playwright lo controlla (`e2e/home.spec.ts`).
+- **A 1280×800 la prima fila di card comincia sopra gli 800px e se ne vedono almeno 100px di copertine** (regola del 2026-11-23, con la striscia di M7). Prima la regola chiedeva l'intera prima fila entro 800px: in M4 finiva a 797px e la striscia, circa 45px, l'avrebbe portata oltre. Cominciare a vedere le copertine basta a far capire che sotto c'è altro; ridurre ancora l'intestazione l'avrebbe svuotata. Un test di Playwright lo controlla (`e2e/home.spec.ts`), con la striscia visibile. Misura del 2026-11-23 con i dati del finto AniList: la prima fila comincia a 460px; con i dati veri il pannello in evidenza è più alto, da rimisurare nella prova sui dati veri.
 - Su un portatile 1280×800 vero il browser occupa parte dello schermo: lì la fila resta tagliata nella parte bassa.
 
 ## Calendario
@@ -396,6 +396,7 @@ I valori vengono da un piccolo script che simula una molla smorzata e semplifica
 - **Velocità costante** di circa 40px al secondo: la durata dell'animazione si calcola dalla larghezza del contenuto, non è fissa.
 - **Bordi sfumati** con `mask-image` (64px per lato): il testo entra ed esce in dissolvenza, mai tagliato di netto. Con movimento ridotto la sfumatura resta e l'elenco ha 64px di margine ai lati, così il primo e l'ultimo elemento sono leggibili.
 - Si mette in pausa con hover e con focus su un suo elemento.
+- Con movimento ridotto la striscia è ferma: senza la copia e senza il pulsante, che non avrebbe niente da fermare (decisione del 2026-11-23).
 - **Ha anche un pulsante "Pausa / Riprendi" visibile.** Serve per WCAG 2.2.2 (Pausa, stop, nascondi): un contenuto che si muove da solo per più di 5 secondi deve poter essere fermato da chiunque, non solo da chi usa il mouse.
 
 ### Cosa non si anima
@@ -467,4 +468,4 @@ I colori del testo si chiamano `ink` e `ink-muted`: in Tailwind il prefisso `tex
 - **Ottimizzazione delle copertine (M1):** `next/image` passa dall'ottimizzazione di Vercel, che sul piano gratuito ha limiti mensili; l'alternativa è `<img>` con gli URL di AniList, che offre già tre dimensioni (`medium`, `large`, `extraLarge`).
 - **Noto Sans JP:** byte scaricati su un sistema senza font giapponesi e spazio nella build.
 - **Pulsante "+" (M2):** cosa succede premendolo quando l'anime è già nella lista.
-- **Spazio della prima fila nella Home:** verificato in M3 (775px senza la striscia, vedi "Home"); da rifare quando la striscia arriva in M7.
+- **Spazio della prima fila nella Home:** verificato in M3 (775px senza la striscia) e rifatto in M7 con la striscia, sul finto AniList (vedi "Home"); resta la misura sui dati veri.

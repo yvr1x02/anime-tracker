@@ -1,3 +1,4 @@
+import { AiringStrip } from "@/components/airing-strip";
 import { AnimeCard } from "@/components/anime-card";
 import { ContinueWatching } from "@/components/continue-watching";
 import { FeaturedAnime } from "@/components/featured-anime";
@@ -6,6 +7,7 @@ import { ListToggle } from "@/components/list-actions";
 import { SeasonAnimeQuery } from "@/lib/anilist/queries";
 import { requestAniListCached } from "@/lib/anilist/server";
 import { seasonLabel } from "@/lib/anime-labels";
+import { readAiringSoon } from "@/lib/calendar";
 import { cardGrid } from "@/lib/card-grid";
 import { pageContainer } from "@/lib/page-container";
 import { currentSeason } from "@/lib/season";
@@ -23,9 +25,15 @@ export default async function Home() {
     REVALIDATE_SECONDS,
   );
   const [featured, ...others] = (data.Page?.media ?? []).filter((item) => item !== null);
+  // The strip is extra: without its weeks (AniList down, nothing cached) the Home shows without it.
+  const soon = await readAiringSoon().catch((error: unknown) => {
+    console.error(`In onda ora unavailable: ${error instanceof Error ? error.name : "unknown"}`);
+    return [];
+  });
 
   return (
     <div className={`home ${pageContainer} pt-5 pb-12`}>
+      <AiringStrip episodes={soon} />
       {/* docs/DESIGN.md, "Home": two columns from 1024px, stacked below. */}
       <header className="grid items-end gap-8 pb-3 lg:grid-cols-[1fr_auto]">
         <div>

@@ -1,7 +1,7 @@
 import { AxeBuilder } from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockAniList, searchResults } from "./anilist-browser";
-import { logIn } from "./session";
+import { FAKE_ANILIST, logIn } from "./session";
 
 // WCAG 2.0, 2.1 and 2.2 at levels A and AA. Every new page gets an entry here.
 const wcagAA = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
@@ -81,4 +81,14 @@ test.describe("on a 360px phone", () => {
     const { violations } = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
     expect(violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
   });
+});
+
+test("no WCAG A/AA violations on the Home with In onda ora", async ({ page, request }) => {
+  // The fake's calendar day at noon (e2e/calendar.spec.ts): the strip has its episodes.
+  const { noon } = await (await request.get(`${FAKE_ANILIST}/__started`)).json();
+  await page.clock.setFixedTime(noon * 1000);
+  await page.goto("/");
+  await expect(page.getByRole("region", { name: "In onda ora" })).toBeVisible();
+  const { violations } = await new AxeBuilder({ page }).withTags(wcagAA).analyze();
+  expect(violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
 });

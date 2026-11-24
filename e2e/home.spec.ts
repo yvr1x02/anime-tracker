@@ -1,6 +1,13 @@
-import { expect, test } from "@playwright/test";
+import { type APIRequestContext, type Page, expect, test } from "@playwright/test";
 import { seasonLabel } from "../src/lib/anime-labels";
 import { currentSeason } from "../src/lib/season";
+import { FAKE_ANILIST } from "./session";
+
+/** The browser's clock at noon of the fake's day, as in e2e/calendar.spec.ts: the strip then has its episodes. */
+async function atNoon(page: Page, request: APIRequestContext, plusHours = 0) {
+  const { noon } = await (await request.get(`${FAKE_ANILIST}/__started`)).json();
+  await page.clock.setFixedTime((noon + plusHours * 3600) * 1000);
+}
 
 // Season data from e2e/fake-anilist.mjs: Hoshi no Kioku, Senza palinsesto, Lista personalizzata.
 test("the Home shows the current season, most popular first", async ({ page }) => {
@@ -39,13 +46,83 @@ test("logged out, the Home has no Continua a guardare and no space waiting for i
   await expect(page.locator("[aria-busy]")).toHaveCount(0);
 });
 
-test("at 1280×800 the first row of the season grid is visible without scrolling", async ({ page }) => {
-  // docs/DESIGN.md, "Home": the first row must end within 800px. The fake season has a two-line title.
+test("at 1280×800, with the strip, the first row starts above the fold with at least 100px of covers", async ({ page, request }) => {
+  // docs/DESIGN.md, "Home" (rule of 2026-11-23): the first row begins within 800px, its covers at least 100px in.
+  await atNoon(page, request);
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto("/");
+  await expect(page.getByRole("region", { name: "In onda ora" })).toBeVisible();
   const firstRow = page.getByRole("region", { name: "Gli altri anime della stagione" }).getByRole("article");
   await expect(firstRow.first()).toBeVisible();
 
-  const bottoms = await firstRow.evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().bottom));
-  expect(Math.max(...bottoms)).toBeLessThanOrEqual(800);
+  const tops = await firstRow.evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().top));
+  expect(Math.max(...tops)).toBeLessThanOrEqual(800 - 100);
+});
+
+test.describe("In onda ora", () => {
+  test.use({ timezoneId: "Europe/Rome" });
+
+  // At noon: Hoshi no Kioku Ep. 13 at 14:00 and Senza palinsesto Ep. 1 at 15:00; the adult anime tomorrow never shows.
+  test("shows the next 24 hours as links, each once for screen readers and the keyboard", async ({ page, request }) => {
+    await atNoon(page, request);
+    await page.goto("/");
+    const strip = page.getByRole("region", { name: "In onda ora" });
+
+    const items = strip.getByRole("link");
+    await expect(items).toHaveCount(2);
+    await expect(items.first()).toHaveText(/^Hoshi no Kioku · Ep\. 13 · (lun|mar|mer|gio|ven|sab|dom) 14:00$/);
+    await expect(items.first()).toHaveAttribute("href", "/anime/1");
+    await expect(items.nth(1)).toContainText("Senza palinsesto · Ep. 1");
+    await expect(strip.locator("ul[inert]")).toHaveAttribute("aria-hidden", "true");
+    await expect(page.getByText("Solo per adulti")).toHaveCount(0);
+  });
+
+  test("it moves by itself; Pausa stops it and Riprendi starts it again", async ({ page, request }) => {
+    await atNoon(page, request);
+    await page.goto("/");
+    const strip = page.getByRole("region", { name: "In onda ora" });
+    const track = strip.locator(".airing-strip-track");
+    await expect(track).toHaveCSS("animation-name", "strip-scroll");
+    await expect(track).toHaveCSS("animation-play-state", "running");
+
+    await strip.getByRole("button", { name: "Pausa" }).click();
+    // Paused by the button, not only by the focus it has.
+    await page.mouse.move(0, 0);
+    await page.getByRole("heading", { level: 1 }).click();
+    await expect(track).toHaveCSS("animation-play-state", "paused");
+
+    await strip.getByRole("button", { name: "Riprendi" }).click();
+    await page.getByRole("heading", { level: 1 }).click();
+    await expect(track).toHaveCSS("animation-play-state", "running");
+  });
+
+  test("focus on an item stops it", async ({ page, request }) => {
+    await atNoon(page, request);
+    await page.goto("/");
+    const strip = page.getByRole("region", { name: "In onda ora" });
+
+    await strip.getByRole("link").first().focus();
+    await expect(strip.locator(".airing-strip-track")).toHaveCSS("animation-play-state", "paused");
+  });
+
+  test("with reduced motion it stands still, without the copy nor the button", async ({ page, request }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await atNoon(page, request);
+    await page.goto("/");
+    const strip = page.getByRole("region", { name: "In onda ora" });
+
+    await expect(strip.getByRole("link")).toHaveCount(2);
+    await expect(strip.locator(".airing-strip-track")).toHaveCSS("animation-name", "none");
+    await expect(strip.locator("ul[inert]")).toBeHidden();
+    await expect(strip.getByRole("button")).toBeHidden();
+  });
+
+  test("nothing airing in the next 24 hours: no strip", async ({ page, request }) => {
+    // Four days after noon: Serie in corso was the day before, Hoshi no Kioku Ep. 14 is three days on.
+    await atNoon(page, request, 4 * 24);
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+
+    await expect(page.getByRole("region", { name: "In onda ora" })).toHaveCount(0);
+  });
 });

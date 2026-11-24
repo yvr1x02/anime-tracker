@@ -509,6 +509,79 @@
     background-color: rgb(0 0 0 / 0.6);
   }
 
+  /* "In onda ora" (docs/DESIGN.md, "Striscia"): one row, edges fading over 64px, the track looping by half. */
+  .airing-strip {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-height: 2.75rem;
+    margin-bottom: 0.75rem;
+    font-size: var(--text-small);
+  }
+
+  .airing-strip-viewport {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, #000 4rem, #000 calc(100% - 4rem), transparent);
+  }
+
+  .airing-strip-track {
+    display: flex;
+    width: max-content;
+    animation: strip-scroll var(--strip-duration, 40s) linear infinite;
+  }
+
+  .airing-strip:hover .airing-strip-track,
+  .airing-strip:focus-within .airing-strip-track,
+  .airing-strip[data-paused] .airing-strip-track {
+    animation-play-state: paused;
+  }
+
+  .airing-strip-list {
+    display: flex;
+    gap: 2rem;
+    padding-right: 2rem;
+  }
+
+  @keyframes strip-scroll {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  /* At most 18rem: the title shortens with an ellipsis, episode and time stay whole. */
+  .airing-item {
+    display: flex;
+    gap: 0.375rem;
+    max-width: 18rem;
+    white-space: nowrap;
+  }
+
+  .airing-item-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 600;
+  }
+
+  /* Reduced motion: still, one copy, scrolled by hand with room at both edges; nothing to pause. */
+  @media (prefers-reduced-motion: reduce) {
+    .airing-strip-track {
+      animation: none;
+    }
+
+    .airing-strip-copy,
+    .airing-strip-pause {
+      display: none;
+    }
+
+    .airing-strip-viewport {
+      overflow-x: auto;
+      padding-inline: 4rem;
+    }
+  }
+
   /* Quick search (docs/DESIGN.md, "Ricerca rapida"): near the top on wide screens, the whole screen on phones. */
   .quick-search {
     width: min(40rem, calc(100% - 2rem));
