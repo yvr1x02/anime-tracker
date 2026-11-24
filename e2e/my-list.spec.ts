@@ -1,7 +1,7 @@
 import { type Page, expect, test } from "@playwright/test";
 import { mockAniList, searchResults } from "./anilist-browser";
 import { FAKE_ANILIST, logIn } from "./session";
-import { recordViewTransitions, viewTransitions } from "./view-transitions";
+import { backAnimations, recordBackAnimations, recordViewTransitions, viewTransitions } from "./view-transitions";
 
 // The logged-in user's list lives in the fake AniList and changes: these tests run one at a time, from a reset.
 test.describe.configure({ mode: "serial" });
@@ -443,6 +443,27 @@ test.describe("Continua a guardare", () => {
     await expect.poll(() => viewTransitions(page)).toEqual([expect.arrayContaining(["cover-continua-4"])]);
     await page.goBack();
     await expect(card).toBeFocused();
+  });
+
+  test("a card gone from the page on Back: no copy flies, the page fades in and focus goes to the main content", async ({ page }) => {
+    await logIn(page, "/");
+    await page.getByRole("region", { name: "Continua a guardare" }).getByRole("link", { name: "Senza palinsesto" }).click();
+    await expect(page).toHaveURL("/anime/4");
+    // Completed on the Detail: back on the Home it is no longer in Continua a guardare.
+    await page.getByRole("button", { name: "Nella mia lista: Senza palinsesto" }).click();
+    const dialog = page.getByRole("dialog", { name: "Modifica «Senza palinsesto»" });
+    await dialog.getByLabel("Stato").selectOption({ label: "Completato" });
+    await dialog.getByRole("button", { name: "Salva" }).click();
+    await expect(page.getByText("Completato · 1 visto")).toBeVisible();
+    await recordBackAnimations(page);
+
+    await page.goBack();
+
+    await expect(page).toHaveURL("/");
+    await expect(page.getByRole("region", { name: "Continua a guardare" }).getByRole("link", { name: "Senza palinsesto" })).toHaveCount(0);
+    await expect(page.locator("main")).toBeFocused();
+    await expect.poll(() => backAnimations(page)).toEqual({ copies: 0, mostAtOnce: 0, pageFades: 1 });
+    await expect(page.locator("[data-cover-flight]")).toHaveCount(0);
   });
 
   test("from the keyboard, catching up moves focus to the next card, then to the heading, and says so", async ({ page }) => {
