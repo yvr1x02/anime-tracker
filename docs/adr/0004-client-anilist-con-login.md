@@ -129,6 +129,8 @@ Prove reali con l'applicazione di sviluppo e l'account demo `yvr1x0202`, sull'an
 
 ## Da verificare all'implementazione (M2)
 
+**Stato:** tutte verificate in M2 (§8, 2026-11-20). Solo l'arrotondamento per i sistemi di voto diversi da quelli provati è chiuso senza prova in M8, perché il codice non ne dipende più (§8, "Focus quando una card esce da La mia lista").
+
 - Che l'autorizzazione di AniList restituisca il parametro `state`: la documentazione non lo cita. Se non lo restituisce, si documenta il rischio residuo (un attaccante potrebbe collegare la vittima al proprio account AniList) e le contromisure possibili.
 - Come Next.js 16.4 verifica l'`Origin` nelle Server Actions, nella documentazione inclusa nel pacchetto.
 - Come inviare la modifica in attesa alla chiusura della pagina in modo che arrivi al server anche se la pagina non c'è più (per esempio `fetch` con `keepalive` verso un Route Handler in `POST`), e che la richiesta porti il cookie di sessione e un `Origin` valido.

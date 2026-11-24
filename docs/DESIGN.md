@@ -150,7 +150,7 @@ AniList fornisce `Media.title.native` (`String`, facoltativo), verificato nello 
 2. **Noto Sans JP come riserva**, con `next/font/google`: solo peso 700, `preload: false`, `display: "optional"`. Next.js lo ospita sul nostro dominio (nessuna richiesta a Google dal browser del visitatore). I caratteri giapponesi sono divisi da Google in blocchi con `unicode-range`: il browser scarica solo i blocchi che contengono i caratteri del titolo. `preload: false` è obbligatorio, perché questi blocchi non sono sottoinsiemi precaricabili (in `next/font` 16.4.6 Noto Sans JP elenca solo `cyrillic`, `latin`, `latin-ext`, `vietnamese`).
 3. `display: "optional"`: se il font non arriva subito resta quello di sistema, senza scambi visibili; per una decorazione è il comportamento giusto.
 
-**Da verificare all'implementazione:** i byte scaricati su un sistema senza font giapponesi, e lo spazio occupato nella build dai blocchi ospitati.
+**Spazio nella build, misurato in M8 (2026-11-24):** i blocchi ospitati di Noto Sans JP sono 124 file `woff2`, 2,9 MB in tutto, scaricati solo quando servono. I byte scaricati davvero su un sistema senza font giapponesi non sono misurati: facoltativo, da valutare dopo M8.
 
 ## Spaziature e layout
 
@@ -480,8 +480,10 @@ I colori del testo si chiamano `ink` e `ink-muted`: in Tailwind il prefisso `tex
 
 ## Da decidere o verificare più avanti
 
-- **Misura con CPU 4× (M1):** ogni effetto sull'app vera, a macchina scarica, a partire dalla transizione card → Dettaglio (vedi budget). La transizione card → Dettaglio è misurata in M7 (vedi "Budget di prestazioni"); gli altri effetti no.
-- **Ottimizzazione delle copertine (M1):** `next/image` passa dall'ottimizzazione di Vercel, che sul piano gratuito ha limiti mensili; l'alternativa è `<img>` con gli URL di AniList, che offre già tre dimensioni (`medium`, `large`, `extraLarge`).
-- **Noto Sans JP:** byte scaricati su un sistema senza font giapponesi e spazio nella build.
-- **Pulsante "+" (M2):** cosa succede premendolo quando l'anime è già nella lista.
+Stato alla chiusura di M8 (2026-11-24): ogni voce è decisa, verificata o rimandata in modo esplicito.
+
+- **Misura con CPU 4× (M1):** misurate la transizione card → Dettaglio (M7) e il ritorno con Indietro (M7 e M8), vedi "Budget di prestazioni". Gli altri effetti (inclinazione delle card, animazioni dello scroll nel Dettaglio, striscia "in onda ora"): facoltativo, da valutare dopo M8.
+- **Ottimizzazione delle copertine (M1): deciso in M1** `<img>` con gli URL di AniList e le sue tre dimensioni (`medium`, `large`, `extraLarge`) in `srcset`, senza `next/image`, che passerebbe dall'ottimizzazione di Vercel con i suoi limiti mensili (`src/components/cover-image.tsx`).
+- **Noto Sans JP:** spazio nella build misurato in M8 (vedi "Caricamento del font giapponese"); i byte scaricati su un sistema senza font giapponesi restano facoltativi, dopo M8.
+- **Pulsante "+" (M2): deciso in M2.** Con l'anime già nella lista mostra ✓ (`aria-pressed="true"`) e, premuto, chiede conferma prima di eliminarlo dalla lista su AniList (ADR-0004; `src/components/list-actions.tsx`).
 - **Spazio della prima fila nella Home:** verificato in M3 (775px senza la striscia) e rifatto in M7 con la striscia, sul finto AniList e sui dati veri (vedi "Home").

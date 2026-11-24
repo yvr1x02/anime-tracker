@@ -114,7 +114,7 @@ Ogni pagina del Dettaglio si genera alla prima visita (`generateStaticParams` vu
 - dati più vecchi della durata della loro cache: solo "Dati aggiornati alle {ora}.", in tono neutro;
 - "AniList al momento non risponde" e gli altri messaggi d'errore compaiono solo quando una richiesta fallisce davvero, mai dedotti dall'età dei dati.
 
-Con la cache di `fetch`, un aggiornamento fallito sul server non arriva alla pagina: il visitatore riceve la versione precedente, al massimo con il messaggio neutro. I messaggi d'errore riguardano quindi le richieste dal browser (Ricerca, parti personali) e le pagine senza dati in cache. Da verificare in M1: l'ora dei dati deve essere quella del download, non quella della generazione della pagina, per esempio dall'intestazione `Date` della risposta, che resta in cache insieme ai dati.
+Con la cache di `fetch`, un aggiornamento fallito sul server non arriva alla pagina: il visitatore riceve la versione precedente, al massimo con il messaggio neutro. I messaggi d'errore riguardano quindi le richieste dal browser (Ricerca, parti personali) e le pagine senza dati in cache. L'ora dei dati deve essere quella del download, non quella della generazione della pagina: è l'intestazione `Date` della risposta, che resta in cache insieme ai dati (verificato in M1, vedi sotto).
 
 **Implementazione in M1 (2026-11-20).**
 
