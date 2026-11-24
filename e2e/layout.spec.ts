@@ -156,3 +156,15 @@ test("at 320px no page scrolls sideways, logged in", async ({ page, request }) =
     expect({ path, overflow: await fitsWidth(page) }).toEqual({ path, overflow: 0 });
   }
 });
+
+// docs/DESIGN.md: targets at least 44×44px. Two found under it in M8.
+test("Esci and the score chart's table toggle are 44px to touch on a phone", async ({ page, request }) => {
+  await resetMyList(request);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await logIn(page, "/statistiche");
+
+  const esci = (await page.getByRole("banner").getByRole("button", { name: "Esci" }).boundingBox())!;
+  expect(Math.min(esci.width, esci.height)).toBeGreaterThanOrEqual(44);
+  const toggle = (await page.locator("summary", { hasText: "Dati del grafico in tabella" }).boundingBox())!;
+  expect(toggle.height).toBeGreaterThanOrEqual(44);
+});

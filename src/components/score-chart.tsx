@@ -38,7 +38,7 @@ export function ScoreChart({ counts, href }: { counts: number[]; href: (score: n
       </h2>
       <div className="score-chart">{columns}</div>
       <details className="mt-3">
-        <summary className="cursor-pointer text-small text-ink-muted underline underline-offset-2">
+        <summary className="min-h-11 cursor-pointer py-3 text-small text-ink-muted underline underline-offset-2">
           Dati del grafico in tabella
         </summary>
         <table className="mt-2 text-small tabular-nums">

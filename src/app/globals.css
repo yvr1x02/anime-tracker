@@ -610,8 +610,11 @@
   }
 
   /* At most 18rem: the title shortens with an ellipsis, episode and time stay whole. */
+  /* As tall as the strip: 44px to touch (docs/DESIGN.md, "Bersagli toccabili"). */
   .airing-item {
     display: flex;
+    align-items: center;
+    min-height: 2.75rem;
     gap: 0.375rem;
     max-width: 18rem;
     white-space: nowrap;

@@ -60,6 +60,17 @@ test("at 1280×800, with the strip, the first row starts above the fold with at 
 });
 
 test.describe("In onda ora", () => {
+  test("its items are 44px tall to touch, as tall as the strip", async ({ page, request }) => {
+    await atNoon(page, request);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    const strip = page.getByRole("region", { name: "In onda ora" });
+
+    for (const box of await strip.getByRole("link").evaluateAll((links) => links.map((link) => link.getBoundingClientRect().height)))
+      expect(box).toBeGreaterThanOrEqual(44);
+    expect((await strip.boundingBox())!.height).toBe(44);
+  });
+
   test.use({ timezoneId: "Europe/Rome" });
 
   // At noon: Hoshi no Kioku Ep. 13 at 14:00 and Senza palinsesto Ep. 1 at 15:00; the adult anime tomorrow never shows.
