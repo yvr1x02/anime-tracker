@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { AccountMenu } from "@/components/account-menu";
 import { NavigationTracker } from "@/components/back-link";
+import { BackFromDetail } from "@/components/cover-transition";
 import { ListEditingProvider } from "@/components/list-editing";
 import { QueryProvider } from "@/components/query-provider";
 import { SearchButton } from "@/components/search-button";
@@ -66,6 +67,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <main id="contenuto" tabIndex={-1} className="flex-1 focus:outline-none">
             <ListEditingProvider>{children}</ListEditingProvider>
             <NavigationTracker />
+            <BackFromDetail />
           </main>
         </QueryProvider>
         <footer className="border-t border-border">

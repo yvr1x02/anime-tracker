@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { type ReactNode, ViewTransition, useLayoutEffect, useRef } from "react";
 import { previousPathname } from "@/components/back-link";
 
@@ -19,6 +20,8 @@ let leaving: { name: string; cover: HTMLElement; rect: DOMRect } | null = null;
 // The way back being drawn: one at a time, stopped by the next Back or when its card leaves the page.
 let flight: { frame: number; card: HTMLElement; copy?: HTMLElement; animation?: Animation } | null = null;
 let pageFade: Animation | null = null;
+// A Back from a Detail whose page has not been committed yet (BackFromDetail finishes it).
+let backFromDetail = false;
 
 /** Stops the flight in progress, if any: no copy is left on the page and the card shows its cover again. */
 function stopFlight() {
@@ -42,16 +45,7 @@ if (typeof window !== "undefined") {
       pageFade?.cancel();
       const cover = document.querySelector<HTMLElement>(".detail-cover");
       leaving = cover && detailName ? { name: detailName, cover, rect: cover.getBoundingClientRect() } : null;
-      if (!leaving) return;
-      // The frame after React's render of this popstate, before the flight's, which its card may have started.
-      requestAnimationFrame(() => {
-        leaving = null;
-        const main = document.getElementById("contenuto");
-        const duration = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--duration-base"));
-        pageFade = main?.animate([{ opacity: 0 }, { opacity: 1 }], { duration, easing: "ease-out" }) ?? null;
-        // The Detail's title had focus: without a card to take it back, the page's content gets it, not the body.
-        if (document.activeElement === document.body || !document.activeElement) main?.focus();
-      });
+      backFromDetail = leaving !== null;
     },
     { capture: true },
   );
@@ -67,7 +61,12 @@ function flyBack(from: NonNullable<typeof leaving>, card: HTMLElement) {
   // After the browser has restored the scroll: the card's place on screen is known only then.
   const frame = requestAnimationFrame(() => {
     if (flight?.frame !== frame) return;
+    // Under the pointer or with a keyboard focus ring the card lifts by 6px, a 400ms transition that has just
+    // started: ended at once, so the copy lands where the card stays. Unseen: the page starts its fade from 0.
+    const lifting = card.closest<HTMLElement>(".anime-card");
+    lifting?.style.setProperty("transition", "none");
     const end = card.getBoundingClientRect();
+    lifting?.style.removeProperty("transition");
     // A card no longer on the page, or taking no room: no copy flying towards the corner.
     if (!card.isConnected || !end.width || !end.height) {
       flight = null;
@@ -108,6 +107,27 @@ function flyBack(from: NonNullable<typeof leaving>, card: HTMLElement) {
     }, () => {});
   });
   flight = { frame, card };
+}
+
+/**
+ * Mounted in the layout after the page, so its effect runs after the cards': ends a Back from a Detail in the commit
+ * that shows the page, which React may hold until a View Transition still running has finished. The page fades in;
+ * the Detail's title had focus, so without a card to take it back the page's content gets it, not the body.
+ */
+export function BackFromDetail() {
+  const pathname = usePathname();
+
+  useLayoutEffect(() => {
+    if (!backFromDetail) return;
+    backFromDetail = false;
+    leaving = null;
+    const main = document.getElementById("contenuto");
+    const duration = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--duration-base"));
+    pageFade = main?.animate([{ opacity: 0 }, { opacity: 1 }], { duration, easing: "ease-out" }) ?? null;
+    if (document.activeElement === document.body || !document.activeElement) main?.focus();
+  }, [pathname]);
+
+  return null;
 }
 
 function NamedCover({ name, children }: { name: string; children: ReactNode }) {
