@@ -67,12 +67,13 @@ export function PhoneNav() {
         aria-expanded={open}
         aria-controls="menu-principale"
         onClick={() => setOpen(!open)}
-        className="flex min-h-11 items-center gap-2 rounded-control px-2 text-small font-medium"
+        className="flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-control px-2 text-small font-medium"
       >
         <svg aria-hidden="true" viewBox="0 0 20 20" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.75">
           {open ? <path d="M5 5l10 10M15 5L5 15" /> : <path d="M3 6h14M3 10h14M3 14h14" />}
         </svg>
-        Menu
+        {/* Under 360px only the icon: the header's row must fit 320px (WCAG 1.4.10). The name stays Menu. */}
+        <span className="max-[359px]:sr-only">Menu</span>
       </button>
       <ul id="menu-principale" hidden={!open} className="absolute inset-x-0 top-16 border-b border-border bg-surface py-2">
         {items.map(({ href, label }) => (

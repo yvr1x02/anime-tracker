@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test";
+import { type Page, expect, test } from "@playwright/test";
+import { logIn, resetMyList } from "./session";
 
 const disclaimer =
   "Anime Tracker è un client non ufficiale per AniList, non affiliato ad AniList. Dati forniti da AniList.";
@@ -127,4 +128,31 @@ test("robots.txt asks every crawler to stay out (ADR-0003)", async ({ request })
 
   expect(response.status()).toBe(200);
   expect(await response.text()).toMatch(/^User-Agent: \*\nDisallow: \/$/m);
+});
+
+// WCAG 1.4.10: at 320px nothing scrolls sideways (scrollers like the filter rows and the airing strip scroll inside).
+const fitsWidth = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+
+test("at 320px no page scrolls sideways, logged out", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  for (const path of ["/", "/ricerca", "/anime/1", "/anime/14", "/lista", "/calendario", "/statistiche", "/accesso", "/pagina-che-non-esiste"]) {
+    await page.goto(path);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    // The Detail's kanji slide in for half a second: measured once they have settled.
+    await page.waitForTimeout(path.startsWith("/anime/") ? 800 : 0);
+    expect({ path, overflow: await fitsWidth(page) }).toEqual({ path, overflow: 0 });
+  }
+  // Only the icon under 360px, still named Menu.
+  await expect(page.getByRole("button", { name: "Menu" })).toHaveCSS("width", "44px");
+});
+
+test("at 320px no page scrolls sideways, logged in", async ({ page, request }) => {
+  await resetMyList(request);
+  await page.setViewportSize({ width: 320, height: 700 });
+  await logIn(page, "/");
+  for (const path of ["/", "/lista", "/statistiche", "/calendario"]) {
+    await page.goto(path);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    expect({ path, overflow: await fitsWidth(page) }).toEqual({ path, overflow: 0 });
+  }
 });

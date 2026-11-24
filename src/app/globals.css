@@ -212,6 +212,13 @@
     margin-top: 1rem;
   }
 
+  /* At 320px ten 24px columns fit only with 4px between them (WCAG 1.4.10). */
+  @media (max-width: 359px) {
+    .score-chart {
+      gap: 0.25rem;
+    }
+  }
+
   .score-column {
     display: flex;
     flex-direction: column-reverse;
